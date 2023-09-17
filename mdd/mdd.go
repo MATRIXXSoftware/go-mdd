@@ -24,8 +24,8 @@ type Container struct {
 	Fields []Field
 }
 
-func decode(data string) Container {
-	fmt.Println("Decode ", data)
+func Decode(data string) Container {
+	fmt.Println("Decoding ", data)
 	var container Container
 
 	// Extract header and fields substrings
@@ -35,18 +35,8 @@ func decode(data string) Container {
 	headerStr := data[1:headerEnd]
 	fieldsStr := data[fieldsStart+1 : len(data)-1]
 
-	// Decode header
-	headerParts := strings.Split(headerStr, ",")
-	if len(headerParts) == 6 {
-		container.Header.Version, _ = strconv.Atoi(headerParts[0])
-		container.Header.TotalField, _ = strconv.Atoi(headerParts[1])
-		container.Header.Depth, _ = strconv.Atoi(headerParts[2])
-		container.Header.Key, _ = strconv.Atoi(headerParts[3])
-		container.Header.SchemaVersion, _ = strconv.Atoi(headerParts[4])
-		container.Header.ExtVersion, _ = strconv.Atoi(headerParts[5])
-	} else {
-		// TODO return error
-	}
+	// Decode Header
+	container.Header = decodeHeader(headerStr)
 
 	// Decode fields
 	fieldsParts := strings.Split(fieldsStr, ",")
@@ -57,6 +47,22 @@ func decode(data string) Container {
 	return container
 }
 
-func encode() {
+func decodeHeader(data string) Header {
+	var header Header
+	headerParts := strings.Split(data, ",")
+	if len(headerParts) == 6 {
+		header.Version, _ = strconv.Atoi(headerParts[0])
+		header.TotalField, _ = strconv.Atoi(headerParts[1])
+		header.Depth, _ = strconv.Atoi(headerParts[2])
+		header.Key, _ = strconv.Atoi(headerParts[3])
+		header.SchemaVersion, _ = strconv.Atoi(headerParts[4])
+		header.ExtVersion, _ = strconv.Atoi(headerParts[5])
+	} else {
+		// TODO return error
+	}
+	return header
+}
+
+func Encode() {
 	fmt.Println("Encode")
 }
