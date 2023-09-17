@@ -7,11 +7,12 @@ import (
 )
 
 type Header struct {
-	Key           string // position 0
-	TotalField    int    // position 1
-	Depth         int    // position 2
-	SchemaVersion int    // position 3
-	ExtVersion    int    // position 4
+	Version       int // position 0
+	TotalField    int // position 1
+	Depth         int // position 2
+	Key           int // position 3
+	SchemaVersion int // position 4
+	ExtVersion    int // position 5
 }
 
 type Field struct {
@@ -36,16 +37,19 @@ func decode(data string) Container {
 
 	// Decode header
 	headerParts := strings.Split(headerStr, ",")
-	if len(headerParts) == 5 {
-		container.Header.Key = headerParts[0]
+	if len(headerParts) == 6 {
+		container.Header.Version, _ = strconv.Atoi(headerParts[0])
 		container.Header.TotalField, _ = strconv.Atoi(headerParts[1])
 		container.Header.Depth, _ = strconv.Atoi(headerParts[2])
-		container.Header.SchemaVersion, _ = strconv.Atoi(headerParts[3])
-		container.Header.ExtVersion, _ = strconv.Atoi(headerParts[4])
+		container.Header.Key, _ = strconv.Atoi(headerParts[3])
+		container.Header.SchemaVersion, _ = strconv.Atoi(headerParts[4])
+		container.Header.ExtVersion, _ = strconv.Atoi(headerParts[5])
+	} else {
+		// TODO return error
 	}
 
 	// Decode fields
-	fieldsParts := strings.Split(fieldsStr, ",")[1:] // Skipping the first part as it belongs to the header
+	fieldsParts := strings.Split(fieldsStr, ",")
 	for _, f := range fieldsParts {
 		container.Fields = append(container.Fields, Field{Value: f})
 	}
