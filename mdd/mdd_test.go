@@ -1,6 +1,7 @@
 package mdd
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -8,8 +9,8 @@ import (
 
 func TestSimple1(t *testing.T) {
 	mdc := "<1,18,0,-6,5222,2>[1,abc,foo,bar]"
-	Encode()
-	container := Decode(mdc)
+	container, err := Decode(mdc)
+	assert.Nil(t, err)
 
 	expectedHeader := Header{
 		Version:       1,
@@ -28,11 +29,8 @@ func TestSimple1(t *testing.T) {
 func TestSimple2(t *testing.T) {
 	mdc := "<1,18,0,-6,5222,2>[,(6:value2),3,2021-09-07T08:00:25.000001Z," +
 		"2021-10-31,09:13:02.667997Z,88,5.5,"
-	Encode()
-	container := Decode(mdc)
-	// fmt.Println("Decoded Container:")
-	// fmt.Printf("Header: %+v\n", container.Header)
-	// fmt.Printf("Fields: %+v\n", container.Fields)
+	container, err := Decode(mdc)
+	assert.Nil(t, err)
 
 	expectedHeader := Header{
 		Version:       1,
@@ -54,4 +52,10 @@ func TestSimple2(t *testing.T) {
 		{"88"},
 		{"5.5"}}
 	assert.Equal(t, expectedFields, container.Fields)
+}
+
+func TestInvalidHeader(t *testing.T) {
+	mdc := "<1,18,-6,5222,2>[1,abc,foo,bar]"
+	_, err := Decode(mdc)
+	assert.Equal(t, errors.New("Invalid cMDC header"), err)
 }

@@ -1,6 +1,7 @@
 package mdd
 
 import (
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -24,7 +25,7 @@ type Container struct {
 	Fields []Field
 }
 
-func Decode(data string) Container {
+func Decode(data string) (Container, error) {
 	fmt.Println("Decoding ", data)
 	var container Container
 
@@ -36,7 +37,12 @@ func Decode(data string) Container {
 	fieldsStr := data[fieldsStart+1 : len(data)-1]
 
 	// Decode Header
-	container.Header = decodeHeader(headerStr)
+	header, err := decodeHeader(headerStr)
+	if err != nil {
+		return container, err
+	}
+
+	container.Header = header
 
 	// Decode fields
 	fieldsParts := strings.Split(fieldsStr, ",")
@@ -44,23 +50,22 @@ func Decode(data string) Container {
 		container.Fields = append(container.Fields, Field{Value: f})
 	}
 
-	return container
+	return container, nil
 }
 
-func decodeHeader(data string) Header {
+func decodeHeader(data string) (Header, error) {
 	var header Header
 	headerParts := strings.Split(data, ",")
-	if len(headerParts) == 6 {
-		header.Version, _ = strconv.Atoi(headerParts[0])
-		header.TotalField, _ = strconv.Atoi(headerParts[1])
-		header.Depth, _ = strconv.Atoi(headerParts[2])
-		header.Key, _ = strconv.Atoi(headerParts[3])
-		header.SchemaVersion, _ = strconv.Atoi(headerParts[4])
-		header.ExtVersion, _ = strconv.Atoi(headerParts[5])
-	} else {
-		// TODO return error
+	if len(headerParts) != 6 {
+		return header, errors.New("Invalid cMDC header")
 	}
-	return header
+	header.Version, _ = strconv.Atoi(headerParts[0])
+	header.TotalField, _ = strconv.Atoi(headerParts[1])
+	header.Depth, _ = strconv.Atoi(headerParts[2])
+	header.Key, _ = strconv.Atoi(headerParts[3])
+	header.SchemaVersion, _ = strconv.Atoi(headerParts[4])
+	header.ExtVersion, _ = strconv.Atoi(headerParts[5])
+	return header, nil
 }
 
 func Encode() {
