@@ -9,7 +9,7 @@ import (
 
 func TestSimple1(t *testing.T) {
 	mdc := "<1,18,0,-6,5222,2>[1,abc,foo,bar]"
-	container, err := Decode(mdc)
+	container, err := Decode([]byte(mdc))
 	assert.Nil(t, err)
 
 	expectedHeader := Header{
@@ -28,8 +28,8 @@ func TestSimple1(t *testing.T) {
 
 func TestSimple2(t *testing.T) {
 	mdc := "<1,18,0,-6,5222,2>[,(6:value2),3,2021-09-07T08:00:25.000001Z," +
-		"2021-10-31,09:13:02.667997Z,88,5.5,"
-	container, err := Decode(mdc)
+		"2021-10-31,09:13:02.667997Z,88,5.5,]"
+	container, err := Decode([]byte(mdc))
 	assert.Nil(t, err)
 
 	expectedHeader := Header{
@@ -50,13 +50,14 @@ func TestSimple2(t *testing.T) {
 		{"2021-10-31"},
 		{"09:13:02.667997Z"},
 		{"88"},
-		{"5.5"}}
+		{"5.5"},
+		{""}}
 	assert.Equal(t, expectedFields, container.Fields)
 }
 
 func TestSimple3(t *testing.T) {
 	mdc := "<1,18,0,-6,5222,2>[1,abc,foo,bar]<1,5,0,-7,5222,2>[2,def]"
-	container, err := Decode2([]byte(mdc))
+	container, err := Decode([]byte(mdc))
 
 	assert.Nil(t, err)
 
@@ -70,13 +71,13 @@ func TestSimple3(t *testing.T) {
 	}
 	assert.Equal(t, expectedHeader, container.Header)
 
-	// expectedFields := []Field{{"1"}, {"abc"}, {"foo"}, {"bar"}}
-	// assert.Equal(t, expectedFields, container.Fields)
+	expectedFields := []Field{{"1"}, {"abc"}, {"foo"}, {"bar"}}
+	assert.Equal(t, expectedFields, container.Fields)
 }
 
 func TestInvalidHeader(t *testing.T) {
 	mdc := "<1,18,-6,5222,2>[1,abc,foo,bar]"
-	_, err := Decode(mdc)
+	_, err := Decode([]byte(mdc))
 	assert.Equal(t, errors.New("Invalid cMDC header"), err)
 }
 
