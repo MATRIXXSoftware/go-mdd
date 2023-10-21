@@ -6,24 +6,6 @@ import (
 	"log"
 )
 
-type Header struct {
-	Version       int // position 0
-	TotalField    int // position 1
-	Depth         int // position 2
-	Key           int // position 3
-	SchemaVersion int // position 4
-	ExtVersion    int // position 5
-}
-
-type Field struct {
-	Value string
-}
-
-type Container struct {
-	Header Header
-	Fields []Field
-}
-
 func Decode(data []byte) (Container, error) {
 	log.Printf("Decoding %s\n", string(data))
 	var container Container
