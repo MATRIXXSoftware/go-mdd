@@ -12,7 +12,7 @@ endif
 all: clean build
 
 build:
-	$(GO) build -o bin/$(APP) mdd/*.go
+	$(GO) build -o bin/$(APP) core/*.go
 clean:
 	$(GO) clean -testcache
 test:

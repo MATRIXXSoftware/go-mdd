@@ -1,11 +1,9 @@
-package mdd
+package core
 
 import (
 	"errors"
 	"fmt"
 	"log"
-	"strconv"
-	"strings"
 )
 
 type Header struct {
@@ -42,13 +40,11 @@ func Decode(data []byte) (Container, error) {
 	var idx int
 	for idx = 1; idx < len(data); idx++ {
 		c := data[idx]
-		// log.Printf("i:%-3d c:%c\n", idx, c)
 		if c == '>' {
 			headerData = data[1:idx]
 			break
 		}
 	}
-	// log.Printf("headerString: %s\n", headerData)
 	header, err := decodeHeader(headerData)
 	if err != nil {
 		return container, err
@@ -63,23 +59,18 @@ func Decode(data []byte) (Container, error) {
 		return container, errors.New("Invalid cMDC body, no body")
 	}
 
-	// log.Printf("idx: %d %c\n", idx, data[idx])
-
-	// First char must be '['
+	// First char following a header must be '['
 	if data[idx] != '[' {
 		return container, errors.New("Invalid cMDC body, first char must be '['")
 	}
-	bodyStartIdx := idx
+	mark := idx
 	for ; idx < len(data); idx++ {
 		c := data[idx]
-		// log.Printf("i:%-3d c:%c\n", idx, c)
 		if c == ']' {
-			bodyData = data[bodyStartIdx+1 : idx]
+			bodyData = data[mark+1 : idx]
 			break
 		}
 	}
-
-	// log.Printf("bodyString: %s\n", bodyData)
 
 	fields, err := decodeBody(bodyData)
 	if err != nil {
@@ -101,10 +92,8 @@ func decodeBody(data []byte) ([]Field, error) {
 
 	for ; i < len(data); i++ {
 		c := data[i]
-		// log.Printf("c: %c\n", c)
 		if c == ',' {
 			fieldData := data[mark:i]
-			// log.Printf("fieldData: %s\n", fieldData)
 			mark = i + 1
 			field := Field{Value: string(fieldData)}
 			fields = append(fields, field)
@@ -112,7 +101,6 @@ func decodeBody(data []byte) ([]Field, error) {
 	}
 	// last field
 	fieldData := data[mark:i]
-	// log.Printf("fieldData: %s\n", fieldData)
 	field := Field{Value: string(fieldData)}
 	fields = append(fields, field)
 
@@ -121,37 +109,76 @@ func decodeBody(data []byte) ([]Field, error) {
 
 func decodeHeader(data []byte) (Header, error) {
 	log.Printf("Decoding header '%s'\n", string(data))
-
 	var header Header
-	// TODO do not use string conversion
-	headerParts := strings.Split(string(data), ",")
-	if len(headerParts) != 6 {
-		return header, errors.New("Invalid cMDC header")
+	mark := 0
+	i := 0
+	idx := 0
+	for ; i < len(data); i++ {
+		c := data[i]
+		if c == ',' {
+			fieldData := data[mark:i]
+			mark = i + 1
+			v, err := bytesToInt(fieldData)
+			if err != nil {
+				return header, err
+			}
+			switch idx {
+			case 0:
+				header.Version = v
+			case 1:
+				header.TotalField = v
+			case 2:
+				header.Depth = v
+			case 3:
+				header.Key = v
+			case 4:
+				header.SchemaVersion = v
+			}
+			idx++
+		}
 	}
-	header.Version, _ = strconv.Atoi(headerParts[0])
-	header.TotalField, _ = strconv.Atoi(headerParts[1])
-	header.Depth, _ = strconv.Atoi(headerParts[2])
-	header.Key, _ = strconv.Atoi(headerParts[3])
-	header.SchemaVersion, _ = strconv.Atoi(headerParts[4])
-	header.ExtVersion, _ = strconv.Atoi(headerParts[5])
+	// last field
+	fieldData := data[mark:i]
+	v, err := bytesToInt(fieldData)
+	if err != nil {
+		return header, err
+	}
+	if idx != 5 {
+		return header, errors.New("Invalid cMDC header, 6 fields expected")
+	}
+	header.ExtVersion = v
 	return header, nil
 }
 
-func Encode(container Container) (string, error) {
-	fmt.Println("Encoding ", container)
-	var data string
-
-	// Encode header
-	header := container.Header
-	data += fmt.Sprintf("<%d,%d,%d,%d,%d,%d>", header.Version, header.TotalField, header.Depth, header.Key, header.SchemaVersion, header.ExtVersion)
-
-	// Encode fields
-	for _, f := range container.Fields {
-		data += fmt.Sprintf("%s,", f.Value)
+func bytesToInt(b []byte) (int, error) {
+	if len(b) == 0 {
+		return 0, nil // return zero if the slice is empty
 	}
 
-	// Remove last comma
-	data = data[:len(data)-1]
+	result := 0
+	multiplier := 1
+	isNegative := false
 
-	return data, nil
+	startIndex := 0
+	if b[0] == '-' {
+		isNegative = true
+		startIndex = 1
+	} else if b[0] == '+' {
+		startIndex = 1
+	}
+
+	for i := len(b) - 1; i >= startIndex; i-- {
+		if b[i] < '0' || b[i] > '9' {
+			log.Fatalf("Invalid character in byte slice: %c", b[i])
+			return 0, fmt.Errorf("Invalid character in byte slice: %c", b[i])
+		}
+		result += int(b[i]-'0') * multiplier
+		multiplier *= 10
+	}
+
+	if isNegative {
+		result = -result
+	}
+
+	return result, nil
 }

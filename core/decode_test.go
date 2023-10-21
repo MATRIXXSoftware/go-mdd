@@ -1,4 +1,4 @@
-package mdd
+package core
 
 import (
 	"errors"
@@ -78,7 +78,7 @@ func TestSimple3(t *testing.T) {
 func TestInvalidHeader(t *testing.T) {
 	mdc := "<1,18,-6,5222,2>[1,abc,foo,bar]"
 	_, err := Decode([]byte(mdc))
-	assert.Equal(t, errors.New("Invalid cMDC header"), err)
+	assert.Equal(t, errors.New("Invalid cMDC header, 6 fields expected"), err)
 }
 
 // func TestEncode(t *testing.T) {
