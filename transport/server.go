@@ -52,16 +52,25 @@ func handleJobs(jobs chan net.Conn, wg *sync.WaitGroup) {
 func handleConnection(conn net.Conn) {
 	defer conn.Close()
 
-	msg := &ExampleMessage{}
-	err := msg.Decode(conn)
-	if err != nil {
-		log.Panic(err)
-	}
+	for {
+		request := &ExampleMessage{}
+		err := request.Decode(conn)
+		if err != nil {
+			log.Panic(err)
+		}
 
-	log.Printf("Received message: %+v", msg)
+		log.Printf("Received Request: %+v", request)
 
-	err = msg.Encode(conn)
-	if err != nil {
-		log.Panic(err)
+		// TODO add callback
+
+		response := &ExampleMessage{
+			Field1: request.Field1 + 10,
+			Field2: request.Field2 + 10,
+		}
+
+		err = response.Encode(conn)
+		if err != nil {
+			log.Panic(err)
+		}
 	}
 }
