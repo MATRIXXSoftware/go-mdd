@@ -1,34 +1,28 @@
 package transport
 
 import (
-	"encoding/binary"
-	"io"
-	"log"
 	"net"
 	"sync"
+
+	log "github.com/sirupsen/logrus"
 )
 
-type ExampleMessage struct {
-	Field1 uint32
-	Field2 uint32
+type MddServer struct {
+	ln net.Listener
 }
 
-func (m *ExampleMessage) Decode(r io.Reader) error {
-	return binary.Read(r, binary.LittleEndian, m)
-}
-
-func (m *ExampleMessage) Encode(w io.Writer) error {
-	return binary.Write(w, binary.LittleEndian, m)
-}
-
+// TODO make this configurable
 const numWorkers = 10
 
-func MddServer(addr string) error {
+func NewServer(addr string) (*MddServer, error) {
 	ln, err := net.Listen("tcp", addr)
 	if err != nil {
-		return err
+		return nil, err
 	}
+	return &MddServer{ln: ln}, nil
+}
 
+func (s *MddServer) Listen() error {
 	jobs := make(chan net.Conn, 100)
 	var wg sync.WaitGroup
 	for i := 0; i < numWorkers; i++ {
@@ -37,7 +31,7 @@ func MddServer(addr string) error {
 	}
 
 	for {
-		conn, err := ln.Accept()
+		conn, err := s.ln.Accept()
 		if err != nil {
 			break
 		}

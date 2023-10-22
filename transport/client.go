@@ -2,22 +2,34 @@ package transport
 
 import "net"
 
-func MddClient(addr string, msg *ExampleMessage) error {
+type MddClient struct {
+	conn net.Conn
+}
+
+func NewClient(addr string) (*MddClient, error) {
 	conn, err := net.Dial("tcp", addr)
 	if err != nil {
-		return err
-	}
-	defer conn.Close()
-
-	err = msg.Encode(conn)
-	if err != nil {
-		return err
+		return nil, err
 	}
 
-	// Receive a response
-	err = msg.Decode(conn)
+	return &MddClient{conn: conn}, nil
+}
+
+func (c *MddClient) Close() error {
+	return c.conn.Close()
+}
+
+func (c *MddClient) SendMessage(msg *ExampleMessage) (*ExampleMessage, error) {
+	err := msg.Encode(c.conn)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+
+	response := &ExampleMessage{}
+	err = response.Decode(c.conn)
+	if err != nil {
+		return nil, err
+	}
+
+	return response, nil
 }
