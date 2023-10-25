@@ -1,4 +1,4 @@
-package core
+package mdd
 
 import (
 	"testing"
@@ -19,7 +19,7 @@ func TestGetContainer(t *testing.T) {
 					SchemaVersion: 5222,
 					ExtVersion:    2,
 				},
-				Fields: []Field{{"1"}, {"two"}, {"three"}, {"4"}},
+				Fields: []Field{{Value: "1"}, {Value: "two"}, {Value: "three"}, {Value: "4"}},
 			},
 			{
 				Header: Header{
@@ -30,7 +30,7 @@ func TestGetContainer(t *testing.T) {
 					SchemaVersion: 5222,
 					ExtVersion:    2,
 				},
-				Fields: []Field{{"1"}, {"abc"}, {"foo"}, {"bar"}, {"5"}, {"6"}},
+				Fields: []Field{{Value: "1"}, {Value: "abc"}, {Value: "foo"}, {Value: "bar"}, {Value: "5"}, {Value: "6"}},
 			},
 		},
 	}

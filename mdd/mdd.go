@@ -1,4 +1,4 @@
-package core
+package mdd
 
 type Header struct {
 	Version       int // position 0

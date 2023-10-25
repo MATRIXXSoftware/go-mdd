@@ -1,4 +1,4 @@
-package transport
+package mdd
 
 import (
 	"net"
@@ -7,22 +7,22 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-type MddServer struct {
+type Server struct {
 	ln net.Listener
 }
 
 // TODO make this configurable
 const numWorkers = 10
 
-func NewServer(addr string) (*MddServer, error) {
+func NewServer(addr string) (*Server, error) {
 	ln, err := net.Listen("tcp", addr)
 	if err != nil {
 		return nil, err
 	}
-	return &MddServer{ln: ln}, nil
+	return &Server{ln: ln}, nil
 }
 
-func (s *MddServer) Listen() error {
+func (s *Server) Listen() error {
 	jobs := make(chan net.Conn, 100)
 	var wg sync.WaitGroup
 	for i := 0; i < numWorkers; i++ {

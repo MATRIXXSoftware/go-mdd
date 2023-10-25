@@ -1,14 +1,15 @@
-package core
+package cmdc
 
 import (
 	"testing"
 
+	"github.com/matrixxsoftware/go-mdd/mdd"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestEncode(t *testing.T) {
-	container := Container{
-		Header: Header{
+	container := mdd.Container{
+		Header: mdd.Header{
 			Version:       1,
 			TotalField:    18,
 			Depth:         0,
@@ -16,7 +17,7 @@ func TestEncode(t *testing.T) {
 			SchemaVersion: 5222,
 			ExtVersion:    2,
 		},
-		Fields: []Field{{"1"}, {"abc"}, {"foo"}, {"bar"}},
+		Fields: []mdd.Field{{Value: "1"}, {Value: "abc"}, {Value: "foo"}, {Value: "bar"}},
 	}
 
 	expected := "<1,18,0,-6,5222,2>[1,abc,foo,bar]"

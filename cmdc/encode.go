@@ -1,8 +1,12 @@
-package core
+package cmdc
 
-import "fmt"
+import (
+	"fmt"
 
-func Encode(container Container) (string, error) {
+	"github.com/matrixxsoftware/go-mdd/mdd"
+)
+
+func Encode(container mdd.Container) (string, error) {
 	fmt.Println("Encoding ", container)
 	var data string
 

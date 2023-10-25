@@ -1,9 +1,10 @@
-package core
+package cmdc
 
 import (
 	"errors"
 	"testing"
 
+	"github.com/matrixxsoftware/go-mdd/mdd"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -12,7 +13,7 @@ func TestSimple1(t *testing.T) {
 	container, err := Decode([]byte(mdc))
 	assert.Nil(t, err)
 
-	expectedHeader := Header{
+	expectedHeader := mdd.Header{
 		Version:       1,
 		TotalField:    18,
 		Depth:         0,
@@ -22,7 +23,7 @@ func TestSimple1(t *testing.T) {
 	}
 	assert.Equal(t, expectedHeader, container.Header)
 
-	expectedFields := []Field{{"1"}, {"abc"}, {"foo"}, {"bar"}}
+	expectedFields := []mdd.Field{{Value: "1"}, {Value: "abc"}, {Value: "foo"}, {Value: "bar"}}
 	assert.Equal(t, expectedFields, container.Fields)
 }
 
@@ -32,7 +33,7 @@ func TestSimple2(t *testing.T) {
 	container, err := Decode([]byte(mdc))
 	assert.Nil(t, err)
 
-	expectedHeader := Header{
+	expectedHeader := mdd.Header{
 		Version:       1,
 		TotalField:    18,
 		Depth:         0,
@@ -42,16 +43,16 @@ func TestSimple2(t *testing.T) {
 	}
 	assert.Equal(t, expectedHeader, container.Header)
 
-	expectedFields := []Field{
-		{""},
-		{"(6:value2)"},
-		{"3"},
-		{"2021-09-07T08:00:25.000001Z"},
-		{"2021-10-31"},
-		{"09:13:02.667997Z"},
-		{"88"},
-		{"5.5"},
-		{""}}
+	expectedFields := []mdd.Field{
+		{Value: ""},
+		{Value: "(6:value2)"},
+		{Value: "3"},
+		{Value: "2021-09-07T08:00:25.000001Z"},
+		{Value: "2021-10-31"},
+		{Value: "09:13:02.667997Z"},
+		{Value: "88"},
+		{Value: "5.5"},
+		{Value: ""}}
 	assert.Equal(t, expectedFields, container.Fields)
 }
 
@@ -61,7 +62,7 @@ func TestSimple3(t *testing.T) {
 
 	assert.Nil(t, err)
 
-	expectedHeader := Header{
+	expectedHeader := mdd.Header{
 		Version:       1,
 		TotalField:    18,
 		Depth:         0,
@@ -71,7 +72,7 @@ func TestSimple3(t *testing.T) {
 	}
 	assert.Equal(t, expectedHeader, container.Header)
 
-	expectedFields := []Field{{"1"}, {"abc"}, {"foo"}, {"bar"}}
+	expectedFields := []mdd.Field{{Value: "1"}, {Value: "abc"}, {Value: "foo"}, {Value: "bar"}}
 	assert.Equal(t, expectedFields, container.Fields)
 }
 

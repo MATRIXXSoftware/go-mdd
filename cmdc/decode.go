@@ -1,14 +1,16 @@
-package core
+package cmdc
 
 import (
 	"errors"
 	"fmt"
 	"log"
+
+	"github.com/matrixxsoftware/go-mdd/mdd"
 )
 
-func Decode(data []byte) (Container, error) {
+func Decode(data []byte) (mdd.Container, error) {
 	log.Printf("Decoding %s\n", string(data))
-	var container Container
+	var container mdd.Container
 
 	// Decode Header
 	var headerData []byte
@@ -64,10 +66,10 @@ func Decode(data []byte) (Container, error) {
 	return container, nil
 }
 
-func decodeBody(data []byte) ([]Field, error) {
+func decodeBody(data []byte) ([]mdd.Field, error) {
 	log.Printf("Decoding body '%s'\n", string(data))
 
-	var fields []Field
+	var fields []mdd.Field
 
 	mark := 0
 	i := 0
@@ -77,21 +79,21 @@ func decodeBody(data []byte) ([]Field, error) {
 		if c == ',' {
 			fieldData := data[mark:i]
 			mark = i + 1
-			field := Field{Value: string(fieldData)}
+			field := mdd.Field{Value: string(fieldData)}
 			fields = append(fields, field)
 		}
 	}
 	// last field
 	fieldData := data[mark:i]
-	field := Field{Value: string(fieldData)}
+	field := mdd.Field{Value: string(fieldData)}
 	fields = append(fields, field)
 
 	return fields, nil
 }
 
-func decodeHeader(data []byte) (Header, error) {
+func decodeHeader(data []byte) (mdd.Header, error) {
 	log.Printf("Decoding header '%s'\n", string(data))
-	var header Header
+	var header mdd.Header
 	mark := 0
 	i := 0
 	idx := 0
