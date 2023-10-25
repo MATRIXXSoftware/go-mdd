@@ -1,15 +1,20 @@
-package mdd
+package test
 
 import (
 	"testing"
 	"time"
 
+	"github.com/matrixxsoftware/go-mdd/cmdc"
+	"github.com/matrixxsoftware/go-mdd/mdd"
 	log "github.com/sirupsen/logrus"
 )
 
 func TestTransport(t *testing.T) {
+
+	codec := cmdc.NewCodec()
+
 	// Create Server
-	server, err := NewServer("localhost:8080")
+	server, err := mdd.NewServer("localhost:8080", codec)
 	if err != nil {
 		panic(err)
 	}
@@ -24,17 +29,17 @@ func TestTransport(t *testing.T) {
 	time.Sleep(100 * time.Millisecond)
 
 	// Create Client
-	client, err := NewClient("localhost:8080")
+	client, err := mdd.NewClient("localhost:8080", codec)
 	if err != nil {
 		panic(err)
 	}
 	defer client.Close()
 
 	// Send Message
-	request := Containers{
-		Containers: []Container{
+	request := mdd.Containers{
+		Containers: []mdd.Container{
 			{
-				Header: Header{
+				Header: mdd.Header{
 					Version:       1,
 					TotalField:    5,
 					Depth:         0,
@@ -42,7 +47,7 @@ func TestTransport(t *testing.T) {
 					SchemaVersion: 5222,
 					ExtVersion:    2,
 				},
-				Fields: []Field{{Value: "1"}, {Value: "two"}, {Value: "three"}, {Value: "4"}},
+				Fields: []mdd.Field{{Value: "1"}, {Value: "two"}, {Value: "three"}, {Value: "4"}},
 			},
 		},
 	}

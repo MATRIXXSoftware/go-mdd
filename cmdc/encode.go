@@ -6,11 +6,11 @@ import (
 	"github.com/matrixxsoftware/go-mdd/mdd"
 )
 
-func Encode(container *mdd.Container) ([]byte, error) {
+func Encode(containers *mdd.Containers) ([]byte, error) {
 
 	// TODO handle multiple containers
 
-	return encodeContainer(container)
+	return encodeContainer(&containers.Containers[0])
 }
 
 func encodeContainer(container *mdd.Container) ([]byte, error) {
