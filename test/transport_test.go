@@ -20,7 +20,7 @@ func TestTransport(t *testing.T) {
 	}
 
 	server.Handler(func(containers *mdd.Containers) *mdd.Containers {
-		log.Infof("Server received request: %+v", containers)
+		log.Infof("Server received request : %+v", containers)
 		return &mdd.Containers{
 			Containers: []mdd.Container{
 				{
@@ -45,7 +45,7 @@ func TestTransport(t *testing.T) {
 		}
 	}()
 
-	time.Sleep(100 * time.Millisecond)
+	time.Sleep(250 * time.Millisecond)
 
 	// Create Client
 	client, err := mdd.NewClient("localhost:8080", codec)
@@ -79,6 +79,6 @@ func TestTransport(t *testing.T) {
 
 	time.Sleep(100 * time.Millisecond)
 
-	// server.Close()
-	// client.Close()
+	client.Close()
+	server.Close()
 }

@@ -5,13 +5,13 @@ import (
 	"io"
 )
 
-type Transport struct {
-	Codec      Codec
-	Containers *Containers
+type Codec interface {
+	Decode([]byte) (*Containers, error)
+	Encode(*Containers) ([]byte, error)
 }
 
-func (t *Transport) Encode(w io.Writer) error {
-	encoded, err := t.Codec.Encode(t.Containers)
+func Encode(w io.Writer, codec Codec, containers *Containers) error {
+	encoded, err := codec.Encode(containers)
 	if err != nil {
 		return err
 	}
@@ -30,25 +30,23 @@ func (t *Transport) Encode(w io.Writer) error {
 	return nil
 }
 
-func (t *Transport) Decode(r io.Reader) error {
+func Decode(r io.Reader, codec Codec) (*Containers, error) {
 	var len uint32
 	if err := binary.Read(r, binary.LittleEndian, &len); err != nil {
-		return err
+		return nil, err
 	}
 
 	payload := make([]byte, len)
 
 	_, err := io.ReadFull(r, payload)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	decoded, err := t.Codec.Decode(payload)
+	decoded, err := codec.Decode(payload)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	t.Containers = decoded
-
-	return nil
+	return decoded, nil
 }

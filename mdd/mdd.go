@@ -30,8 +30,3 @@ func (c *Containers) GetContainer(key int) *Container {
 	}
 	return nil
 }
-
-type Codec interface {
-	Decode([]byte) (*Containers, error)
-	Encode(*Containers) ([]byte, error)
-}

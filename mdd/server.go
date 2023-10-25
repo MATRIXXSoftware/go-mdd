@@ -1,6 +1,7 @@
 package mdd
 
 import (
+	"io"
 	"net"
 	"sync"
 
@@ -67,23 +68,19 @@ func (s *Server) handleConnection(conn net.Conn) {
 	defer conn.Close()
 
 	for {
-		requestTransport := Transport{
-			Containers: &Containers{},
-			Codec:      s.codec,
-		}
-		err := requestTransport.Decode(conn)
+		request, err := Decode(conn, s.codec)
 		if err != nil {
-			log.Panic(err)
+			if err == io.EOF {
+				log.Infof("Connection closed")
+				return
+			} else {
+				log.Panic(err)
+			}
 		}
 
-		response := s.handler(requestTransport.Containers)
+		response := s.handler(request)
 
-		responseTransport := Transport{
-			Containers: response,
-			Codec:      s.codec,
-		}
-
-		err = responseTransport.Encode(conn)
+		err = Encode(conn, s.codec, response)
 		if err != nil {
 			log.Panic(err)
 		}

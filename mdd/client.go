@@ -25,24 +25,15 @@ func (c *Client) Close() error {
 
 func (c *Client) SendMessage(request *Containers) (*Containers, error) {
 
-	requestTransport := Transport{
-		Containers: request,
-		Codec:      c.codec,
-	}
-	err := requestTransport.Encode(c.conn)
+	err := Encode(c.conn, c.codec, request)
 	if err != nil {
 		return nil, err
 	}
 
-	responseTransport := Transport{
-		Containers: &Containers{},
-		Codec:      c.codec,
-	}
-
-	err = responseTransport.Decode(c.conn)
+	response, err := Decode(c.conn, c.codec)
 	if err != nil {
 		return nil, err
 	}
 
-	return responseTransport.Containers, nil
+	return response, nil
 }
