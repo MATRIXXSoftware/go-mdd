@@ -8,8 +8,9 @@ import (
 )
 
 type Server struct {
-	ln    net.Listener
-	codec Codec
+	ln      net.Listener
+	codec   Codec
+	handler func(*Containers) *Containers
 }
 
 // TODO make this configurable
@@ -51,6 +52,10 @@ func (s *Server) Close() error {
 	return s.ln.Close()
 }
 
+func (s *Server) Handler(handler func(*Containers) *Containers) {
+	s.handler = handler
+}
+
 func (s *Server) handleJobs(jobs chan net.Conn, wg *sync.WaitGroup) {
 	defer wg.Done()
 	for conn := range jobs {
@@ -71,29 +76,10 @@ func (s *Server) handleConnection(conn net.Conn) {
 			log.Panic(err)
 		}
 
-		log.Printf("Received Request: %+v", requestTransport.Containers)
-
-		// TODO add callback
-
-		// Dummy Response for now
-		response := Containers{
-			Containers: []Container{
-				{
-					Header: Header{
-						Version:       1,
-						TotalField:    2,
-						Depth:         0,
-						Key:           88,
-						SchemaVersion: 5222,
-						ExtVersion:    2,
-					},
-					Fields: []Field{{Value: "Ok"}, {Value: "0"}},
-				},
-			},
-		}
+		response := s.handler(requestTransport.Containers)
 
 		responseTransport := Transport{
-			Containers: &response,
+			Containers: response,
 			Codec:      s.codec,
 		}
 

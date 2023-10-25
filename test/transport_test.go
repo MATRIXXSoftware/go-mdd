@@ -19,6 +19,25 @@ func TestTransport(t *testing.T) {
 		panic(err)
 	}
 
+	server.Handler(func(containers *mdd.Containers) *mdd.Containers {
+		log.Infof("Server received request: %+v", containers)
+		return &mdd.Containers{
+			Containers: []mdd.Container{
+				{
+					Header: mdd.Header{
+						Version:       1,
+						TotalField:    3,
+						Depth:         0,
+						Key:           88,
+						SchemaVersion: 5222,
+						ExtVersion:    2,
+					},
+					Fields: []mdd.Field{{Value: "0"}, {Value: "OK"}},
+				},
+			},
+		}
+	})
+
 	go func() {
 		err := server.Listen()
 		if err != nil {
@@ -56,7 +75,7 @@ func TestTransport(t *testing.T) {
 		panic(err)
 	}
 
-	log.Infof("Response: %+v", response)
+	log.Infof("Client received response: %+v", response)
 
 	time.Sleep(100 * time.Millisecond)
 
