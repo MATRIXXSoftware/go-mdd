@@ -53,7 +53,7 @@ func handleConnection(conn net.Conn) {
 	defer conn.Close()
 
 	for {
-		request := &ExampleMessage{}
+		request := &Containers{}
 		err := request.Decode(conn)
 		if err != nil {
 			log.Panic(err)
@@ -63,9 +63,21 @@ func handleConnection(conn net.Conn) {
 
 		// TODO add callback
 
-		response := &ExampleMessage{
-			Field1: request.Field1 + 10,
-			Field2: request.Field2 + 10,
+		// Dummy Response for now
+		response := Containers{
+			Containers: []Container{
+				{
+					Header: Header{
+						Version:       1,
+						TotalField:    2,
+						Depth:         0,
+						Key:           88,
+						SchemaVersion: 5222,
+						ExtVersion:    2,
+					},
+					Fields: []Field{{Value: "Ok"}, {Value: "0"}},
+				},
+			},
 		}
 
 		err = response.Encode(conn)

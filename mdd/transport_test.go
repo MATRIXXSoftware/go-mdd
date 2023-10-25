@@ -31,7 +31,21 @@ func TestTransport(t *testing.T) {
 	defer client.Close()
 
 	// Send Message
-	request := ExampleMessage{Field1: 10, Field2: 20}
+	request := Containers{
+		Containers: []Container{
+			{
+				Header: Header{
+					Version:       1,
+					TotalField:    5,
+					Depth:         0,
+					Key:           101,
+					SchemaVersion: 5222,
+					ExtVersion:    2,
+				},
+				Fields: []Field{{Value: "1"}, {Value: "two"}, {Value: "three"}, {Value: "4"}},
+			},
+		},
+	}
 	response, err := client.SendMessage(&request)
 	if err != nil {
 		panic(err)

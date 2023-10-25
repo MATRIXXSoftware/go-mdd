@@ -19,13 +19,13 @@ func (c *Client) Close() error {
 	return c.conn.Close()
 }
 
-func (c *Client) SendMessage(msg *ExampleMessage) (*ExampleMessage, error) {
-	err := msg.Encode(c.conn)
+func (c *Client) SendMessage(request *Containers) (*Containers, error) {
+	err := request.Encode(c.conn)
 	if err != nil {
 		return nil, err
 	}
 
-	response := &ExampleMessage{}
+	response := &Containers{}
 	err = response.Decode(c.conn)
 	if err != nil {
 		return nil, err
