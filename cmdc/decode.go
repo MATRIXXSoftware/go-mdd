@@ -8,8 +8,23 @@ import (
 	"github.com/matrixxsoftware/go-mdd/mdd"
 )
 
-func Decode(data []byte) (mdd.Container, error) {
+func Decode(data []byte) (*mdd.Containers, error) {
 	log.Printf("Decoding %s\n", string(data))
+
+	var containers mdd.Containers
+	container, err := decodeContainer(data)
+	if err != nil {
+		return nil, err
+	}
+
+	containers.Containers = append(containers.Containers, *container)
+
+	// TODO handle multiple containers
+
+	return &containers, nil
+}
+
+func decodeContainer(data []byte) (*mdd.Container, error) {
 	var container mdd.Container
 
 	// Decode Header
@@ -17,7 +32,7 @@ func Decode(data []byte) (mdd.Container, error) {
 
 	// First char must be '<'
 	if data[0] != '<' {
-		return container, errors.New("Invalid cMDC header, first char must be '<'")
+		return nil, errors.New("Invalid cMDC header, first char must be '<'")
 	}
 
 	// Start from second char
@@ -31,7 +46,7 @@ func Decode(data []byte) (mdd.Container, error) {
 	}
 	header, err := decodeHeader(headerData)
 	if err != nil {
-		return container, err
+		return nil, err
 	}
 	container.Header = header
 
@@ -40,12 +55,12 @@ func Decode(data []byte) (mdd.Container, error) {
 
 	idx++
 	if idx >= len(data) {
-		return container, errors.New("Invalid cMDC body, no body")
+		return nil, errors.New("Invalid cMDC body, no body")
 	}
 
 	// First char following a header must be '['
 	if data[idx] != '[' {
-		return container, errors.New("Invalid cMDC body, first char must be '['")
+		return nil, errors.New("Invalid cMDC body, first char must be '['")
 	}
 	mark := idx
 	for ; idx < len(data); idx++ {
@@ -58,12 +73,12 @@ func Decode(data []byte) (mdd.Container, error) {
 
 	fields, err := decodeBody(bodyData)
 	if err != nil {
-		return container, err
+		return &container, err
 	}
 
 	container.Fields = fields
 
-	return container, nil
+	return &container, nil
 }
 
 func decodeBody(data []byte) ([]mdd.Field, error) {

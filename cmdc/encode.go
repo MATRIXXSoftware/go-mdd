@@ -6,7 +6,14 @@ import (
 	"github.com/matrixxsoftware/go-mdd/mdd"
 )
 
-func Encode(container mdd.Container) (string, error) {
+func Encode(container *mdd.Container) ([]byte, error) {
+
+	// TODO handle multiple containers
+
+	return encodeContainer(container)
+}
+
+func encodeContainer(container *mdd.Container) ([]byte, error) {
 	fmt.Println("Encoding ", container)
 	var data string
 
@@ -24,5 +31,5 @@ func Encode(container mdd.Container) (string, error) {
 	data = data[:len(data)-1]
 	data += "]"
 
-	return data, nil
+	return []byte(data), nil
 }

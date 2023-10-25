@@ -21,7 +21,7 @@ func TestEncode(t *testing.T) {
 	}
 
 	expected := "<1,18,0,-6,5222,2>[1,abc,foo,bar]"
-	encoded, err := Encode(container)
+	encoded, err := Encode(&container)
 	assert.Nil(t, err)
-	assert.Equal(t, expected, encoded)
+	assert.Equal(t, []byte(expected), encoded)
 }
