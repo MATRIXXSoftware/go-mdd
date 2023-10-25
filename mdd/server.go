@@ -47,6 +47,10 @@ func (s *Server) Listen() error {
 	return nil
 }
 
+func (s *Server) Close() error {
+	return s.ln.Close()
+}
+
 func (s *Server) handleJobs(jobs chan net.Conn, wg *sync.WaitGroup) {
 	defer wg.Done()
 	for conn := range jobs {

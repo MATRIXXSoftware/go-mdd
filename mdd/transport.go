@@ -11,20 +11,18 @@ type Transport struct {
 }
 
 func (t *Transport) Encode(w io.Writer) error {
-	encodedStr, err := t.Codec.Encode(t.Containers)
+	encoded, err := t.Codec.Encode(t.Containers)
 	if err != nil {
 		return err
 	}
 
-	encodedData := []byte(encodedStr)
+	len := uint32(len(encoded))
 
-	payloadLen := uint32(len(encodedData))
-
-	if err := binary.Write(w, binary.LittleEndian, payloadLen); err != nil {
+	if err := binary.Write(w, binary.LittleEndian, len); err != nil {
 		return err
 	}
 
-	_, err = w.Write(encodedData)
+	_, err = w.Write(encoded)
 	if err != nil {
 		return err
 	}
@@ -33,24 +31,24 @@ func (t *Transport) Encode(w io.Writer) error {
 }
 
 func (t *Transport) Decode(r io.Reader) error {
-	var payloadLen uint32
-	if err := binary.Read(r, binary.LittleEndian, &payloadLen); err != nil {
+	var len uint32
+	if err := binary.Read(r, binary.LittleEndian, &len); err != nil {
 		return err
 	}
 
-	payload := make([]byte, payloadLen)
+	payload := make([]byte, len)
 
 	_, err := io.ReadFull(r, payload)
 	if err != nil {
 		return err
 	}
 
-	decodedContainers, err := t.Codec.Decode(payload)
+	decoded, err := t.Codec.Decode(payload)
 	if err != nil {
 		return err
 	}
 
-	t.Containers = decodedContainers
+	t.Containers = decoded
 
 	return nil
 }

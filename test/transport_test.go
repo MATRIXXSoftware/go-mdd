@@ -57,4 +57,9 @@ func TestTransport(t *testing.T) {
 	}
 
 	log.Infof("Response: %+v", response)
+
+	time.Sleep(100 * time.Millisecond)
+
+	// server.Close()
+	// client.Close()
 }

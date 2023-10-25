@@ -1,10 +1,5 @@
 package mdd
 
-type Codec interface {
-	Decode([]byte) (*Containers, error)
-	Encode(*Containers) ([]byte, error)
-}
-
 type Header struct {
 	Version       int // position 0
 	TotalField    int // position 1
@@ -25,7 +20,6 @@ type Container struct {
 
 type Containers struct {
 	Containers []Container
-	Codec      Codec
 }
 
 func (c *Containers) GetContainer(key int) *Container {
@@ -35,4 +29,9 @@ func (c *Containers) GetContainer(key int) *Container {
 		}
 	}
 	return nil
+}
+
+type Codec interface {
+	Decode([]byte) (*Containers, error)
+	Encode(*Containers) ([]byte, error)
 }
