@@ -1,4 +1,4 @@
-module lwlee2608/go-mdd
+module github.com/matrixxsoftware/go-mdd
 
 go 1.18
 
