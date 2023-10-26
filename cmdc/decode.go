@@ -3,13 +3,14 @@ package cmdc
 import (
 	"errors"
 	"fmt"
-	"log"
+
+	log "github.com/sirupsen/logrus"
 
 	"github.com/matrixxsoftware/go-mdd/mdd"
 )
 
 func Decode(data []byte) (*mdd.Containers, error) {
-	log.Printf("Decoding %s\n", string(data))
+	log.Debugf("Decoding %s\n", string(data))
 
 	var containers mdd.Containers
 	container, err := decodeContainer(data)
@@ -82,7 +83,7 @@ func decodeContainer(data []byte) (*mdd.Container, error) {
 }
 
 func decodeBody(data []byte) ([]mdd.Field, error) {
-	log.Printf("Decoding body '%s'\n", string(data))
+	log.Debugf("Decoding body '%s'\n", string(data))
 
 	var fields []mdd.Field
 
@@ -107,7 +108,7 @@ func decodeBody(data []byte) ([]mdd.Field, error) {
 }
 
 func decodeHeader(data []byte) (mdd.Header, error) {
-	log.Printf("Decoding header '%s'\n", string(data))
+	log.Debugf("Decoding header '%s'\n", string(data))
 	var header mdd.Header
 	mark := 0
 	i := 0

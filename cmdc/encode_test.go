@@ -8,20 +8,24 @@ import (
 )
 
 func TestEncode(t *testing.T) {
-	container := mdd.Container{
-		Header: mdd.Header{
-			Version:       1,
-			TotalField:    18,
-			Depth:         0,
-			Key:           -6,
-			SchemaVersion: 5222,
-			ExtVersion:    2,
+	containers := mdd.Containers{
+		Containers: []mdd.Container{
+			{
+				Header: mdd.Header{
+					Version:       1,
+					TotalField:    18,
+					Depth:         0,
+					Key:           -6,
+					SchemaVersion: 5222,
+					ExtVersion:    2,
+				},
+				Fields: []mdd.Field{{Value: "1"}, {Value: "abc"}, {Value: "foo"}, {Value: "bar"}},
+			},
 		},
-		Fields: []mdd.Field{{Value: "1"}, {Value: "abc"}, {Value: "foo"}, {Value: "bar"}},
 	}
 
 	expected := "<1,18,0,-6,5222,2>[1,abc,foo,bar]"
-	encoded, err := Encode(&container)
+	encoded, err := Encode(&containers)
 	assert.Nil(t, err)
 	assert.Equal(t, []byte(expected), encoded)
 }

@@ -4,17 +4,18 @@ import (
 	"fmt"
 
 	"github.com/matrixxsoftware/go-mdd/mdd"
+	log "github.com/sirupsen/logrus"
 )
 
-func Encode(container *mdd.Container) ([]byte, error) {
+func Encode(containers *mdd.Containers) ([]byte, error) {
 
 	// TODO handle multiple containers
 
-	return encodeContainer(container)
+	return encodeContainer(&containers.Containers[0])
 }
 
 func encodeContainer(container *mdd.Container) ([]byte, error) {
-	fmt.Println("Encoding ", container)
+	log.Debugf("Encoding %+v\n", container)
 	var data string
 
 	// Encode header
