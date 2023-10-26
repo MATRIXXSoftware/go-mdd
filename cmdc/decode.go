@@ -72,6 +72,7 @@ func decodeContainer(data []byte) (*mdd.Container, int, error) {
 		c := data[idx]
 		if c == ']' {
 			bodyData = data[mark+1 : idx]
+			idx++
 			break
 		}
 	}
@@ -82,8 +83,6 @@ func decodeContainer(data []byte) (*mdd.Container, int, error) {
 	}
 
 	container.Fields = fields
-
-	idx++
 
 	return &container, idx, nil
 }
@@ -101,7 +100,10 @@ func decodeBody(data []byte) ([]mdd.Field, error) {
 		if c == ',' {
 			fieldData := data[mark:i]
 			mark = i + 1
-			field := mdd.Field{Value: string(fieldData)}
+			field := mdd.Field{
+				Value: string(fieldData),
+				// Data: fieldData,
+			}
 			fields = append(fields, field)
 		}
 	}

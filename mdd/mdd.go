@@ -10,12 +10,24 @@ type Header struct {
 }
 
 type Field struct {
-	Value string
+	Value string // TODO remove soon
+	// Data  []byte
 }
+
+// func (f *Field) String() string {
+// 	return string(f.Data)
+// }
 
 type Container struct {
 	Header Header
 	Fields []Field
+}
+
+func (c *Container) GetField(fieldNumber int) *Field {
+	if fieldNumber >= len(c.Fields) {
+		return nil
+	}
+	return &c.Fields[fieldNumber]
 }
 
 type Containers struct {
