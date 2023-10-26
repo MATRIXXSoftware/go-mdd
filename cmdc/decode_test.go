@@ -25,7 +25,12 @@ func TestDecodeSingleContainer1(t *testing.T) {
 	}
 	assert.Equal(t, expectedHeader, container.Header)
 
-	expectedFields := []mdd.Field{{Value: "1"}, {Value: "abc"}, {Value: "foo"}, {Value: "bar"}}
+	expectedFields := []mdd.Field{
+		{Data: []byte("1")},
+		{Data: []byte("abc")},
+		{Data: []byte("foo")},
+		{Data: []byte("bar")},
+	}
 	assert.Equal(t, expectedFields, container.Fields)
 }
 
@@ -48,15 +53,15 @@ func TestDecodeSingleContainer2(t *testing.T) {
 	assert.Equal(t, expectedHeader, container.Header)
 
 	expectedFields := []mdd.Field{
-		{Value: ""},
-		{Value: "(6:value2)"},
-		{Value: "3"},
-		{Value: "2021-09-07T08:00:25.000001Z"},
-		{Value: "2021-10-31"},
-		{Value: "09:13:02.667997Z"},
-		{Value: "88"},
-		{Value: "5.5"},
-		{Value: ""}}
+		{Data: []byte("")},
+		{Data: []byte("(6:value2)")},
+		{Data: []byte("3")},
+		{Data: []byte("2021-09-07T08:00:25.000001Z")},
+		{Data: []byte("2021-10-31")},
+		{Data: []byte("09:13:02.667997Z")},
+		{Data: []byte("88")},
+		{Data: []byte("5.5")},
+		{Data: []byte("")}}
 	assert.Equal(t, expectedFields, container.Fields)
 }
 
@@ -76,7 +81,12 @@ func TestDecodeContainers(t *testing.T) {
 		ExtVersion:    2,
 	}
 	assert.Equal(t, expectedHeader, container0.Header)
-	expectedFields := []mdd.Field{{Value: "1"}, {Value: "abc"}, {Value: "foo"}, {Value: "bar"}}
+	expectedFields := []mdd.Field{
+		{Data: []byte("1")},
+		{Data: []byte("abc")},
+		{Data: []byte("foo")},
+		{Data: []byte("bar")},
+	}
 	assert.Equal(t, expectedFields, container0.Fields)
 
 	container1 := containers.Containers[1]
@@ -90,7 +100,10 @@ func TestDecodeContainers(t *testing.T) {
 		ExtVersion:    2,
 	}
 	assert.Equal(t, expectedHeader, container1.Header)
-	expectedFields = []mdd.Field{{Value: "2"}, {Value: "def"}}
+	expectedFields = []mdd.Field{
+		{Data: []byte("2")},
+		{Data: []byte("def")},
+	}
 	assert.Equal(t, expectedFields, container1.Fields)
 }
 

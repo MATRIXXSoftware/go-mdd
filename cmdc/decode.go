@@ -101,15 +101,18 @@ func decodeBody(data []byte) ([]mdd.Field, error) {
 			fieldData := data[mark:i]
 			mark = i + 1
 			field := mdd.Field{
-				Value: string(fieldData),
-				// Data: fieldData,
+				// Value: string(fieldData),
+				Data: fieldData,
 			}
 			fields = append(fields, field)
 		}
 	}
 	// last field
 	fieldData := data[mark:i]
-	field := mdd.Field{Value: string(fieldData)}
+	field := mdd.Field{
+		// Value: string(fieldData),
+		Data: fieldData,
+	}
 	fields = append(fields, field)
 
 	return fields, nil

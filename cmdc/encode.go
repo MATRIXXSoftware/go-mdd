@@ -25,7 +25,7 @@ func encodeContainer(container *mdd.Container) ([]byte, error) {
 	// Encode fields
 	data += "["
 	for _, f := range container.Fields {
-		data += fmt.Sprintf("%s,", f.Value)
+		data += fmt.Sprintf("%s,", string(f.Data))
 	}
 
 	// Remove last comma

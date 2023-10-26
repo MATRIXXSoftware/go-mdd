@@ -32,7 +32,10 @@ func TestTransport(t *testing.T) {
 						SchemaVersion: 5222,
 						ExtVersion:    2,
 					},
-					Fields: []mdd.Field{{Value: "0"}, {Value: "OK"}},
+					Fields: []mdd.Field{
+						{Data: []byte("0")},
+						{Data: []byte("OK")},
+					},
 				},
 			},
 		}
@@ -64,7 +67,12 @@ func TestTransport(t *testing.T) {
 					SchemaVersion: 5222,
 					ExtVersion:    2,
 				},
-				Fields: []mdd.Field{{Value: "1"}, {Value: "two"}, {Value: "three"}, {Value: "4"}},
+				Fields: []mdd.Field{
+					{Data: []byte("1")},
+					{Data: []byte("two")},
+					{Data: []byte("three")},
+					{Data: []byte("4")},
+				},
 			},
 		},
 	}

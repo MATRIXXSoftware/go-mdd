@@ -19,7 +19,12 @@ func TestEncode(t *testing.T) {
 					SchemaVersion: 5222,
 					ExtVersion:    2,
 				},
-				Fields: []mdd.Field{{Value: "1"}, {Value: "abc"}, {Value: "foo"}, {Value: "bar"}},
+				Fields: []mdd.Field{
+					{Data: []byte("1")},
+					{Data: []byte("abc")},
+					{Data: []byte("foo")},
+					{Data: []byte("bar")},
+				},
 			},
 		},
 	}
