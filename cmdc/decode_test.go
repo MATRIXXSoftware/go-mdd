@@ -2,7 +2,6 @@ package cmdc
 
 import (
 	"errors"
-	"fmt"
 	"testing"
 
 	"github.com/matrixxsoftware/go-mdd/mdd"
@@ -114,7 +113,6 @@ func TestDecodeNestedContainers(t *testing.T) {
 	assert.Nil(t, err)
 
 	container0 := containers.Containers[0]
-	fmt.Printf("container0: %v\n", container0)
 
 	expectedFields := []mdd.Field{
 		{Data: []byte("1")},

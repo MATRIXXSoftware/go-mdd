@@ -106,23 +106,27 @@ func decodeBody(data []byte) ([]mdd.Field, error) {
 	angle := 0
 	for ; i < len(data); i++ {
 		c := data[i]
-		if c == '[' {
+		switch c {
+		case '[':
 			square++
-		} else if c == ']' {
+		case ']':
 			square--
-		} else if c == '<' {
+		case '<':
 			angle++
-		} else if c == '>' {
+		case '>':
 			angle--
-		} else if square == 0 && angle == 0 && c == ',' {
-			fieldData := data[mark:i]
-			mark = i + 1
-			field := mdd.Field{
-				Data: fieldData,
+		case ',':
+			if square == 0 && angle == 0 {
+				fieldData := data[mark:i]
+				mark = i + 1
+				field := mdd.Field{
+					Data: fieldData,
+				}
+				fields = append(fields, field)
 			}
-			fields = append(fields, field)
 		}
 	}
+
 	// last field
 	fieldData := data[mark:i]
 	field := mdd.Field{
