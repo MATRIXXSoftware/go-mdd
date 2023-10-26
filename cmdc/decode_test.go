@@ -2,6 +2,7 @@ package cmdc
 
 import (
 	"errors"
+	"fmt"
 	"testing"
 
 	"github.com/matrixxsoftware/go-mdd/mdd"
@@ -105,6 +106,23 @@ func TestDecodeContainers(t *testing.T) {
 		{Data: []byte("def")},
 	}
 	assert.Equal(t, expectedFields, container1.Fields)
+}
+
+func TestDecodeNestedContainers(t *testing.T) {
+	mdc := "<1,18,0,-6,5222,2>[1,abc,<1,2,0,452,5222,2>[100],bar]"
+	containers, err := Decode([]byte(mdc))
+	assert.Nil(t, err)
+
+	container0 := containers.Containers[0]
+	fmt.Printf("container0: %v\n", container0)
+
+	expectedFields := []mdd.Field{
+		{Data: []byte("1")},
+		{Data: []byte("abc")},
+		{Data: []byte("<1,2,0,452,5222,2>[100]")},
+		{Data: []byte("bar")},
+	}
+	assert.Equal(t, expectedFields, container0.Fields)
 }
 
 func TestInvalidHeader(t *testing.T) {

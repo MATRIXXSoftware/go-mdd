@@ -67,13 +67,20 @@ func decodeContainer(data []byte) (*mdd.Container, int, error) {
 	if data[idx] != '[' {
 		return nil, idx, errors.New("Invalid cMDC body, first char must be '['")
 	}
+
 	mark := idx
+	bracket := 0
 	for ; idx < len(data); idx++ {
 		c := data[idx]
-		if c == ']' {
-			bodyData = data[mark+1 : idx]
-			idx++
-			break
+		if c == '[' {
+			bracket++
+		} else if c == ']' {
+			bracket--
+			if bracket == 0 {
+				bodyData = data[mark+1 : idx]
+				idx++
+				break
+			}
 		}
 	}
 
@@ -95,13 +102,22 @@ func decodeBody(data []byte) ([]mdd.Field, error) {
 	mark := 0
 	i := 0
 
+	square := 0
+	angle := 0
 	for ; i < len(data); i++ {
 		c := data[i]
-		if c == ',' {
+		if c == '[' {
+			square++
+		} else if c == ']' {
+			square--
+		} else if c == '<' {
+			angle++
+		} else if c == '>' {
+			angle--
+		} else if square == 0 && angle == 0 && c == ',' {
 			fieldData := data[mark:i]
 			mark = i + 1
 			field := mdd.Field{
-				// Value: string(fieldData),
 				Data: fieldData,
 			}
 			fields = append(fields, field)
@@ -110,7 +126,6 @@ func decodeBody(data []byte) ([]mdd.Field, error) {
 	// last field
 	fieldData := data[mark:i]
 	field := mdd.Field{
-		// Value: string(fieldData),
 		Data: fieldData,
 	}
 	fields = append(fields, field)
