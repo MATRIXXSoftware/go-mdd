@@ -13,32 +13,36 @@ func Decode(data []byte) (*mdd.Containers, error) {
 	log.Debugf("Decoding %s\n", string(data))
 
 	var containers mdd.Containers
-	container, err := decodeContainer(data)
-	if err != nil {
-		return nil, err
+	var idx int
+	slice := data
+
+	for idx < len(slice) {
+		container, idx, err := decodeContainer(slice)
+		if err != nil {
+			return nil, err
+		}
+
+		containers.Containers = append(containers.Containers, *container)
+		slice = slice[idx:]
 	}
-
-	containers.Containers = append(containers.Containers, *container)
-
-	// TODO handle multiple containers
 
 	return &containers, nil
 }
 
-func decodeContainer(data []byte) (*mdd.Container, error) {
+func decodeContainer(data []byte) (*mdd.Container, int, error) {
 	var container mdd.Container
 
 	// Decode Header
 	var headerData []byte
 
 	// First char must be '<'
+	idx := 1
 	if data[0] != '<' {
-		return nil, errors.New("Invalid cMDC header, first char must be '<'")
+		return nil, idx, errors.New("Invalid cMDC header, first char must be '<'")
 	}
 
 	// Start from second char
-	var idx int
-	for idx = 1; idx < len(data); idx++ {
+	for ; idx < len(data); idx++ {
 		c := data[idx]
 		if c == '>' {
 			headerData = data[1:idx]
@@ -47,7 +51,7 @@ func decodeContainer(data []byte) (*mdd.Container, error) {
 	}
 	header, err := decodeHeader(headerData)
 	if err != nil {
-		return nil, err
+		return nil, idx, err
 	}
 	container.Header = header
 
@@ -56,12 +60,12 @@ func decodeContainer(data []byte) (*mdd.Container, error) {
 
 	idx++
 	if idx >= len(data) {
-		return nil, errors.New("Invalid cMDC body, no body")
+		return nil, idx, errors.New("Invalid cMDC body, no body")
 	}
 
 	// First char following a header must be '['
 	if data[idx] != '[' {
-		return nil, errors.New("Invalid cMDC body, first char must be '['")
+		return nil, idx, errors.New("Invalid cMDC body, first char must be '['")
 	}
 	mark := idx
 	for ; idx < len(data); idx++ {
@@ -74,12 +78,14 @@ func decodeContainer(data []byte) (*mdd.Container, error) {
 
 	fields, err := decodeBody(bodyData)
 	if err != nil {
-		return &container, err
+		return &container, idx, err
 	}
 
 	container.Fields = fields
 
-	return &container, nil
+	idx++
+
+	return &container, idx, nil
 }
 
 func decodeBody(data []byte) ([]mdd.Field, error) {

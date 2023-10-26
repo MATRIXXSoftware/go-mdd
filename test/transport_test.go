@@ -20,7 +20,7 @@ func TestTransport(t *testing.T) {
 	defer server.Close()
 
 	server.Handler(func(containers *mdd.Containers) *mdd.Containers {
-		log.Infof("Server received request : %+v", containers)
+		log.Infof("Server received request : %v", containers)
 		return &mdd.Containers{
 			Containers: []mdd.Container{
 				{
@@ -73,5 +73,5 @@ func TestTransport(t *testing.T) {
 		panic(err)
 	}
 
-	log.Infof("Client received response: %+v", response)
+	log.Infof("Client received response: %v", response)
 }
