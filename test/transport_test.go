@@ -2,7 +2,6 @@ package test
 
 import (
 	"testing"
-	"time"
 
 	"github.com/matrixxsoftware/go-mdd/cmdc"
 	"github.com/matrixxsoftware/go-mdd/mdd"
@@ -18,6 +17,7 @@ func TestTransport(t *testing.T) {
 	if err != nil {
 		panic(err)
 	}
+	defer server.Close()
 
 	server.Handler(func(containers *mdd.Containers) *mdd.Containers {
 		log.Infof("Server received request : %+v", containers)
@@ -44,8 +44,6 @@ func TestTransport(t *testing.T) {
 			panic(err)
 		}
 	}()
-
-	time.Sleep(250 * time.Millisecond)
 
 	// Create Client
 	client, err := mdd.NewClient("localhost:8080", codec)
@@ -76,9 +74,4 @@ func TestTransport(t *testing.T) {
 	}
 
 	log.Infof("Client received response: %+v", response)
-
-	time.Sleep(100 * time.Millisecond)
-
-	client.Close()
-	server.Close()
 }
