@@ -123,6 +123,24 @@ func TestDecodeNestedContainers(t *testing.T) {
 	assert.Equal(t, expectedFields, container0.Fields)
 }
 
+func TestDecodeFieldWithReservedCharacter(t *testing.T) {
+	mdc := "<1,18,0,-6,5222,2>[1,2,(10:v[<ue(obar),4,,6]"
+	containers, err := Decode([]byte(mdc))
+	assert.Nil(t, err)
+
+	container0 := containers.Containers[0]
+
+	expectedFields := []mdd.Field{
+		{Data: []byte("1")},
+		{Data: []byte("2")},
+		{Data: []byte("(10:v[<ue(obar)")},
+		{Data: []byte("4")},
+		{Data: []byte("")},
+		{Data: []byte("6")},
+	}
+	assert.Equal(t, expectedFields, container0.Fields)
+}
+
 func TestInvalidHeader(t *testing.T) {
 	mdc := "<1,18,-6,5222,2>[1,abc,foo,bar]"
 	_, err := Decode([]byte(mdc))

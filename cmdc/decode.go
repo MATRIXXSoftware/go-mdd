@@ -56,8 +56,6 @@ func decodeContainer(data []byte) (*mdd.Container, int, error) {
 	container.Header = header
 
 	// Decode Body
-	var bodyData []byte
-
 	idx++
 	if idx >= len(data) {
 		return nil, idx, errors.New("Invalid cMDC body, no body")
@@ -68,23 +66,11 @@ func decodeContainer(data []byte) (*mdd.Container, int, error) {
 		return nil, idx, errors.New("Invalid cMDC body, first char must be '['")
 	}
 
-	mark := idx
-	bracket := 0
-	for ; idx < len(data); idx++ {
-		c := data[idx]
-		if c == '[' {
-			bracket++
-		} else if c == ']' {
-			bracket--
-			if bracket == 0 {
-				bodyData = data[mark+1 : idx]
-				idx++
-				break
-			}
-		}
-	}
+	bodyData := data[idx:]
+	fields, i, err := decodeBody(bodyData)
+	idx += i
+	idx++
 
-	fields, err := decodeBody(bodyData)
 	if err != nil {
 		return &container, idx, err
 	}
@@ -94,19 +80,48 @@ func decodeContainer(data []byte) (*mdd.Container, int, error) {
 	return &container, idx, nil
 }
 
-func decodeBody(data []byte) ([]mdd.Field, error) {
+func decodeBody(data []byte) ([]mdd.Field, int, error) {
 	log.Debugf("Decoding body '%s'\n", string(data))
 
 	var fields []mdd.Field
 
-	mark := 0
-	i := 0
+	// First char following a header must be '['
+	if data[0] != '[' {
+		return nil, 0, errors.New("Invalid cMDC body, first char must be '['")
+	}
 
-	square := 0
+	idx := 1
+	mark := idx
+	roundMark := 0
+
+	square := 1
 	angle := 0
-	for ; i < len(data); i++ {
-		c := data[i]
+	round := 0
+
+	for ; idx < len(data); idx++ {
+		c := data[idx]
+
+		if round != 0 {
+			if c == ':' {
+				temp := data[roundMark+1 : idx]
+				len, err := bytesToInt(temp)
+				if err != nil {
+					panic("Invalid string length")
+				}
+				// skip the string field
+				idx += len
+			} else if c == ')' {
+				round--
+			} else if c < '0' || c > '9' {
+				panic("Invalid character, numeric expected for string length")
+			}
+			continue
+		}
+
 		switch c {
+		case '(':
+			round++
+			roundMark = idx
 		case '[':
 			square++
 		case ']':
@@ -116,25 +131,31 @@ func decodeBody(data []byte) ([]mdd.Field, error) {
 		case '>':
 			angle--
 		case ',':
-			if square == 0 && angle == 0 {
-				fieldData := data[mark:i]
-				mark = i + 1
+			if square == 1 && angle == 0 && round == 0 {
+				// Extract field
+				fieldData := data[mark:idx]
+				mark = idx + 1
 				field := mdd.Field{
 					Data: fieldData,
 				}
 				fields = append(fields, field)
 			}
 		}
+
+		// End of body
+		if square == 0 {
+			break
+		}
 	}
 
-	// last field
-	fieldData := data[mark:i]
+	// Extract last field
+	fieldData := data[mark:idx]
 	field := mdd.Field{
 		Data: fieldData,
 	}
 	fields = append(fields, field)
 
-	return fields, nil
+	return fields, idx, nil
 }
 
 func decodeHeader(data []byte) (mdd.Header, error) {
