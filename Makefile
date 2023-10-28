@@ -1,8 +1,5 @@
 GO = $(shell which go 2>/dev/null)
 
-APP 			:= go-mdd
-APP_VERSION 	:= v0.2.0
-
 ifeq ($(GO),)
 $(warning "go is not in your system PATH")
 endif

@@ -120,8 +120,65 @@ func TestDecodeFieldWithReservedCharacter(t *testing.T) {
 	assert.Equal(t, "6", container0.GetField(5).String())
 }
 
+func TestDecodeEmptyBody(t *testing.T) {
+	mdc := "<1,18,0,-6,5222,2>[]"
+	containers, err := Decode([]byte(mdc))
+	assert.Nil(t, err)
+	assert.Equal(t, 1, len(containers.Containers))
+	container0 := containers.Containers[0]
+	assert.Equal(t, "", container0.GetField(0).String())
+}
+
 func TestInvalidHeader(t *testing.T) {
 	mdc := "<1,18,-6,5222,2>[1,abc,foo,bar]"
 	_, err := Decode([]byte(mdc))
 	assert.Equal(t, errors.New("Invalid cMDC header, 6 fields expected"), err)
+}
+
+func TestInvalidHeader2(t *testing.T) {
+	mdc := "<1,18,0,-6,5222[1,abc,foo,bar]"
+	_, err := Decode([]byte(mdc))
+	assert.Equal(t, errors.New("Invalid cMDC character '[' in header, numeric expected"), err)
+}
+
+func TestInvalidHeader3(t *testing.T) {
+	mdc := "<1,18,0,-6,5222,2"
+	_, err := Decode([]byte(mdc))
+	assert.Equal(t, errors.New("Invalid cMDC header, no end of header"), err)
+}
+
+func TestInvalidHeader4(t *testing.T) {
+	mdc := "1,18,0,-6,5222,2>[]"
+	_, err := Decode([]byte(mdc))
+	assert.Equal(t, errors.New("Invalid cMDC header, first character must be '<'"), err)
+}
+
+func TestInvalidHeader5(t *testing.T) {
+	mdc := "<1,18,0,1-6,5222,2>[]"
+	_, err := Decode([]byte(mdc))
+	assert.Equal(t, errors.New("Invalid cMDC header field '1-6', numeric expected"), err)
+}
+
+func TestInvalidBody(t *testing.T) {
+	mdc := "<1,18,0,-6,5222,2>[1,abc,foo,bar"
+	_, err := Decode([]byte(mdc))
+	assert.Equal(t, errors.New("Invalid cMDC body, no end of body"), err)
+}
+
+func TestInvalidBody2(t *testing.T) {
+	mdc := "<1,18,0,-6,5222,2>"
+	_, err := Decode([]byte(mdc))
+	assert.Equal(t, errors.New("Invalid cMDC body, no body"), err)
+}
+
+func TestInvalidBody3(t *testing.T) {
+	mdc := "<1,18,0,-6,5222,2>1,2,3]"
+	_, err := Decode([]byte(mdc))
+	assert.Equal(t, errors.New("Invalid cMDC body, first character must be '['"), err)
+}
+
+func TestInvalidBody4(t *testing.T) {
+	mdc := "<1,18,0,-6,5222,2>[1,(abc:foo),3,4]"
+	_, err := Decode([]byte(mdc))
+	assert.Equal(t, errors.New("Invalid character 'a', numeric expected for string length"), err)
 }
