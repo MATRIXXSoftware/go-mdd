@@ -24,14 +24,10 @@ func TestDecodeSingleContainer1(t *testing.T) {
 		ExtVersion:    2,
 	}
 	assert.Equal(t, expectedHeader, container.Header)
-
-	expectedFields := []mdd.Field{
-		{Data: []byte("1")},
-		{Data: []byte("abc")},
-		{Data: []byte("foo")},
-		{Data: []byte("bar")},
-	}
-	assert.Equal(t, expectedFields, container.Fields)
+	assert.Equal(t, "1", container.GetField(0).String())
+	assert.Equal(t, "abc", container.GetField(1).String())
+	assert.Equal(t, "foo", container.GetField(2).String())
+	assert.Equal(t, "bar", container.GetField(3).String())
 }
 
 func TestDecodeSingleContainer2(t *testing.T) {
@@ -51,18 +47,15 @@ func TestDecodeSingleContainer2(t *testing.T) {
 		ExtVersion:    2,
 	}
 	assert.Equal(t, expectedHeader, container.Header)
-
-	expectedFields := []mdd.Field{
-		{Data: []byte("")},
-		{Data: []byte("(6:value2)")},
-		{Data: []byte("3")},
-		{Data: []byte("2021-09-07T08:00:25.000001Z")},
-		{Data: []byte("2021-10-31")},
-		{Data: []byte("09:13:02.667997Z")},
-		{Data: []byte("88")},
-		{Data: []byte("5.5")},
-		{Data: []byte("")}}
-	assert.Equal(t, expectedFields, container.Fields)
+	assert.Equal(t, "", container.GetField(0).String())
+	assert.Equal(t, "(6:value2)", container.GetField(1).String())
+	assert.Equal(t, "3", container.GetField(2).String())
+	assert.Equal(t, "2021-09-07T08:00:25.000001Z", container.GetField(3).String())
+	assert.Equal(t, "2021-10-31", container.GetField(4).String())
+	assert.Equal(t, "09:13:02.667997Z", container.GetField(5).String())
+	assert.Equal(t, "88", container.GetField(6).String())
+	assert.Equal(t, "5.5", container.GetField(7).String())
+	assert.Equal(t, "", container.GetField(8).String())
 }
 
 func TestDecodeContainers(t *testing.T) {
@@ -81,13 +74,10 @@ func TestDecodeContainers(t *testing.T) {
 		ExtVersion:    2,
 	}
 	assert.Equal(t, expectedHeader, container0.Header)
-	expectedFields := []mdd.Field{
-		{Data: []byte("1")},
-		{Data: []byte("abc")},
-		{Data: []byte("foo")},
-		{Data: []byte("bar")},
-	}
-	assert.Equal(t, expectedFields, container0.Fields)
+	assert.Equal(t, "1", container0.GetField(0).String())
+	assert.Equal(t, "abc", container0.GetField(1).String())
+	assert.Equal(t, "foo", container0.GetField(2).String())
+	assert.Equal(t, "bar", container0.GetField(3).String())
 
 	container1 := containers.Containers[1]
 
@@ -100,11 +90,8 @@ func TestDecodeContainers(t *testing.T) {
 		ExtVersion:    2,
 	}
 	assert.Equal(t, expectedHeader, container1.Header)
-	expectedFields = []mdd.Field{
-		{Data: []byte("2")},
-		{Data: []byte("def")},
-	}
-	assert.Equal(t, expectedFields, container1.Fields)
+	assert.Equal(t, "2", container1.GetField(0).String())
+	assert.Equal(t, "def", container1.GetField(1).String())
 }
 
 func TestDecodeNestedContainers(t *testing.T) {
@@ -113,14 +100,10 @@ func TestDecodeNestedContainers(t *testing.T) {
 	assert.Nil(t, err)
 
 	container0 := containers.Containers[0]
-
-	expectedFields := []mdd.Field{
-		{Data: []byte("1")},
-		{Data: []byte("abc")},
-		{Data: []byte("<1,2,0,452,5222,2>[100]")},
-		{Data: []byte("bar")},
-	}
-	assert.Equal(t, expectedFields, container0.Fields)
+	assert.Equal(t, "1", container0.GetField(0).String())
+	assert.Equal(t, "abc", container0.GetField(1).String())
+	assert.Equal(t, "<1,2,0,452,5222,2>[100]", container0.GetField(2).String())
+	assert.Equal(t, "bar", container0.GetField(3).String())
 }
 
 func TestDecodeFieldWithReservedCharacter(t *testing.T) {
@@ -129,16 +112,12 @@ func TestDecodeFieldWithReservedCharacter(t *testing.T) {
 	assert.Nil(t, err)
 
 	container0 := containers.Containers[0]
-
-	expectedFields := []mdd.Field{
-		{Data: []byte("1")},
-		{Data: []byte("2")},
-		{Data: []byte("(10:v[<ue(obar)")},
-		{Data: []byte("4")},
-		{Data: []byte("")},
-		{Data: []byte("6")},
-	}
-	assert.Equal(t, expectedFields, container0.Fields)
+	assert.Equal(t, "1", container0.GetField(0).String())
+	assert.Equal(t, "2", container0.GetField(1).String())
+	assert.Equal(t, "(10:v[<ue(obar)", container0.GetField(2).String())
+	assert.Equal(t, "4", container0.GetField(3).String())
+	assert.Equal(t, "", container0.GetField(4).String())
+	assert.Equal(t, "6", container0.GetField(5).String())
 }
 
 func TestInvalidHeader(t *testing.T) {

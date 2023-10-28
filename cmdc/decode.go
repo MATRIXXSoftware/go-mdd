@@ -31,59 +31,35 @@ func Decode(data []byte) (*mdd.Containers, error) {
 
 func decodeContainer(data []byte) (*mdd.Container, int, error) {
 	var container mdd.Container
+	idx := 0
 
 	// Decode Header
-	var headerData []byte
-
-	// First char must be '<'
-	idx := 1
-	if data[0] != '<' {
-		return nil, idx, errors.New("Invalid cMDC header, first char must be '<'")
-	}
-
-	// Start from second char
-	for ; idx < len(data); idx++ {
-		c := data[idx]
-		if c == '>' {
-			headerData = data[1:idx]
-			break
-		}
-	}
-	header, err := decodeHeader(headerData)
+	header, offset, err := decodeHeader(data[idx:])
 	if err != nil {
 		return nil, idx, err
 	}
 	container.Header = header
+	idx += offset
 
 	// Decode Body
-	idx++
-	if idx >= len(data) {
-		return nil, idx, errors.New("Invalid cMDC body, no body")
-	}
-
-	// First char following a header must be '['
-	if data[idx] != '[' {
-		return nil, idx, errors.New("Invalid cMDC body, first char must be '['")
-	}
-
-	bodyData := data[idx:]
-	fields, i, err := decodeBody(bodyData)
-	idx += i
-	idx++
-
+	fields, offset, err := decodeBody(data[idx:])
 	if err != nil {
 		return &container, idx, err
 	}
-
 	container.Fields = fields
+	idx += offset
 
 	return &container, idx, nil
 }
 
 func decodeBody(data []byte) ([]mdd.Field, int, error) {
-	log.Debugf("Decoding body '%s'\n", string(data))
 
 	var fields []mdd.Field
+
+	// Check if there is a body
+	if len(data) <= 0 {
+		return nil, 0, errors.New("Invalid cMDC body, no body")
+	}
 
 	// First char following a header must be '['
 	if data[0] != '[' {
@@ -131,7 +107,7 @@ func decodeBody(data []byte) ([]mdd.Field, int, error) {
 		case '>':
 			angle--
 		case ',':
-			if square == 1 && angle == 0 && round == 0 {
+			if square == 1 && angle == 0 {
 				// Extract field
 				fieldData := data[mark:idx]
 				mark = idx + 1
@@ -144,12 +120,13 @@ func decodeBody(data []byte) ([]mdd.Field, int, error) {
 
 		// End of body
 		if square == 0 {
+			idx++
 			break
 		}
 	}
 
 	// Extract last field
-	fieldData := data[mark:idx]
+	fieldData := data[mark : idx-1]
 	field := mdd.Field{
 		Data: fieldData,
 	}
@@ -158,22 +135,36 @@ func decodeBody(data []byte) ([]mdd.Field, int, error) {
 	return fields, idx, nil
 }
 
-func decodeHeader(data []byte) (mdd.Header, error) {
-	log.Debugf("Decoding header '%s'\n", string(data))
+func decodeHeader(data []byte) (mdd.Header, int, error) {
+
 	var header mdd.Header
-	mark := 0
-	i := 0
-	idx := 0
-	for ; i < len(data); i++ {
-		c := data[i]
-		if c == ',' {
-			fieldData := data[mark:i]
-			mark = i + 1
+
+	// Check if there is a header
+	if len(data) <= 0 {
+		return header, 0, errors.New("Invalid cMDC header, no header")
+	}
+
+	// First char must be '<'
+	if data[0] != '<' {
+		return header, 0, errors.New("Invalid cMDC header, first char must be '<'")
+	}
+
+	idx := 1
+	mark := idx
+	fieldNumber := 0
+	for ; idx < len(data); idx++ {
+		c := data[idx]
+		if c == '>' {
+			idx++
+			break
+		} else if c == ',' {
+			fieldData := data[mark:idx]
+			mark = idx + 1
 			v, err := bytesToInt(fieldData)
 			if err != nil {
-				return header, err
+				return header, idx, err
 			}
-			switch idx {
+			switch fieldNumber {
 			case 0:
 				header.Version = v
 			case 1:
@@ -185,20 +176,25 @@ func decodeHeader(data []byte) (mdd.Header, error) {
 			case 4:
 				header.SchemaVersion = v
 			}
-			idx++
+			fieldNumber++
+		} else if (c < '0' || c > '9') && c != '-' {
+			return header, idx, errors.New("Invalid cMDC header, '" + string(c) + "' numeric expected")
 		}
 	}
+
 	// last field
-	fieldData := data[mark:i]
+	fieldData := data[mark : idx-1]
 	v, err := bytesToInt(fieldData)
 	if err != nil {
-		return header, err
+		return header, idx, err
 	}
-	if idx != 5 {
-		return header, errors.New("Invalid cMDC header, 6 fields expected")
+
+	if fieldNumber != 5 {
+		return header, idx, errors.New("Invalid cMDC header, 6 fields expected")
 	}
+
 	header.ExtVersion = v
-	return header, nil
+	return header, idx, nil
 }
 
 func bytesToInt(b []byte) (int, error) {
