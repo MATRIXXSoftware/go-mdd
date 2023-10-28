@@ -17,6 +17,8 @@ clean:
 	$(GO) clean -testcache
 test:
 	$(GO) test ./... -v
+test-benchmark:
+	$(GO) test ./... -v -bench .
 test-race:
 	$(GO) test ./... -v -race
 test-cover:
