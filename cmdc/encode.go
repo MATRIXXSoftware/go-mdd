@@ -62,14 +62,37 @@ func encodeBody(fields []mdd.Field) ([]byte, error) {
 	data = append(data, '[')
 	if len(fields) != 0 {
 		// First field
-		data = append(data, fields[0].Data...)
+		fieldData, err := encodeField(fields[0])
+		if err != nil {
+			return nil, err
+		}
+		data = append(data, fieldData...)
+
 		// Remaining fields
 		for i := 1; i < len(fields); i++ {
 			data = append(data, ',')
-			data = append(data, fields[i].Data...)
+			fieldData, err := encodeField(fields[i])
+			if err != nil {
+				return nil, err
+			}
+			data = append(data, fieldData...)
 		}
 	}
 	data = append(data, ']')
 
 	return data, nil
+}
+
+func encodeField(field mdd.Field) ([]byte, error) {
+	if len(field.Data) > 0 || field.Type == mdd.Unknown {
+		return field.Data, nil
+	}
+
+	switch field.Type {
+	case mdd.Struct:
+		containers := field.Value.(*mdd.Containers)
+		return encodeContainer(&containers.Containers[0])
+	}
+
+	return field.Data, nil
 }

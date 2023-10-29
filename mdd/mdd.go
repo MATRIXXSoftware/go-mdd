@@ -1,5 +1,24 @@
 package mdd
 
+type FieldType int
+
+const (
+	Unknown FieldType = iota
+	String
+	Bool
+	Int8
+	Int16
+	Int32
+	Int64
+	Int128
+	UInt8
+	UInt16
+	UInt32
+	UInt64
+	UInt128
+	Struct
+)
+
 type Containers struct {
 	Containers []Container
 }
@@ -10,16 +29,18 @@ type Container struct {
 }
 
 type Header struct {
-	Version       int // position 0
-	TotalField    int // position 1
-	Depth         int // position 2
-	Key           int // position 3
-	SchemaVersion int // position 4
-	ExtVersion    int // position 5
+	Version       int
+	TotalField    int
+	Depth         int
+	Key           int
+	SchemaVersion int
+	ExtVersion    int
 }
 
 type Field struct {
-	Data []byte
+	Data  []byte
+	Type  FieldType
+	Value interface{}
 }
 
 func (c *Containers) GetContainer(key int) *Container {
