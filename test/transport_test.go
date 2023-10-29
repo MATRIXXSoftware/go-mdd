@@ -6,6 +6,7 @@ import (
 	"github.com/matrixxsoftware/go-mdd/cmdc"
 	"github.com/matrixxsoftware/go-mdd/mdd"
 	log "github.com/sirupsen/logrus"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestTransport(t *testing.T) {
@@ -19,8 +20,17 @@ func TestTransport(t *testing.T) {
 	}
 	defer server.Close()
 
-	server.Handler(func(containers *mdd.Containers) *mdd.Containers {
-		log.Infof("Server received request : %v", containers)
+	server.Handler(func(request *mdd.Containers) *mdd.Containers {
+		log.Infof("Server received request : %v", request)
+
+		container0 := request.GetContainer(101)
+		assert.Equal(t, "1", container0.GetField(0).String())
+		assert.Equal(t, "(3:two)", container0.GetField(1).String())
+		assert.Equal(t, "3.3", container0.GetField(2).String())
+		assert.Equal(t, "", container0.GetField(3).String())
+		assert.Equal(t, "", container0.GetField(4).String())
+		assert.Equal(t, "666", container0.GetField(5).String())
+
 		return &mdd.Containers{
 			Containers: []mdd.Container{
 				{
@@ -34,7 +44,7 @@ func TestTransport(t *testing.T) {
 					},
 					Fields: []mdd.Field{
 						{Data: []byte("0")},
-						{Data: []byte("OK")},
+						{Data: []byte("(2:OK)")},
 					},
 				},
 			},
@@ -69,9 +79,11 @@ func TestTransport(t *testing.T) {
 				},
 				Fields: []mdd.Field{
 					{Data: []byte("1")},
-					{Data: []byte("two")},
-					{Data: []byte("three")},
-					{Data: []byte("4")},
+					{Data: []byte("(3:two)")},
+					{Data: []byte("3.3")},
+					{Data: []byte("")},
+					{Data: []byte("")},
+					{Data: []byte("666")},
 				},
 			},
 		},
@@ -82,4 +94,8 @@ func TestTransport(t *testing.T) {
 	}
 
 	log.Infof("Client received response: %v", response)
+
+	container0 := response.GetContainer(88)
+	assert.Equal(t, "0", container0.GetField(0).String())
+	assert.Equal(t, "(2:OK)", container0.GetField(1).String())
 }

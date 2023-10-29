@@ -9,7 +9,7 @@ import (
 )
 
 func TestDecodeSingleContainer1(t *testing.T) {
-	mdc := "<1,18,0,-6,5222,2>[1,abc,foo,bar]"
+	mdc := "<1,18,0,-6,5222,2>[1,20,300,4]"
 	containers, err := Decode([]byte(mdc))
 	assert.Nil(t, err)
 
@@ -25,9 +25,9 @@ func TestDecodeSingleContainer1(t *testing.T) {
 	}
 	assert.Equal(t, expectedHeader, container.Header)
 	assert.Equal(t, "1", container.GetField(0).String())
-	assert.Equal(t, "abc", container.GetField(1).String())
-	assert.Equal(t, "foo", container.GetField(2).String())
-	assert.Equal(t, "bar", container.GetField(3).String())
+	assert.Equal(t, "20", container.GetField(1).String())
+	assert.Equal(t, "300", container.GetField(2).String())
+	assert.Equal(t, "4", container.GetField(3).String())
 }
 
 func TestDecodeSingleContainer2(t *testing.T) {
@@ -59,7 +59,7 @@ func TestDecodeSingleContainer2(t *testing.T) {
 }
 
 func TestDecodeContainers(t *testing.T) {
-	mdc := "<1,18,0,-6,5222,2>[1,abc,foo,bar]<1,5,0,-7,5222,2>[2,def]"
+	mdc := "<1,18,0,-6,5222,2>[1,20,300,4]<1,5,0,-7,5222,2>[,2,(3:def),4]"
 	containers, err := Decode([]byte(mdc))
 	assert.Nil(t, err)
 
@@ -75,9 +75,9 @@ func TestDecodeContainers(t *testing.T) {
 	}
 	assert.Equal(t, expectedHeader, container0.Header)
 	assert.Equal(t, "1", container0.GetField(0).String())
-	assert.Equal(t, "abc", container0.GetField(1).String())
-	assert.Equal(t, "foo", container0.GetField(2).String())
-	assert.Equal(t, "bar", container0.GetField(3).String())
+	assert.Equal(t, "20", container0.GetField(1).String())
+	assert.Equal(t, "300", container0.GetField(2).String())
+	assert.Equal(t, "4", container0.GetField(3).String())
 
 	container1 := containers.Containers[1]
 
@@ -90,20 +90,22 @@ func TestDecodeContainers(t *testing.T) {
 		ExtVersion:    2,
 	}
 	assert.Equal(t, expectedHeader, container1.Header)
-	assert.Equal(t, "2", container1.GetField(0).String())
-	assert.Equal(t, "def", container1.GetField(1).String())
+	assert.Equal(t, "", container1.GetField(0).String())
+	assert.Equal(t, "2", container1.GetField(1).String())
+	assert.Equal(t, "(3:def)", container1.GetField(2).String())
+	assert.Equal(t, "4", container1.GetField(3).String())
 }
 
 func TestDecodeNestedContainers(t *testing.T) {
-	mdc := "<1,18,0,-6,5222,2>[1,abc,<1,2,0,452,5222,2>[100],bar]"
+	mdc := "<1,18,0,-6,5222,2>[1,20,<1,2,0,452,5222,2>[100],4]"
 	containers, err := Decode([]byte(mdc))
 	assert.Nil(t, err)
 
 	container0 := containers.Containers[0]
 	assert.Equal(t, "1", container0.GetField(0).String())
-	assert.Equal(t, "abc", container0.GetField(1).String())
+	assert.Equal(t, "20", container0.GetField(1).String())
 	assert.Equal(t, "<1,2,0,452,5222,2>[100]", container0.GetField(2).String())
-	assert.Equal(t, "bar", container0.GetField(3).String())
+	assert.Equal(t, "4", container0.GetField(3).String())
 }
 
 func TestDecodeFieldWithReservedCharacter(t *testing.T) {
@@ -120,6 +122,18 @@ func TestDecodeFieldWithReservedCharacter(t *testing.T) {
 	assert.Equal(t, "6", container0.GetField(5).String())
 }
 
+func TestDecodeNestedContainersWithReservedCharacter(t *testing.T) {
+	mdc := "<1,18,0,-6,5222,2>[1,2,<1,2,0,452,5222,2>[100,(5:a[<,(),300],3]"
+	containers, err := Decode([]byte(mdc))
+	assert.Nil(t, err)
+
+	container0 := containers.Containers[0]
+	assert.Equal(t, "1", container0.GetField(0).String())
+	assert.Equal(t, "2", container0.GetField(1).String())
+	assert.Equal(t, "<1,2,0,452,5222,2>[100,(5:a[<,(),300]", container0.GetField(2).String())
+	assert.Equal(t, "3", container0.GetField(3).String())
+}
+
 func TestDecodeEmptyBody(t *testing.T) {
 	mdc := "<1,18,0,-6,5222,2>[]"
 	containers, err := Decode([]byte(mdc))
@@ -130,13 +144,13 @@ func TestDecodeEmptyBody(t *testing.T) {
 }
 
 func TestInvalidHeader(t *testing.T) {
-	mdc := "<1,18,-6,5222,2>[1,abc,foo,bar]"
+	mdc := "<1,18,-6,5222,2>[1,20,300,4]"
 	_, err := Decode([]byte(mdc))
 	assert.Equal(t, errors.New("Invalid cMDC header, 6 fields expected"), err)
 }
 
 func TestInvalidHeader2(t *testing.T) {
-	mdc := "<1,18,0,-6,5222[1,abc,foo,bar]"
+	mdc := "<1,18,0,-6,5222[1,20,300,4]"
 	_, err := Decode([]byte(mdc))
 	assert.Equal(t, errors.New("Invalid cMDC character '[' in header, numeric expected"), err)
 }
@@ -160,7 +174,7 @@ func TestInvalidHeader5(t *testing.T) {
 }
 
 func TestInvalidBody(t *testing.T) {
-	mdc := "<1,18,0,-6,5222,2>[1,abc,foo,bar"
+	mdc := "<1,18,0,-6,5222,2>[1,20,300,4"
 	_, err := Decode([]byte(mdc))
 	assert.Equal(t, errors.New("Invalid cMDC body, no end of body"), err)
 }
