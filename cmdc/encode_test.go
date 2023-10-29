@@ -106,6 +106,35 @@ func TestEncodeEmptyField(t *testing.T) {
 	assert.Equal(t, []byte(expected), encoded)
 }
 
+func TestEncodeKnownType(t *testing.T) {
+	containers := mdd.Containers{
+		Containers: []mdd.Container{
+			{
+				Header: mdd.Header{
+					Version:       1,
+					TotalField:    18,
+					Depth:         0,
+					Key:           -6,
+					SchemaVersion: 5222,
+					ExtVersion:    2,
+				},
+				Fields: []mdd.Field{
+					{Type: mdd.Int32, Value: int32(1)},
+					{Type: mdd.String, Value: "three"},
+					{Type: mdd.String, Value: "富爸"},
+					{Data: []byte("4000")},
+				},
+			},
+		},
+	}
+
+	expected := "<1,18,0,-6,5222,2>[1,(5:three),(6:富爸),4000]"
+	encoded, err := Encode(&containers)
+
+	assert.Nil(t, err)
+	assert.Equal(t, []byte(expected), encoded)
+}
+
 func TestEncodeNested(t *testing.T) {
 
 	subContainers := mdd.Containers{

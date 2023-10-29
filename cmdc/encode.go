@@ -89,9 +89,24 @@ func encodeField(field mdd.Field) ([]byte, error) {
 	}
 
 	switch field.Type {
+	case mdd.Int32:
+		v := field.Value.(int32)
+		return []byte(strconv.Itoa(int(v))), nil
+
+	case mdd.String:
+		v := field.Value.(string)
+		data := make([]byte, 0, len(v)+6)
+		data = append(data, '(')
+		data = append(data, []byte(strconv.Itoa(len(v)))...)
+		data = append(data, ':')
+		data = append(data, []byte(v)...)
+		data = append(data, ')')
+		return data, nil
+
 	case mdd.Struct:
 		containers := field.Value.(*mdd.Containers)
 		return encodeContainer(&containers.Containers[0])
+		// TODO support other types
 	}
 
 	return field.Data, nil
