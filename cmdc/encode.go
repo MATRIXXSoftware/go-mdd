@@ -4,18 +4,23 @@ import (
 	"strconv"
 
 	"github.com/matrixxsoftware/go-mdd/mdd"
-	log "github.com/sirupsen/logrus"
 )
 
 func Encode(containers *mdd.Containers) ([]byte, error) {
 
-	// TODO handle multiple containers
+	var data []byte
+	for _, container := range containers.Containers {
+		containerData, err := encodeContainer(&container)
+		if err != nil {
+			return nil, err
+		}
+		data = append(data, containerData...)
+	}
 
-	return encodeContainer(&containers.Containers[0])
+	return data, nil
 }
 
 func encodeContainer(container *mdd.Container) ([]byte, error) {
-	log.Debugf("Encoding %+v\n", container)
 
 	var data []byte
 

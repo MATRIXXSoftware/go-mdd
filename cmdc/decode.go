@@ -4,13 +4,10 @@ import (
 	"errors"
 	"fmt"
 
-	log "github.com/sirupsen/logrus"
-
 	"github.com/matrixxsoftware/go-mdd/mdd"
 )
 
 func Decode(data []byte) (*mdd.Containers, error) {
-	log.Debugf("Decoding %s\n", string(data))
 
 	var containers mdd.Containers
 	var idx int
