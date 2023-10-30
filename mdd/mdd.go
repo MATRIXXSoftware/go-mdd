@@ -5,6 +5,50 @@ import (
 	"strings"
 )
 
+type Containers struct {
+	Containers []Container
+}
+
+type Container struct {
+	Header Header
+	Fields []Field
+}
+
+type Header struct {
+	Version       int
+	TotalField    int
+	Depth         int
+	Key           int
+	SchemaVersion int
+	ExtVersion    int
+}
+
+type Field struct {
+	Data  []byte
+	Type  FieldType
+	Value interface{}
+}
+
+func (c *Containers) GetContainer(key int) *Container {
+	for _, container := range c.Containers {
+		if container.Header.Key == key {
+			return &container
+		}
+	}
+	return nil
+}
+
+func (c *Container) GetField(fieldNumber int) *Field {
+	if fieldNumber >= len(c.Fields) {
+		return nil
+	}
+	return &c.Fields[fieldNumber]
+}
+
+func (f *Field) String() string {
+	return string(f.Data)
+}
+
 type FieldType int
 
 const (
@@ -59,38 +103,7 @@ func (ft FieldType) String() string {
 	}
 }
 
-type Containers struct {
-	Containers []Container
-}
-
-type Container struct {
-	Header Header
-	Fields []Field
-}
-
-type Header struct {
-	Version       int
-	TotalField    int
-	Depth         int
-	Key           int
-	SchemaVersion int
-	ExtVersion    int
-}
-
-type Field struct {
-	Data  []byte
-	Type  FieldType
-	Value interface{}
-}
-
-func (c *Containers) GetContainer(key int) *Container {
-	for _, container := range c.Containers {
-		if container.Header.Key == key {
-			return &container
-		}
-	}
-	return nil
-}
+// Dump to string
 
 func (c *Containers) Dump() string {
 	var sb strings.Builder
@@ -99,13 +112,6 @@ func (c *Containers) Dump() string {
 		sb.WriteString("\n")
 	}
 	return sb.String()
-}
-
-func (c *Container) GetField(fieldNumber int) *Field {
-	if fieldNumber >= len(c.Fields) {
-		return nil
-	}
-	return &c.Fields[fieldNumber]
 }
 
 func (c *Container) Dump() string {
@@ -121,8 +127,4 @@ func (c *Container) Dump() string {
 
 func (h *Header) Dump() string {
 	return fmt.Sprintf(" %d/%d    %d (Unknown) %d\n", h.SchemaVersion, h.ExtVersion, h.Key, h.TotalField)
-}
-
-func (f *Field) String() string {
-	return string(f.Data)
 }

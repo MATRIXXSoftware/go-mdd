@@ -134,6 +134,45 @@ func TestDecodeNestedContainersWithReservedCharacter(t *testing.T) {
 	assert.Equal(t, "3", container0.GetField(3).String())
 }
 
+func TestListIntegerValue(t *testing.T) {
+	mdc := "<1,18,0,-6,5222,2>[0,{1,2,3},,,300]"
+	containers, err := Decode([]byte(mdc))
+	assert.Nil(t, err)
+
+	container0 := containers.Containers[0]
+	assert.Equal(t, "0", container0.GetField(0).String())
+	assert.Equal(t, "{1,2,3}", container0.GetField(1).String())
+	assert.Equal(t, "", container0.GetField(2).String())
+	assert.Equal(t, "", container0.GetField(3).String())
+	assert.Equal(t, "300", container0.GetField(4).String())
+}
+
+func TestListStringValue(t *testing.T) {
+	mdc := "<1,18,0,-6,5222,2>[0,{(3:one),(3:two),(5:three)},,,300]"
+	containers, err := Decode([]byte(mdc))
+	assert.Nil(t, err)
+
+	container0 := containers.Containers[0]
+	assert.Equal(t, "0", container0.GetField(0).String())
+	assert.Equal(t, "{(3:one),(3:two),(5:three)}", container0.GetField(1).String())
+	assert.Equal(t, "", container0.GetField(2).String())
+	assert.Equal(t, "", container0.GetField(3).String())
+	assert.Equal(t, "300", container0.GetField(4).String())
+}
+
+func TestListStructValue(t *testing.T) {
+	mdc := "<1,18,0,-6,5222,2>[0,{<1,3,0,100,5222,2>[,1000,,],<1,3,0,100,5222,2>[,2000,,],<1,3,0,100,5222,2>[,3000,]},,,300]"
+	containers, err := Decode([]byte(mdc))
+	assert.Nil(t, err)
+
+	container0 := containers.Containers[0]
+	assert.Equal(t, "0", container0.GetField(0).String())
+	assert.Equal(t, "{<1,3,0,100,5222,2>[,1000,,],<1,3,0,100,5222,2>[,2000,,],<1,3,0,100,5222,2>[,3000,]}", container0.GetField(1).String())
+	assert.Equal(t, "", container0.GetField(2).String())
+	assert.Equal(t, "", container0.GetField(3).String())
+	assert.Equal(t, "300", container0.GetField(4).String())
+}
+
 func TestDecodeEmptyBody(t *testing.T) {
 	mdc := "<1,18,0,-6,5222,2>[]"
 	containers, err := Decode([]byte(mdc))

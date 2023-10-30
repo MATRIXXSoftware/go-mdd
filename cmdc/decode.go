@@ -70,6 +70,7 @@ func decodeBody(data []byte) ([]mdd.Field, int, error) {
 	square := 1
 	angle := 0
 	round := 0
+	curly := 0
 	complete := false
 
 	for ; idx < len(data); idx++ {
@@ -104,8 +105,12 @@ func decodeBody(data []byte) ([]mdd.Field, int, error) {
 			angle++
 		case '>':
 			angle--
+		case '{':
+			curly++
+		case '}':
+			curly--
 		case ',':
-			if square == 1 && angle == 0 {
+			if square == 1 && angle == 0 && curly == 0 {
 				// Extract field
 				fieldData := data[mark:idx]
 				mark = idx + 1
