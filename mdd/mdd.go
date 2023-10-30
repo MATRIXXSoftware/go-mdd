@@ -24,9 +24,11 @@ type Header struct {
 }
 
 type Field struct {
-	Data  []byte
-	Type  FieldType
-	Value interface{}
+	Data        []byte
+	Type        FieldType
+	Value       interface{}
+	IsMulti     bool
+	IsContainer bool
 }
 
 func (c *Containers) GetContainer(key int) *Container {
@@ -118,13 +120,20 @@ func (c *Container) Dump() string {
 	var sb strings.Builder
 	sb.WriteString(c.Header.Dump())
 
-	sb.WriteString(fmt.Sprintf(" %6s  %-16s %-30s\n", "Number", "Type", "Data"))
+	sb.WriteString(fmt.Sprintf(" %5s  %-10s %8s %8s   %-30s\n", "index", "type", "multi", "struct", "data"))
 	for i, field := range c.Fields {
-		sb.WriteString(fmt.Sprintf(" %6d  %-16s %-30s\n", i, field.Type.String(), field.String()))
+		sb.WriteString(fmt.Sprintf(" %5d  %-10s %8s %8s   %-30s\n", i, field.Type.String(), unicode(field.IsMulti), unicode(field.IsContainer), field.String()))
 	}
 	return sb.String()
 }
 
 func (h *Header) Dump() string {
 	return fmt.Sprintf(" %d/%d    %d (Unknown) %d\n", h.SchemaVersion, h.ExtVersion, h.Key, h.TotalField)
+}
+
+func unicode(value bool) string {
+	if value {
+		return "✓"
+	}
+	return "✗"
 }

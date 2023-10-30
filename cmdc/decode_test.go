@@ -106,6 +106,11 @@ func TestDecodeNestedContainers(t *testing.T) {
 	assert.Equal(t, "20", container0.GetField(1).String())
 	assert.Equal(t, "<1,2,0,452,5222,2>[100]", container0.GetField(2).String())
 	assert.Equal(t, "4", container0.GetField(3).String())
+
+	assert.Equal(t, false, container0.GetField(0).IsContainer)
+	assert.Equal(t, false, container0.GetField(1).IsContainer)
+	assert.Equal(t, true, container0.GetField(2).IsContainer)
+	assert.Equal(t, false, container0.GetField(3).IsContainer)
 }
 
 func TestDecodeFieldWithReservedCharacter(t *testing.T) {
@@ -135,7 +140,7 @@ func TestDecodeNestedContainersWithReservedCharacter(t *testing.T) {
 }
 
 func TestListIntegerValue(t *testing.T) {
-	mdc := "<1,18,0,-6,5222,2>[0,{1,2,3},,,300]"
+	mdc := "<1,18,0,-6,5222,2>[0,{1,2,3},,,300,{4,5}]"
 	containers, err := Decode([]byte(mdc))
 	assert.Nil(t, err)
 
@@ -145,10 +150,18 @@ func TestListIntegerValue(t *testing.T) {
 	assert.Equal(t, "", container0.GetField(2).String())
 	assert.Equal(t, "", container0.GetField(3).String())
 	assert.Equal(t, "300", container0.GetField(4).String())
+	assert.Equal(t, "{4,5}", container0.GetField(5).String())
+
+	assert.Equal(t, false, container0.GetField(0).IsMulti)
+	assert.Equal(t, true, container0.GetField(1).IsMulti)
+	assert.Equal(t, false, container0.GetField(2).IsMulti)
+	assert.Equal(t, false, container0.GetField(3).IsMulti)
+	assert.Equal(t, false, container0.GetField(4).IsMulti)
+	assert.Equal(t, true, container0.GetField(5).IsMulti)
 }
 
 func TestListStringValue(t *testing.T) {
-	mdc := "<1,18,0,-6,5222,2>[0,{(3:one),(3:two),(5:three)},,,300]"
+	mdc := "<1,18,0,-6,5222,2>[0,{(3:one),(3:two),(5:three)},,,300,{(4:four),(4:five)}]"
 	containers, err := Decode([]byte(mdc))
 	assert.Nil(t, err)
 
@@ -158,19 +171,43 @@ func TestListStringValue(t *testing.T) {
 	assert.Equal(t, "", container0.GetField(2).String())
 	assert.Equal(t, "", container0.GetField(3).String())
 	assert.Equal(t, "300", container0.GetField(4).String())
+	assert.Equal(t, "{(4:four),(4:five)}", container0.GetField(5).String())
+
+	assert.Equal(t, false, container0.GetField(0).IsMulti)
+	assert.Equal(t, true, container0.GetField(1).IsMulti)
+	assert.Equal(t, false, container0.GetField(2).IsMulti)
+	assert.Equal(t, false, container0.GetField(3).IsMulti)
+	assert.Equal(t, false, container0.GetField(4).IsMulti)
+	assert.Equal(t, true, container0.GetField(5).IsMulti)
 }
 
 func TestListStructValue(t *testing.T) {
-	mdc := "<1,18,0,-6,5222,2>[0,{<1,3,0,100,5222,2>[,1000,,],<1,3,0,100,5222,2>[,2000,,],<1,3,0,100,5222,2>[,3000,]},,,300]"
+	mdc := "<1,18,0,-6,5222,2>[0,{<1,3,0,100,5222,2>[,1000,,],<1,3,0,100,5222,2>[,2000,,],<1,3,0,100,5222,2>[,3000,]},,,{300},{<1,5,0,10,5222,2>[4000]}]"
 	containers, err := Decode([]byte(mdc))
 	assert.Nil(t, err)
+	// t.Logf(containers.Dump())
 
 	container0 := containers.Containers[0]
 	assert.Equal(t, "0", container0.GetField(0).String())
 	assert.Equal(t, "{<1,3,0,100,5222,2>[,1000,,],<1,3,0,100,5222,2>[,2000,,],<1,3,0,100,5222,2>[,3000,]}", container0.GetField(1).String())
 	assert.Equal(t, "", container0.GetField(2).String())
 	assert.Equal(t, "", container0.GetField(3).String())
-	assert.Equal(t, "300", container0.GetField(4).String())
+	assert.Equal(t, "{300}", container0.GetField(4).String())
+	assert.Equal(t, "{<1,5,0,10,5222,2>[4000]}", container0.GetField(5).String())
+
+	assert.Equal(t, false, container0.GetField(0).IsMulti)
+	assert.Equal(t, true, container0.GetField(1).IsMulti)
+	assert.Equal(t, false, container0.GetField(2).IsMulti)
+	assert.Equal(t, false, container0.GetField(3).IsMulti)
+	assert.Equal(t, true, container0.GetField(4).IsMulti)
+	assert.Equal(t, true, container0.GetField(5).IsMulti)
+
+	assert.Equal(t, false, container0.GetField(0).IsContainer)
+	assert.Equal(t, true, container0.GetField(1).IsContainer)
+	assert.Equal(t, false, container0.GetField(2).IsContainer)
+	assert.Equal(t, false, container0.GetField(3).IsContainer)
+	assert.Equal(t, false, container0.GetField(4).IsContainer)
+	assert.Equal(t, true, container0.GetField(5).IsContainer)
 }
 
 func TestDecodeEmptyBody(t *testing.T) {

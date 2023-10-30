@@ -71,6 +71,10 @@ func decodeBody(data []byte) ([]mdd.Field, int, error) {
 	angle := 0
 	round := 0
 	curly := 0
+
+	isMulti := false
+	isContainer := false
+
 	complete := false
 
 	for ; idx < len(data); idx++ {
@@ -95,17 +99,19 @@ func decodeBody(data []byte) ([]mdd.Field, int, error) {
 
 		switch c {
 		case '(':
-			round++
 			roundMark = idx
+			round++
 		case '[':
 			square++
 		case ']':
 			square--
 		case '<':
+			isContainer = true
 			angle++
 		case '>':
 			angle--
 		case '{':
+			isMulti = true
 			curly++
 		case '}':
 			curly--
@@ -115,9 +121,13 @@ func decodeBody(data []byte) ([]mdd.Field, int, error) {
 				fieldData := data[mark:idx]
 				mark = idx + 1
 				field := mdd.Field{
-					Data: fieldData,
+					Data:        fieldData,
+					IsMulti:     isMulti,
+					IsContainer: isContainer,
 				}
 				fields = append(fields, field)
+				isMulti = false
+				isContainer = false
 			}
 		}
 
@@ -136,7 +146,9 @@ func decodeBody(data []byte) ([]mdd.Field, int, error) {
 	// Extract last field
 	fieldData := data[mark : idx-1]
 	field := mdd.Field{
-		Data: fieldData,
+		Data:        fieldData,
+		IsMulti:     isMulti,
+		IsContainer: isContainer,
 	}
 	fields = append(fields, field)
 
