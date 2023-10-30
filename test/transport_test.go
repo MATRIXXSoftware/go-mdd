@@ -5,7 +5,6 @@ import (
 
 	"github.com/matrixxsoftware/go-mdd/cmdc"
 	"github.com/matrixxsoftware/go-mdd/mdd"
-	log "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -21,7 +20,7 @@ func TestTransport(t *testing.T) {
 	defer server.Close()
 
 	server.Handler(func(request *mdd.Containers) *mdd.Containers {
-		log.Infof("Server received request : %v", request)
+		t.Logf("Server received request:\n%s", request.Dump())
 
 		container0 := request.GetContainer(101)
 		assert.Equal(t, "1", container0.GetField(0).String())
@@ -93,7 +92,7 @@ func TestTransport(t *testing.T) {
 		panic(err)
 	}
 
-	log.Infof("Client received response: %v", response)
+	t.Logf("Client received response:\n%s", response.Dump())
 
 	container0 := response.GetContainer(88)
 	assert.Equal(t, "0", container0.GetField(0).String())

@@ -1,5 +1,10 @@
 package mdd
 
+import (
+	"fmt"
+	"strings"
+)
+
 type FieldType int
 
 const (
@@ -18,6 +23,41 @@ const (
 	UInt128
 	Struct
 )
+
+func (ft FieldType) String() string {
+	switch ft {
+	case Unknown:
+		return "Unknown"
+	case String:
+		return "String"
+	case Bool:
+		return "Bool"
+	case Int8:
+		return "Int8"
+	case Int16:
+		return "Int16"
+	case Int32:
+		return "Int32"
+	case Int64:
+		return "Int64"
+	case Int128:
+		return "Int128"
+	case UInt8:
+		return "UInt8"
+	case UInt16:
+		return "UInt16"
+	case UInt32:
+		return "UInt32"
+	case UInt64:
+		return "UInt64"
+	case UInt128:
+		return "UInt128"
+	case Struct:
+		return "Struct"
+	default:
+		return "Undefined"
+	}
+}
 
 type Containers struct {
 	Containers []Container
@@ -52,11 +92,35 @@ func (c *Containers) GetContainer(key int) *Container {
 	return nil
 }
 
+func (c *Containers) Dump() string {
+	var sb strings.Builder
+	for _, container := range c.Containers {
+		sb.WriteString(container.Dump())
+		sb.WriteString("\n")
+	}
+	return sb.String()
+}
+
 func (c *Container) GetField(fieldNumber int) *Field {
 	if fieldNumber >= len(c.Fields) {
 		return nil
 	}
 	return &c.Fields[fieldNumber]
+}
+
+func (c *Container) Dump() string {
+	var sb strings.Builder
+	sb.WriteString(c.Header.Dump())
+
+	sb.WriteString(fmt.Sprintf(" %6s  %-16s %-30s\n", "Number", "Type", "Data"))
+	for i, field := range c.Fields {
+		sb.WriteString(fmt.Sprintf(" %6d  %-16s %-30s\n", i, field.Type.String(), field.String()))
+	}
+	return sb.String()
+}
+
+func (h *Header) Dump() string {
+	return fmt.Sprintf(" %d/%d    %d (Unknown) %d\n", h.SchemaVersion, h.ExtVersion, h.Key, h.TotalField)
 }
 
 func (f *Field) String() string {

@@ -84,10 +84,12 @@ func encodeBody(fields []mdd.Field) ([]byte, error) {
 }
 
 func encodeField(field mdd.Field) ([]byte, error) {
+	// If the field has data, use it
 	if len(field.Data) > 0 || field.Type == mdd.Unknown {
 		return field.Data, nil
 	}
 
+	// Otherwise, encode the value
 	switch field.Type {
 	case mdd.Int32:
 		v := field.Value.(int32)
@@ -106,8 +108,10 @@ func encodeField(field mdd.Field) ([]byte, error) {
 	case mdd.Struct:
 		containers := field.Value.(*mdd.Containers)
 		return encodeContainer(&containers.Containers[0])
-		// TODO support other types
-	}
 
-	return field.Data, nil
+	// TODO support other types
+
+	default:
+		return field.Data, nil
+	}
 }
