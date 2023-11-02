@@ -128,7 +128,7 @@ func (c *Container) Dump() string {
 }
 
 func (h *Header) Dump() string {
-	return fmt.Sprintf(" %d/%d    %d (Unknown) %d\n", h.SchemaVersion, h.ExtVersion, h.Key, h.TotalField)
+	return fmt.Sprintf("%s (%d)  %d/%d\n", "Unknown", h.Key, h.SchemaVersion, h.ExtVersion)
 }
 
 func unicode(value bool) string {
