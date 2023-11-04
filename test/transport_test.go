@@ -5,6 +5,7 @@ import (
 
 	"github.com/matrixxsoftware/go-mdd/cmdc"
 	"github.com/matrixxsoftware/go-mdd/mdd"
+	"github.com/matrixxsoftware/go-mdd/tcp"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -13,7 +14,7 @@ func TestTransport(t *testing.T) {
 	codec := cmdc.NewCodec()
 
 	// Create Server
-	server, err := mdd.NewServer("localhost:8080", codec)
+	server, err := tcp.NewServer("localhost:8080", codec)
 	if err != nil {
 		panic(err)
 	}
@@ -58,7 +59,7 @@ func TestTransport(t *testing.T) {
 	}()
 
 	// Create Client
-	client, err := mdd.NewClient("localhost:8080", codec)
+	client, err := tcp.NewClient("localhost:8080", codec)
 	if err != nil {
 		panic(err)
 	}
