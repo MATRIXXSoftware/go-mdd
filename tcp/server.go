@@ -1,19 +1,20 @@
-package mdd
+package tcp
 
 import (
 	"io"
 	"net"
 
+	"github.com/matrixxsoftware/go-mdd/mdd"
 	log "github.com/sirupsen/logrus"
 )
 
 type Server struct {
 	ln      net.Listener
-	codec   Codec
-	handler func(*Containers) *Containers
+	codec   mdd.Codec
+	handler func(*mdd.Containers) *mdd.Containers
 }
 
-func NewServer(addr string, codec Codec) (*Server, error) {
+func NewServer(addr string, codec mdd.Codec) (*Server, error) {
 
 	ln, err := net.Listen("tcp", addr)
 	if err != nil {
@@ -47,7 +48,7 @@ func (s *Server) Close() error {
 	return s.ln.Close()
 }
 
-func (s *Server) Handler(handler func(*Containers) *Containers) {
+func (s *Server) Handler(handler func(*mdd.Containers) *mdd.Containers) {
 	s.handler = handler
 }
 

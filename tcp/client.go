@@ -1,13 +1,17 @@
-package mdd
+package tcp
 
-import "net"
+import (
+	"net"
+
+	"github.com/matrixxsoftware/go-mdd/mdd"
+)
 
 type Client struct {
 	conn  net.Conn
-	codec Codec
+	codec mdd.Codec
 }
 
-func NewClient(addr string, codec Codec) (*Client, error) {
+func NewClient(addr string, codec mdd.Codec) (*Client, error) {
 	conn, err := net.Dial("tcp", addr)
 	if err != nil {
 		return nil, err
@@ -23,7 +27,7 @@ func (c *Client) Close() error {
 	return c.conn.Close()
 }
 
-func (c *Client) SendMessage(request *Containers) (*Containers, error) {
+func (c *Client) SendMessage(request *mdd.Containers) (*mdd.Containers, error) {
 
 	err := Encode(c.conn, c.codec, request)
 	if err != nil {
