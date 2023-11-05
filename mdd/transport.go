@@ -2,10 +2,13 @@ package mdd
 
 type ClientTransport interface {
 	Send([]byte) ([]byte, error)
+	Close() error
 }
 
 type ServerTransport interface {
+	Listen() error
 	Handler(handler func([]byte) []byte)
+	Close() error
 }
 
 type Client struct {
@@ -38,7 +41,7 @@ type Server struct {
 	Transport ServerTransport
 }
 
-func (s *Server) Handler(handler func(*Containers) *Containers) {
+func (s *Server) MessageHandler(handler func(*Containers) *Containers) {
 
 	h := func(reqBody []byte) []byte {
 		request, err := s.Codec.Decode(reqBody)
