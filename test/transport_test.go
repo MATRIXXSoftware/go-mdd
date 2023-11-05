@@ -3,10 +3,11 @@ package test
 import (
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	"github.com/matrixxsoftware/go-mdd/cmdc"
 	"github.com/matrixxsoftware/go-mdd/mdd"
-	"github.com/matrixxsoftware/go-mdd/tcp"
-	"github.com/stretchr/testify/assert"
+	"github.com/matrixxsoftware/go-mdd/transport/http"
 )
 
 func TestTransport(t *testing.T) {
@@ -14,11 +15,16 @@ func TestTransport(t *testing.T) {
 	codec := cmdc.NewCodec()
 
 	// Create Server
-	server, err := tcp.NewServer("localhost:8080", codec)
+	serverTransport, err := http.NewServerTransport("localhost:8080")
 	if err != nil {
 		panic(err)
 	}
-	defer server.Close()
+	defer serverTransport.Close()
+
+	server, err := mdd.NewServer(codec, serverTransport)
+	if err != nil {
+		panic(err)
+	}
 
 	server.Handler(func(request *mdd.Containers) *mdd.Containers {
 		t.Logf("Server received request:\n%s", request.Dump())
@@ -52,18 +58,23 @@ func TestTransport(t *testing.T) {
 	})
 
 	go func() {
-		err := server.Listen()
+		err := serverTransport.Listen()
 		if err != nil {
 			panic(err)
 		}
 	}()
 
 	// Create Client
-	client, err := tcp.NewClient("localhost:8080", codec)
+	clientTransport, err := http.NewClientTransport("localhost:8080")
 	if err != nil {
 		panic(err)
 	}
-	defer client.Close()
+	defer clientTransport.Close()
+
+	client, err := mdd.NewClient(codec, clientTransport)
+	if err != nil {
+		panic(err)
+	}
 
 	// Send Message
 	request := mdd.Containers{
