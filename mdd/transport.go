@@ -9,30 +9,23 @@ type ServerTransport interface {
 }
 
 type Client struct {
-	codec     Codec
-	transport ClientTransport
-}
-
-func NewClient(codec Codec, transport ClientTransport) (*Client, error) {
-	return &Client{
-		codec:     codec,
-		transport: transport,
-	}, nil
+	Codec     Codec
+	Transport ClientTransport
 }
 
 func (c *Client) SendMessage(request *Containers) (*Containers, error) {
 
-	reqBody, err := c.codec.Encode(request)
+	reqBody, err := c.Codec.Encode(request)
 	if err != nil {
 		return nil, err
 	}
 
-	respBody, err := c.transport.Send(reqBody)
+	respBody, err := c.Transport.Send(reqBody)
 	if err != nil {
 		return nil, err
 	}
 
-	response, err := c.codec.Decode(respBody)
+	response, err := c.Codec.Decode(respBody)
 	if err != nil {
 		return nil, err
 	}
@@ -41,28 +34,21 @@ func (c *Client) SendMessage(request *Containers) (*Containers, error) {
 }
 
 type Server struct {
-	codec     Codec
-	transport ServerTransport
-}
-
-func NewServer(codec Codec, transport ServerTransport) (*Server, error) {
-	return &Server{
-		codec:     codec,
-		transport: transport,
-	}, nil
+	Codec     Codec
+	Transport ServerTransport
 }
 
 func (s *Server) Handler(handler func(*Containers) *Containers) {
 
 	h := func(reqBody []byte) []byte {
-		request, err := s.codec.Decode(reqBody)
+		request, err := s.Codec.Decode(reqBody)
 		if err != nil {
 			panic(err) // TODO
 		}
 
 		response := handler(request)
 
-		respBody, err := s.codec.Encode(response)
+		respBody, err := s.Codec.Encode(response)
 		if err != nil {
 			panic(err) // TODO
 		}
@@ -70,5 +56,5 @@ func (s *Server) Handler(handler func(*Containers) *Containers) {
 		return respBody
 	}
 
-	s.transport.Handler(h)
+	s.Transport.Handler(h)
 }

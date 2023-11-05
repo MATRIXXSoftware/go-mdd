@@ -21,9 +21,9 @@ func TestTransport(t *testing.T) {
 	}
 	defer serverTransport.Close()
 
-	server, err := mdd.NewServer(codec, serverTransport)
-	if err != nil {
-		panic(err)
+	server := &mdd.Server{
+		Codec:     codec,
+		Transport: serverTransport,
 	}
 
 	server.Handler(func(request *mdd.Containers) *mdd.Containers {
@@ -71,9 +71,9 @@ func TestTransport(t *testing.T) {
 	}
 	defer clientTransport.Close()
 
-	client, err := mdd.NewClient(codec, clientTransport)
-	if err != nil {
-		panic(err)
+	client := &mdd.Client{
+		Codec:     codec,
+		Transport: clientTransport,
 	}
 
 	// Send Message
