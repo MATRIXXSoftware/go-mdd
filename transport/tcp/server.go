@@ -1,4 +1,4 @@
-package mdd
+package tcp
 
 import (
 	"io"
@@ -7,33 +7,31 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-type Server struct {
+type ServerTransport struct {
 	ln      net.Listener
-	codec   Codec
-	handler func(*Containers) *Containers
+	handler func([]byte) []byte
 }
 
-func NewServer(addr string, codec Codec) (*Server, error) {
+func NewServerTransport(addr string) (*ServerTransport, error) {
 
 	ln, err := net.Listen("tcp", addr)
 	if err != nil {
 		return nil, err
 	}
 
-	return &Server{
-		ln:    ln,
-		codec: codec,
+	return &ServerTransport{
+		ln: ln,
 	}, nil
 }
 
-func (s *Server) Listen() error {
+func (s *ServerTransport) Listen() error {
 	for {
 		// Accept a connection
 		conn, err := s.ln.Accept()
 		if err != nil {
 			opErr, ok := err.(*net.OpError)
 			if ok && opErr.Op == "accept" {
-				log.Infof("Server shutting down")
+				log.Infof("ServerTransport shutting down")
 				return nil
 			}
 			return err
@@ -43,20 +41,20 @@ func (s *Server) Listen() error {
 	}
 }
 
-func (s *Server) Close() error {
+func (s *ServerTransport) Close() error {
 	return s.ln.Close()
 }
 
-func (s *Server) Handler(handler func(*Containers) *Containers) {
+func (s *ServerTransport) Handler(handler func([]byte) []byte) {
 	s.handler = handler
 }
 
-func (s *Server) handleConnection(conn net.Conn) {
+func (s *ServerTransport) handleConnection(conn net.Conn) {
 	defer conn.Close()
 
 	// Handle message synchronously
 	for {
-		request, err := Decode(conn, s.codec)
+		request, err := Decode(conn)
 		if err != nil {
 			if err == io.EOF {
 				log.Infof("Connection closed")
@@ -67,7 +65,7 @@ func (s *Server) handleConnection(conn net.Conn) {
 
 		response := s.handler(request)
 
-		err = Encode(conn, s.codec, response)
+		err = Encode(conn, response)
 		if err != nil {
 			log.Panic(err)
 		}
