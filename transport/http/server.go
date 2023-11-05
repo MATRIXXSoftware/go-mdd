@@ -11,7 +11,7 @@ import (
 
 type ServerTransport struct {
 	address string
-	handler func([]byte) []byte
+	handler func([]byte) ([]byte, error)
 }
 
 func NewServerTransport(addr string) (*ServerTransport, error) {
@@ -34,7 +34,7 @@ func (s *ServerTransport) Close() error {
 	return nil
 }
 
-func (s *ServerTransport) Handler(handler func([]byte) []byte) {
+func (s *ServerTransport) Handler(handler func([]byte) ([]byte, error)) {
 	s.handler = handler
 }
 
@@ -45,7 +45,10 @@ func (s *ServerTransport) requestHandler(w http.ResponseWriter, r *http.Request)
 	}
 	defer r.Body.Close()
 
-	respBody := s.handler(reqBody)
+	respBody, err := s.handler(reqBody)
+	if err != nil {
+		panic(err)
+	}
 
 	fmt.Fprint(w, string(respBody))
 }

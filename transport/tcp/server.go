@@ -9,7 +9,7 @@ import (
 
 type ServerTransport struct {
 	ln      net.Listener
-	handler func([]byte) []byte
+	handler func([]byte) ([]byte, error)
 }
 
 func NewServerTransport(addr string) (*ServerTransport, error) {
@@ -45,7 +45,7 @@ func (s *ServerTransport) Close() error {
 	return s.ln.Close()
 }
 
-func (s *ServerTransport) Handler(handler func([]byte) []byte) {
+func (s *ServerTransport) Handler(handler func([]byte) ([]byte, error)) {
 	s.handler = handler
 }
 
@@ -63,7 +63,10 @@ func (s *ServerTransport) handleConnection(conn net.Conn) {
 			log.Panic(err)
 		}
 
-		response := s.handler(request)
+		response, err := s.handler(request)
+		if err != nil {
+			log.Panic(err)
+		}
 
 		err = Encode(conn, response)
 		if err != nil {

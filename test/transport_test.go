@@ -2,6 +2,7 @@ package test
 
 import (
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 
@@ -90,6 +91,9 @@ func TestTransport(t *testing.T) {
 					panic(err)
 				}
 			}()
+			
+			// Add a small delay for server to start
+			time.Sleep(100 * time.Millisecond)
 
 			// Create Client
 			clientTransport, err := tt.newClientTransport("localhost:8080")

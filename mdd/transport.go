@@ -7,7 +7,7 @@ type ClientTransport interface {
 
 type ServerTransport interface {
 	Listen() error
-	Handler(handler func([]byte) []byte)
+	Handler(handler func([]byte) ([]byte, error))
 	Close() error
 }
 
@@ -43,20 +43,20 @@ type Server struct {
 
 func (s *Server) MessageHandler(handler func(*Containers) *Containers) {
 
-	h := func(reqBody []byte) []byte {
+	h := func(reqBody []byte) ([]byte, error) {
 		request, err := s.Codec.Decode(reqBody)
 		if err != nil {
-			panic(err) // TODO
+			return nil, err
 		}
 
 		response := handler(request)
 
 		respBody, err := s.Codec.Encode(response)
 		if err != nil {
-			panic(err) // TODO
+			return nil, err
 		}
 
-		return respBody
+		return respBody, nil
 	}
 
 	s.Transport.Handler(h)
