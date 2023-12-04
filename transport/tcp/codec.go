@@ -8,7 +8,10 @@ import (
 func Encode(w io.Writer, encoded []byte) error {
 
 	len := uint32(len(encoded))
-	if err := binary.Write(w, binary.LittleEndian, len); err != nil {
+
+	len += 4
+
+	if err := binary.Write(w, binary.BigEndian, len); err != nil {
 		return err
 	}
 
@@ -21,9 +24,11 @@ func Encode(w io.Writer, encoded []byte) error {
 
 func Decode(r io.Reader) ([]byte, error) {
 	var len uint32
-	if err := binary.Read(r, binary.LittleEndian, &len); err != nil {
+	if err := binary.Read(r, binary.BigEndian, &len); err != nil {
 		return nil, err
 	}
+
+	len -= 4
 
 	payload := make([]byte, len)
 
