@@ -16,27 +16,47 @@ go get -u github.com/matrixxsoftware/go-mdd@latest
 
 ## Server
 ```go
-	server, err := mdd.NewServer("localhost:8080", codec)
+	codec := cmdc.NewCodec()
+
+	transport, err := tcp.NewServerTransport("localhost:8080")
 	if err != nil {
 		panic(err)
 	}
-	defer server.Close()
+	defer transport.Close()
 
-	server.Handler(func(containers *mdd.Containers) *mdd.Containers {
+	server := &mdd.Server{
+		Codec:     codec,
+		Transport: transport,
+	}
+
+	server.MessageHandler(func(containers *mdd.Containers) *mdd.Containers {
         ... 
-        // return response containers
+		repsonse := mdd.Containers{}
+        return response
 	})
+
+	err := transport.Listen()
+	if err != nil {
+		panic(err)
+	}
 
 ```
 
 
 ## Client
 ```go
-	client, err := mdd.NewClient("localhost:8080", codec)
+	codec := cmdc.NewCodec()
+
+	transport, err := tcp.NewClientTransport("localhost:8080")
 	if err != nil {
 		panic(err)
 	}
-	defer client.Close()
+	defer transport.Close()
+
+	client := &mdd.Client{
+		Codec:     codec,
+		Transport: transport,
+	}
 
 	request := mdd.Containers{}
 
