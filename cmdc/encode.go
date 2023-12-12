@@ -40,15 +40,33 @@ func encodeContainer(container *mdd.Container) ([]byte, error) {
 }
 
 func encodeHeader(header *mdd.Header) ([]byte, error) {
-	str := "<" +
-		strconv.Itoa(header.Version) + "," +
-		strconv.Itoa(header.TotalField) + "," +
-		strconv.Itoa(header.Depth) + "," +
-		strconv.Itoa(header.Key) + "," +
-		strconv.Itoa(header.SchemaVersion) + "," +
-		strconv.Itoa(header.ExtVersion) +
-		">"
-	return []byte(str), nil
+	// Estimate size:
+	// version          4
+	// totalField       1
+	// depth            1
+	// key              7
+	// schemaVersion    4
+	// extVersion       3
+	// commas           6
+	// angle brackets   2
+	estimatedSize := 4 + 1 + 1 + 7 + 4 + 3 + 6 + 2
+	b := make([]byte, 0, estimatedSize)
+
+	b = append(b, '<')
+	b = strconv.AppendInt(b, int64(header.Version), 10)
+	b = append(b, ',')
+	b = strconv.AppendInt(b, int64(header.TotalField), 10)
+	b = append(b, ',')
+	b = strconv.AppendInt(b, int64(header.Depth), 10)
+	b = append(b, ',')
+	b = strconv.AppendInt(b, int64(header.Key), 10)
+	b = append(b, ',')
+	b = strconv.AppendInt(b, int64(header.SchemaVersion), 10)
+	b = append(b, ',')
+	b = strconv.AppendInt(b, int64(header.ExtVersion), 10)
+	b = append(b, '>')
+
+	return b, nil
 }
 
 func encodeBody(fields []mdd.Field) ([]byte, error) {
