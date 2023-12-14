@@ -5,6 +5,11 @@ import (
 	"strings"
 )
 
+type Codec interface {
+	Decode([]byte) (*Containers, error)
+	Encode(*Containers) ([]byte, error)
+}
+
 type Containers struct {
 	Containers []Container
 }
@@ -23,14 +28,6 @@ type Header struct {
 	ExtVersion    int
 }
 
-type Field struct {
-	Data        []byte
-	Type        FieldType
-	Value       interface{}
-	IsMulti     bool
-	IsContainer bool
-}
-
 func (c *Containers) GetContainer(key int) *Container {
 	for _, container := range c.Containers {
 		if container.Header.Key == key {
@@ -45,64 +42,6 @@ func (c *Container) GetField(fieldNumber int) *Field {
 		return nil
 	}
 	return &c.Fields[fieldNumber]
-}
-
-func (f *Field) String() string {
-	return string(f.Data)
-}
-
-type FieldType int
-
-const (
-	Unknown FieldType = iota
-	String
-	Bool
-	Int8
-	Int16
-	Int32
-	Int64
-	Int128
-	UInt8
-	UInt16
-	UInt32
-	UInt64
-	UInt128
-	Struct
-)
-
-func (ft FieldType) String() string {
-	switch ft {
-	case Unknown:
-		return "Unknown"
-	case String:
-		return "String"
-	case Bool:
-		return "Bool"
-	case Int8:
-		return "Int8"
-	case Int16:
-		return "Int16"
-	case Int32:
-		return "Int32"
-	case Int64:
-		return "Int64"
-	case Int128:
-		return "Int128"
-	case UInt8:
-		return "UInt8"
-	case UInt16:
-		return "UInt16"
-	case UInt32:
-		return "UInt32"
-	case UInt64:
-		return "UInt64"
-	case UInt128:
-		return "UInt128"
-	case Struct:
-		return "Struct"
-	default:
-		return "Undefined"
-	}
 }
 
 // Dump to string

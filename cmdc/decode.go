@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/matrixxsoftware/go-mdd/mdd"
+	"github.com/matrixxsoftware/go-mdd/mdd/codec"
 )
 
 func Decode(data []byte) (*mdd.Containers, error) {
@@ -121,6 +122,7 @@ func decodeBody(data []byte) ([]mdd.Field, int, error) {
 				fieldData := data[mark:idx]
 				mark = idx + 1
 				field := mdd.Field{
+					CodecType:   codec.CMDC,
 					Data:        fieldData,
 					IsMulti:     isMulti,
 					IsContainer: isContainer,
