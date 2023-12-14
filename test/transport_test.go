@@ -91,7 +91,7 @@ func TestTransport(t *testing.T) {
 					panic(err)
 				}
 			}()
-			
+
 			// Add a small delay for server to start
 			time.Sleep(100 * time.Millisecond)
 
@@ -140,6 +140,9 @@ func TestTransport(t *testing.T) {
 			container0 := response.GetContainer(88)
 			assert.Equal(t, "0", container0.GetField(0).String())
 			assert.Equal(t, "(2:OK)", container0.GetField(1).String())
+
+			assert.Equal(t, 0, container0.GetField(0).Value.Integer())
+			assert.Equal(t, "OK", container0.GetField(1).Value.String())
 		})
 	}
 

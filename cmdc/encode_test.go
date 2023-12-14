@@ -121,9 +121,9 @@ func TestEncodeKnownType(t *testing.T) {
 					ExtVersion:    2,
 				},
 				Fields: []mdd.Field{
-					{Type: field.Int32, Value: int32(1)},
-					{Type: field.String, Value: "three"},
-					{Type: field.String, Value: "富爸"},
+					{Type: field.Int32, Value: Value{V: int32(1)}},
+					{Type: field.String, Value: Value{V: "three"}},
+					{Type: field.String, Value: Value{V: "富爸"}},
 					{Data: []byte("4000")},
 				},
 			},
@@ -174,7 +174,7 @@ func TestEncodeNested(t *testing.T) {
 				},
 				Fields: []mdd.Field{
 					{Data: []byte("1")},
-					{Type: field.Struct, Value: &subContainers},
+					{Type: field.Struct, Value: Value{V: &subContainers}},
 					{Data: []byte("(5:three)")},
 					{Data: []byte("4000")},
 				},
