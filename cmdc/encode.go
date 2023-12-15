@@ -111,11 +111,17 @@ func encodeField(f mdd.Field) ([]byte, error) {
 	// Otherwise, encode the value
 	switch f.Type {
 	case field.Int32:
-		v := f.Value.Int32()
+		v, err := f.Value.Int32()
+		if err != nil {
+			return nil, err
+		}
 		return []byte(strconv.Itoa(int(v))), nil
 
 	case field.String:
-		v := f.Value.String()
+		v, err := f.Value.String()
+		if err != nil {
+			return nil, err
+		}
 		data := make([]byte, 0, len(v)+6)
 		data = append(data, '(')
 		data = append(data, []byte(strconv.Itoa(len(v)))...)
@@ -125,7 +131,10 @@ func encodeField(f mdd.Field) ([]byte, error) {
 		return data, nil
 
 	case field.Struct:
-		containers := f.Value.Struct()
+		containers, err := f.Value.Struct()
+		if err != nil {
+			return nil, err
+		}
 		return encodeContainer(&containers.Containers[0])
 
 	// TODO support other types

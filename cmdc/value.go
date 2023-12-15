@@ -1,6 +1,7 @@
 package cmdc
 
 import (
+	"errors"
 	"strconv"
 
 	"github.com/matrixxsoftware/go-mdd/mdd"
@@ -11,36 +12,16 @@ type Value struct {
 	V    interface{}
 }
 
-func (v Value) Integer() int {
+func (v Value) String() (string, error) {
 	if v.V != nil {
-		return v.V.(int)
+		return v.V.(string), nil
 	}
-
-	v.V, _ = strconv.Atoi(string(v.Data))
-	return v.V.(int)
-}
-
-func (v Value) Int32() int32 {
-	if v.V != nil {
-		return v.V.(int32)
-	}
-
-	v.V, _ = strconv.Atoi(string(v.Data))
-	return v.V.(int32)
-}
-
-func (v Value) String() string {
-	if v.V != nil {
-		return v.V.(string)
-	}
-
 	if len(v.Data) == 0 {
-		return ""
+		return "", nil
 	}
 	if v.Data[0] != '(' {
-		panic("Invalid string value")
+		return "", errors.New("Invalid string value")
 	}
-
 	for idx := 1; idx < len(v.Data); idx++ {
 		c := v.Data[idx]
 		if c == ':' {
@@ -50,19 +31,41 @@ func (v Value) String() string {
 				panic("Invalid string length")
 			}
 			v.V = string(v.Data[idx+1 : idx+1+len])
-			return v.V.(string)
+			return v.V.(string), nil
 		}
 	}
-
-	panic("Invalid string value")
+	return "", errors.New("Invalid string value")
 }
 
-func (v Value) Struct() *mdd.Containers {
-	if v.V != nil {
-		return v.V.(*mdd.Containers)
+func (v Value) Int32() (int32, error) {
+	if v.V == nil {
+		value, err := strconv.Atoi(string(v.Data))
+		if err != nil {
+			return 0, err
+		}
+		v.V = int32(value)
 	}
+	return v.V.(int32), nil
+}
 
-	// TODO imeplement
+func (v Value) Float32() (float32, error) {
+	if v.V == nil {
+		value, err := strconv.ParseFloat(string(v.Data), 32)
+		if err != nil {
+			return 0, err
+		}
+		v.V = float32(value)
+	}
+	return v.V.(float32), nil
+}
 
-	panic("Not implemented")
+func (v Value) Struct() (*mdd.Containers, error) {
+	if v.V == nil {
+		containers, err := Decode([]byte(v.Data))
+		if err != nil {
+			return nil, err
+		}
+		v.V = containers
+	}
+	return v.V.(*mdd.Containers), nil
 }
