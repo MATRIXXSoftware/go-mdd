@@ -4,6 +4,7 @@ import (
 	"strconv"
 
 	"github.com/matrixxsoftware/go-mdd/mdd"
+	"github.com/matrixxsoftware/go-mdd/mdd/field"
 )
 
 func Encode(containers *mdd.Containers) ([]byte, error) {
@@ -101,20 +102,26 @@ func encodeBody(fields []mdd.Field) ([]byte, error) {
 	return data, nil
 }
 
-func encodeField(field mdd.Field) ([]byte, error) {
-	// If the field has data, use it
-	if len(field.Data) > 0 || field.Type == mdd.Unknown {
-		return field.Data, nil
+func encodeField(f mdd.Field) ([]byte, error) {
+	// If the f has data, use it
+	if len(f.Data) > 0 || f.Type == field.Unknown {
+		return f.Data, nil
 	}
 
 	// Otherwise, encode the value
-	switch field.Type {
-	case mdd.Int32:
-		v := field.Value.(int32)
+	switch f.Type {
+	case field.Int32:
+		v, err := f.Value.Int32()
+		if err != nil {
+			return nil, err
+		}
 		return []byte(strconv.Itoa(int(v))), nil
 
-	case mdd.String:
-		v := field.Value.(string)
+	case field.String:
+		v, err := f.Value.String()
+		if err != nil {
+			return nil, err
+		}
 		data := make([]byte, 0, len(v)+6)
 		data = append(data, '(')
 		data = append(data, []byte(strconv.Itoa(len(v)))...)
@@ -123,13 +130,16 @@ func encodeField(field mdd.Field) ([]byte, error) {
 		data = append(data, ')')
 		return data, nil
 
-	case mdd.Struct:
-		containers := field.Value.(*mdd.Containers)
+	case field.Struct:
+		containers, err := f.Value.Struct()
+		if err != nil {
+			return nil, err
+		}
 		return encodeContainer(&containers.Containers[0])
 
 	// TODO support other types
 
 	default:
-		return field.Data, nil
+		return f.Data, nil
 	}
 }

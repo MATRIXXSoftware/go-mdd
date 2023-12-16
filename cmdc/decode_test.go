@@ -4,8 +4,9 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/matrixxsoftware/go-mdd/mdd"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/matrixxsoftware/go-mdd/mdd"
 )
 
 func TestDecodeSingleContainer1(t *testing.T) {

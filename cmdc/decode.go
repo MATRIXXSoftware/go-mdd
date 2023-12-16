@@ -122,9 +122,11 @@ func decodeBody(data []byte) ([]mdd.Field, int, error) {
 				mark = idx + 1
 				field := mdd.Field{
 					Data:        fieldData,
+					Value:       Value{Data: fieldData},
 					IsMulti:     isMulti,
 					IsContainer: isContainer,
 				}
+
 				fields = append(fields, field)
 				isMulti = false
 				isContainer = false
@@ -147,6 +149,7 @@ func decodeBody(data []byte) ([]mdd.Field, int, error) {
 	fieldData := data[mark : idx-1]
 	field := mdd.Field{
 		Data:        fieldData,
+		Value:       Value{Data: fieldData},
 		IsMulti:     isMulti,
 		IsContainer: isContainer,
 	}

@@ -3,8 +3,10 @@ package cmdc
 import (
 	"testing"
 
-	"github.com/matrixxsoftware/go-mdd/mdd"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/matrixxsoftware/go-mdd/mdd"
+	"github.com/matrixxsoftware/go-mdd/mdd/field"
 )
 
 func TestEncode(t *testing.T) {
@@ -119,9 +121,9 @@ func TestEncodeKnownType(t *testing.T) {
 					ExtVersion:    2,
 				},
 				Fields: []mdd.Field{
-					{Type: mdd.Int32, Value: int32(1)},
-					{Type: mdd.String, Value: "three"},
-					{Type: mdd.String, Value: "富爸"},
+					{Type: field.Int32, Value: Value{V: int32(1)}},
+					{Type: field.String, Value: Value{V: "three"}},
+					{Type: field.String, Value: Value{V: "富爸"}},
 					{Data: []byte("4000")},
 				},
 			},
@@ -172,7 +174,7 @@ func TestEncodeNested(t *testing.T) {
 				},
 				Fields: []mdd.Field{
 					{Data: []byte("1")},
-					{Type: mdd.Struct, Value: &subContainers},
+					{Type: field.Struct, Value: Value{V: &subContainers}},
 					{Data: []byte("(5:three)")},
 					{Data: []byte("4000")},
 				},
