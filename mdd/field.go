@@ -2,6 +2,7 @@ package mdd
 
 import (
 	"math/big"
+	"time"
 
 	"github.com/matrixxsoftware/go-mdd/mdd/field"
 )
@@ -28,9 +29,12 @@ type Value interface {
 	// Int128() (int128, error)
 	// UInt8() (uint8, error)
 	// UInt16() (uint16, error)
-	// UInt32() (uint32, error)
+	UInt32() (uint32, error)
 	// UInt64() (uint64, error)
 	// UInt128() (uint128, error)
 	Struct() (*Containers, error)
 	Decimal() (*big.Float, error)
+	// Date() (*time.Time, error)
+	// Time() (*time.Time, error)
+	DateTime() (*time.Time, error)
 }

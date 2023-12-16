@@ -4,6 +4,7 @@ import (
 	"errors"
 	"math/big"
 	"strconv"
+	"time"
 
 	"github.com/matrixxsoftware/go-mdd/mdd"
 )
@@ -49,6 +50,17 @@ func (v Value) Int32() (int32, error) {
 	return v.V.(int32), nil
 }
 
+func (v Value) UInt32() (uint32, error) {
+	if v.V == nil {
+		value, err := strconv.Atoi(string(v.Data))
+		if err != nil {
+			return 0, err
+		}
+		v.V = uint32(value)
+	}
+	return v.V.(uint32), nil
+}
+
 func (v Value) Struct() (*mdd.Containers, error) {
 	if v.V == nil {
 		containers, err := Decode([]byte(v.Data))
@@ -69,4 +81,16 @@ func (v Value) Decimal() (*big.Float, error) {
 		v.V = f
 	}
 	return v.V.(*big.Float), nil
+}
+
+func (v Value) DateTime() (*time.Time, error) {
+	if v.V == nil {
+		layout := "2006-01-02T15:04:05Z"
+		dt, err := time.Parse(layout, string(v.Data))
+		if err != nil {
+			return nil, err
+		}
+		v.V = &dt
+	}
+	return v.V.(*time.Time), nil
 }

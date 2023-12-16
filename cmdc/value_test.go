@@ -10,10 +10,17 @@ import (
 )
 
 func TestInt32Value(t *testing.T) {
-	v := Value{Data: []byte("107")}
+	v := Value{Data: []byte("-107")}
 	value, err := v.Int32()
 	assert.Nil(t, err)
-	assert.Equal(t, int32(107), value)
+	assert.Equal(t, int32(-107), value)
+}
+
+func TestUInt32Value(t *testing.T) {
+	v := Value{Data: []byte("1070")}
+	value, err := v.UInt32()
+	assert.Nil(t, err)
+	assert.Equal(t, uint32(1070), value)
 }
 
 func TestStringValue(t *testing.T) {
@@ -51,4 +58,11 @@ func TestDecimalValue(t *testing.T) {
 	value, err := v.Decimal()
 	assert.Nil(t, err)
 	assert.Equal(t, new(big.Float).SetFloat64(3.142).Text('f', -1), value.Text('f', -1))
+}
+
+func TestDateTimeValue(t *testing.T) {
+	v := Value{Data: []byte("2017-01-01T12:00:00Z")}
+	value, err := v.DateTime()
+	assert.Nil(t, err)
+	assert.Equal(t, "2017-01-01 12:00:00 +0000 UTC", value.String())
 }
