@@ -2,6 +2,7 @@ package cmdc
 
 import (
 	"errors"
+	"math/big"
 	"strconv"
 
 	"github.com/matrixxsoftware/go-mdd/mdd"
@@ -48,17 +49,6 @@ func (v Value) Int32() (int32, error) {
 	return v.V.(int32), nil
 }
 
-func (v Value) Float32() (float32, error) {
-	if v.V == nil {
-		value, err := strconv.ParseFloat(string(v.Data), 32)
-		if err != nil {
-			return 0, err
-		}
-		v.V = float32(value)
-	}
-	return v.V.(float32), nil
-}
-
 func (v Value) Struct() (*mdd.Containers, error) {
 	if v.V == nil {
 		containers, err := Decode([]byte(v.Data))
@@ -68,4 +58,15 @@ func (v Value) Struct() (*mdd.Containers, error) {
 		v.V = containers
 	}
 	return v.V.(*mdd.Containers), nil
+}
+
+func (v Value) Decimal() (*big.Float, error) {
+	if v.V == nil {
+		f, ok := new(big.Float).SetString(string(v.Data))
+		if !ok {
+			return nil, errors.New("Invalid decimal value")
+		}
+		v.V = f
+	}
+	return v.V.(*big.Float), nil
 }

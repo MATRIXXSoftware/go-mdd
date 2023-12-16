@@ -17,6 +17,15 @@ const (
 	UInt64
 	UInt128
 	Struct
+	Decimal
+	// Date
+	// Time
+	// DateTime
+	// Blob
+	// BufferID
+	// FieldKey
+	// PhoneNo
+	// tObjectID
 )
 
 func (t Type) String() string {
@@ -49,6 +58,8 @@ func (t Type) String() string {
 		return "UInt128"
 	case Struct:
 		return "Struct"
+	case Decimal:
+		return "Decimal"
 	default:
 		return "Undefined"
 	}

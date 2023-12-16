@@ -1,6 +1,8 @@
 package mdd
 
 import (
+	"math/big"
+
 	"github.com/matrixxsoftware/go-mdd/mdd/field"
 )
 
@@ -29,7 +31,6 @@ type Value interface {
 	// UInt32() (uint32, error)
 	// UInt64() (uint64, error)
 	// UInt128() (uint128, error)
-	Float32() (float32, error)
-	// Float64() (float64, error)
 	Struct() (*Containers, error)
+	Decimal() (*big.Float, error)
 }

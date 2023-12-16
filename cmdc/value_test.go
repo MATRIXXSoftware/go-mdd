@@ -1,6 +1,7 @@
 package cmdc
 
 import (
+	"math/big"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -20,13 +21,6 @@ func TestStringValue(t *testing.T) {
 	value, err := v.String()
 	assert.Nil(t, err)
 	assert.Equal(t, "foobar", value)
-}
-
-func TestFloat32Value(t *testing.T) {
-	v := Value{Data: []byte("3.142")}
-	value, err := v.Float32()
-	assert.Nil(t, err)
-	assert.Equal(t, float32(3.142), value)
 }
 
 func TestStructValue(t *testing.T) {
@@ -50,4 +44,11 @@ func TestStructValue(t *testing.T) {
 	assert.Equal(t, "20", container.GetField(1).String())
 	assert.Equal(t, "300", container.GetField(2).String())
 	assert.Equal(t, "4", container.GetField(3).String())
+}
+
+func TestDecimalValue(t *testing.T) {
+	v := Value{Data: []byte("3.142")}
+	value, err := v.Decimal()
+	assert.Nil(t, err)
+	assert.Equal(t, new(big.Float).SetFloat64(3.142).Text('f', -1), value.Text('f', -1))
 }
