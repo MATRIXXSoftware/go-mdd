@@ -5,11 +5,6 @@ import (
 	"strings"
 )
 
-type Codec interface {
-	Decode([]byte) (*Containers, error)
-	Encode(*Containers) ([]byte, error)
-}
-
 type Containers struct {
 	Containers []Container
 }

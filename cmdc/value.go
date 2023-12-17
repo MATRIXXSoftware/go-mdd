@@ -14,6 +14,17 @@ type Value struct {
 	V    interface{}
 }
 
+func (v Value) Bool() (bool, error) {
+	if v.V == nil {
+		value, err := strconv.ParseBool(string(v.Data))
+		if err != nil {
+			return false, err
+		}
+		v.V = value
+	}
+	return v.V.(bool), nil
+}
+
 func (v Value) String() (string, error) {
 	if v.V != nil {
 		return v.V.(string), nil
@@ -59,6 +70,28 @@ func (v Value) UInt32() (uint32, error) {
 		v.V = uint32(value)
 	}
 	return v.V.(uint32), nil
+}
+
+func (v Value) Int64() (int64, error) {
+	if v.V == nil {
+		value, err := strconv.Atoi(string(v.Data))
+		if err != nil {
+			return 0, err
+		}
+		v.V = int64(value)
+	}
+	return v.V.(int64), nil
+}
+
+func (v Value) UInt64() (uint64, error) {
+	if v.V == nil {
+		value, err := strconv.Atoi(string(v.Data))
+		if err != nil {
+			return 0, err
+		}
+		v.V = uint64(value)
+	}
+	return v.V.(uint64), nil
 }
 
 func (v Value) Struct() (*mdd.Containers, error) {
