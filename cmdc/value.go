@@ -50,9 +50,31 @@ func (v Value) String() (string, error) {
 	return "", errors.New("Invalid string value")
 }
 
+func (v Value) Int8() (int8, error) {
+	if v.V == nil {
+		value, err := strconv.ParseInt(string(v.Data), 10, 8)
+		if err != nil {
+			return 0, err
+		}
+		v.V = int8(value)
+	}
+	return v.V.(int8), nil
+}
+
+func (v Value) Int16() (int16, error) {
+	if v.V == nil {
+		value, err := strconv.ParseInt(string(v.Data), 10, 16)
+		if err != nil {
+			return 0, err
+		}
+		v.V = int16(value)
+	}
+	return v.V.(int16), nil
+}
+
 func (v Value) Int32() (int32, error) {
 	if v.V == nil {
-		value, err := strconv.Atoi(string(v.Data))
+		value, err := strconv.ParseInt(string(v.Data), 10, 32)
 		if err != nil {
 			return 0, err
 		}
@@ -61,9 +83,42 @@ func (v Value) Int32() (int32, error) {
 	return v.V.(int32), nil
 }
 
+func (v Value) Int64() (int64, error) {
+	if v.V == nil {
+		value, err := strconv.ParseInt(string(v.Data), 10, 64)
+		if err != nil {
+			return 0, err
+		}
+		v.V = value
+	}
+	return v.V.(int64), nil
+}
+
+func (v Value) UInt8() (uint8, error) {
+	if v.V == nil {
+		value, err := strconv.ParseUint(string(v.Data), 10, 8)
+		if err != nil {
+			return 0, err
+		}
+		v.V = uint8(value)
+	}
+	return v.V.(uint8), nil
+}
+
+func (v Value) UInt16() (uint16, error) {
+	if v.V == nil {
+		value, err := strconv.ParseUint(string(v.Data), 10, 16)
+		if err != nil {
+			return 0, err
+		}
+		v.V = uint16(value)
+	}
+	return v.V.(uint16), nil
+}
+
 func (v Value) UInt32() (uint32, error) {
 	if v.V == nil {
-		value, err := strconv.Atoi(string(v.Data))
+		value, err := strconv.ParseUint(string(v.Data), 10, 32)
 		if err != nil {
 			return 0, err
 		}
@@ -72,24 +127,13 @@ func (v Value) UInt32() (uint32, error) {
 	return v.V.(uint32), nil
 }
 
-func (v Value) Int64() (int64, error) {
-	if v.V == nil {
-		value, err := strconv.Atoi(string(v.Data))
-		if err != nil {
-			return 0, err
-		}
-		v.V = int64(value)
-	}
-	return v.V.(int64), nil
-}
-
 func (v Value) UInt64() (uint64, error) {
 	if v.V == nil {
-		value, err := strconv.Atoi(string(v.Data))
+		value, err := strconv.ParseUint(string(v.Data), 10, 64)
 		if err != nil {
 			return 0, err
 		}
-		v.V = uint64(value)
+		v.V = value
 	}
 	return v.V.(uint64), nil
 }

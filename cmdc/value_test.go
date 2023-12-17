@@ -30,18 +30,18 @@ func TestInt32Value(t *testing.T) {
 	assert.Equal(t, int32(-107), value)
 }
 
-func TestUInt32Value(t *testing.T) {
-	v := Value{Data: []byte("1070")}
-	value, err := v.UInt32()
-	assert.Nil(t, err)
-	assert.Equal(t, uint32(1070), value)
-}
-
 func TestInt64Value(t *testing.T) {
 	v := Value{Data: []byte("-107")}
 	value, err := v.Int64()
 	assert.Nil(t, err)
 	assert.Equal(t, int64(-107), value)
+}
+
+func TestUInt32Value(t *testing.T) {
+	v := Value{Data: []byte("1070")}
+	value, err := v.UInt32()
+	assert.Nil(t, err)
+	assert.Equal(t, uint32(1070), value)
 }
 
 func TestUInt64Value(t *testing.T) {

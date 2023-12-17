@@ -115,7 +115,28 @@ func encodeField(f mdd.Field) ([]byte, error) {
 		if err != nil {
 			return nil, err
 		}
-		return []byte(strconv.Itoa(int(v))), nil
+		return []byte(strconv.FormatInt(int64(v), 10)), nil
+
+	case field.UInt32:
+		v, err := f.Value.UInt32()
+		if err != nil {
+			return nil, err
+		}
+		return []byte(strconv.FormatInt(int64(v), 10)), nil
+
+	case field.Int64:
+		v, err := f.Value.Int64()
+		if err != nil {
+			return nil, err
+		}
+		return []byte(strconv.FormatInt(v, 10)), nil
+
+	case field.UInt64:
+		v, err := f.Value.UInt64()
+		if err != nil {
+			return nil, err
+		}
+		return []byte(strconv.FormatInt(int64(v), 10)), nil
 
 	case field.String:
 		v, err := f.Value.String()

@@ -3,6 +3,8 @@ package mdd
 import (
 	"fmt"
 	"strings"
+
+	"github.com/matrixxsoftware/go-mdd/mdd/field"
 )
 
 type Containers struct {
@@ -21,6 +23,14 @@ type Header struct {
 	Key           int
 	SchemaVersion int
 	ExtVersion    int
+}
+
+type Field struct {
+	Data        []byte
+	Type        field.Type
+	Value       Value
+	IsMulti     bool
+	IsContainer bool
 }
 
 func (c *Containers) GetContainer(key int) *Container {
@@ -63,6 +73,10 @@ func (c *Container) Dump() string {
 
 func (h *Header) Dump() string {
 	return fmt.Sprintf("%s (%d)  %d/%d\n", "Unknown", h.Key, h.SchemaVersion, h.ExtVersion)
+}
+
+func (f *Field) String() string {
+	return string(f.Data)
 }
 
 func unicode(value bool) string {
