@@ -87,10 +87,14 @@ func decodeBody(data []byte) ([]mdd.Field, int, error) {
 				if err != nil {
 					panic("Invalid string length")
 				}
+				// reset round mark
+				roundMark = 0
 				// skip the string field
 				idx += len
 			} else if c == ')' {
 				round--
+			} else if roundMark == 0 {
+				return nil, idx, errors.New("Invalid cMDC body, mismatch string length")
 			} else if c < '0' || c > '9' {
 				return nil, idx, errors.New("Invalid character '" + string(c) + "', numeric expected for string length")
 			}

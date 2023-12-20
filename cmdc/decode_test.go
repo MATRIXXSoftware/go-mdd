@@ -273,3 +273,27 @@ func TestInvalidBody4(t *testing.T) {
 	_, err := Decode([]byte(mdc))
 	assert.Equal(t, errors.New("Invalid character 'a', numeric expected for string length"), err)
 }
+
+func TestInvalidBody5(t *testing.T) {
+	mdc := "<1,18,0,-6,5222,2>[1,(5:foo),3,4]"
+	_, err := Decode([]byte(mdc))
+	assert.Equal(t, errors.New("Invalid cMDC body, mismatch string length"), err)
+}
+
+func TestInvalidBody6(t *testing.T) {
+	mdc := "<1,18,0,-6,5222,2>[1,(5:foobar),3,4]"
+	_, err := Decode([]byte(mdc))
+	assert.Equal(t, errors.New("Invalid cMDC body, mismatch string length"), err)
+}
+
+func TestDecodeUnicodeString(t *testing.T) {
+	mdc := "<1,18,0,-6,5222,2>[1,(6:富爸),3,4]"
+	containers, err := Decode([]byte(mdc))
+	assert.Nil(t, err)
+
+	container := containers.Containers[0]
+	assert.Equal(t, "1", container.GetField(0).String())
+	assert.Equal(t, "(6:富爸)", container.GetField(1).String())
+	assert.Equal(t, "3", container.GetField(2).String())
+	assert.Equal(t, "4", container.GetField(3).String())
+}

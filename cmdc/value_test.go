@@ -58,6 +58,13 @@ func TestStringValue(t *testing.T) {
 	assert.Equal(t, "foobar", value)
 }
 
+func TestUnicodeStringValue(t *testing.T) {
+	v := Value{Data: []byte("(6:富爸)")}
+	value, err := v.String()
+	assert.Nil(t, err)
+	assert.Equal(t, "富爸", value)
+}
+
 func TestStructValue(t *testing.T) {
 	v := Value{Data: []byte("<1,10,0,235,5280,1>[1,20,300,4]")}
 
