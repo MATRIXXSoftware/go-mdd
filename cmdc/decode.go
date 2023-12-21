@@ -81,7 +81,11 @@ func decodeBody(data []byte) ([]mdd.Field, int, error) {
 		c := data[idx]
 
 		if round != 0 {
-			if c == ':' {
+			if c == ')' {
+				round--
+			} else if roundMark == 0 {
+				return nil, idx, errors.New("Invalid cMDC body, mismatch string length")
+			} else if c == ':' {
 				temp := data[roundMark+1 : idx]
 				len, err := bytesToInt(temp)
 				if err != nil {
@@ -91,10 +95,6 @@ func decodeBody(data []byte) ([]mdd.Field, int, error) {
 				roundMark = 0
 				// skip the string field
 				idx += len
-			} else if c == ')' {
-				round--
-			} else if roundMark == 0 {
-				return nil, idx, errors.New("Invalid cMDC body, mismatch string length")
 			} else if c < '0' || c > '9' {
 				return nil, idx, errors.New("Invalid character '" + string(c) + "', numeric expected for string length")
 			}

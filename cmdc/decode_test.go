@@ -220,6 +220,32 @@ func TestDecodeEmptyBody(t *testing.T) {
 	assert.Equal(t, "", container0.GetField(0).String())
 }
 
+func TestZeroLenBracketBody(t *testing.T) {
+	mdc := "<1,18,0,-6,5222,2>[1,(0:),3,4]"
+	containers, err := Decode([]byte(mdc))
+	assert.Nil(t, err)
+
+	container := containers.Containers[0]
+
+	assert.Equal(t, "1", container.GetField(0).String())
+	assert.Equal(t, "(0:)", container.GetField(1).String())
+	assert.Equal(t, "3", container.GetField(2).String())
+	assert.Equal(t, "4", container.GetField(3).String())
+}
+
+func TestEmptyBracketBody(t *testing.T) {
+	mdc := "<1,18,0,-6,5222,2>[1,(),3,4]"
+	containers, err := Decode([]byte(mdc))
+	assert.Nil(t, err)
+
+	container := containers.Containers[0]
+
+	assert.Equal(t, "1", container.GetField(0).String())
+	assert.Equal(t, "()", container.GetField(1).String())
+	assert.Equal(t, "3", container.GetField(2).String())
+	assert.Equal(t, "4", container.GetField(3).String())
+}
+
 func TestInvalidHeader(t *testing.T) {
 	mdc := "<1,18,-6,5222,2>[1,20,300,4]"
 	_, err := Decode([]byte(mdc))
@@ -282,6 +308,12 @@ func TestInvalidBody5(t *testing.T) {
 
 func TestInvalidBody6(t *testing.T) {
 	mdc := "<1,18,0,-6,5222,2>[1,(5:foobar),3,4]"
+	_, err := Decode([]byte(mdc))
+	assert.Equal(t, errors.New("Invalid cMDC body, mismatch string length"), err)
+}
+
+func TestInvalidBody7(t *testing.T) {
+	mdc := "<1,18,0,-6,5222,2>[1,(5:fooba:),3,4]"
 	_, err := Decode([]byte(mdc))
 	assert.Equal(t, errors.New("Invalid cMDC body, mismatch string length"), err)
 }
