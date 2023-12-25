@@ -2,7 +2,10 @@ package cmdc
 
 import (
 	"errors"
+	"math/big"
 	"strconv"
+
+	"github.com/matrixxsoftware/go-mdd/mdd"
 )
 
 func encodeBoolValue(v bool) ([]byte, error) {
@@ -150,28 +153,26 @@ func decodeUInt64Value(b []byte) (uint64, error) {
 	return uint64(v), nil
 }
 
-// func (v Value) Struct() (*mdd.Containers, error) {
-// 	if v.V == nil {
-// 		containers, err := Decode([]byte(v.Data))
-// 		if err != nil {
-// 			return nil, err
-// 		}
-// 		v.V = containers
-// 	}
-// 	return v.V.(*mdd.Containers), nil
-// }
-//
-// func (v Value) Decimal() (*big.Float, error) {
-// 	if v.V == nil {
-// 		f, ok := new(big.Float).SetString(string(v.Data))
-// 		if !ok {
-// 			return nil, errors.New("Invalid decimal value")
-// 		}
-// 		v.V = f
-// 	}
-// 	return v.V.(*big.Float), nil
-// }
-//
+func encodeStructValue(codec mdd.Codec, v *mdd.Containers) ([]byte, error) {
+	return codec.Encode(v)
+}
+
+func decodeStructValue(codec mdd.Codec, b []byte) (*mdd.Containers, error) {
+	return codec.Decode(b)
+}
+
+func encodeDecimalValue(v *big.Float) ([]byte, error) {
+	return []byte(v.String()), nil
+}
+
+func decodeDecimalValue(b []byte) (*big.Float, error) {
+	f, ok := new(big.Float).SetString(string(b))
+	if !ok {
+		return nil, errors.New("Invalid decimal value")
+	}
+	return f, nil
+}
+
 // func (v Value) DateTime() (*time.Time, error) {
 // 	if v.V == nil {
 // 		layout := "2006-01-02T15:04:05Z"

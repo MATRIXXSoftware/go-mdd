@@ -4,6 +4,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+
+	"github.com/matrixxsoftware/go-mdd/mdd"
 )
 
 func TestBoolTrueValue(t *testing.T) {
@@ -138,36 +140,44 @@ func TestUnicodeStringValue(t *testing.T) {
 	assert.Equal(t, data, encoded)
 }
 
-//
-// func TestStructValue(t *testing.T) {
-// 	v := Value{Data: []byte("<1,10,0,235,5280,1>[1,20,300,4]")}
-//
-// 	containers, err := v.Struct()
-// 	assert.Nil(t, err)
-// 	assert.NotNil(t, containers)
-//
-// 	container := containers.Containers[0]
-// 	expectedHeader := mdd.Header{
-// 		Version:       1,
-// 		TotalField:    10,
-// 		Depth:         0,
-// 		Key:           235,
-// 		SchemaVersion: 5280,
-// 		ExtVersion:    1,
-// 	}
-// 	assert.Equal(t, expectedHeader, container.Header)
-// 	assert.Equal(t, "1", container.GetField(0).String())
-// 	assert.Equal(t, "20", container.GetField(1).String())
-// 	assert.Equal(t, "300", container.GetField(2).String())
-// 	assert.Equal(t, "4", container.GetField(3).String())
-// }
-//
-// func TestDecimalValue(t *testing.T) {
-// 	v := Value{Data: []byte("3.142")}
-// 	value, err := v.Decimal()
-// 	assert.Nil(t, err)
-// 	assert.Equal(t, new(big.Float).SetFloat64(3.142).Text('f', -1), value.Text('f', -1))
-// }
+func TestStructValue(t *testing.T) {
+	data := []byte("<1,10,0,235,5280,1>[1,20,300,4]")
+
+	containers, err := decodeStructValue(codec, data)
+	assert.Nil(t, err)
+	assert.NotNil(t, containers)
+
+	container := containers.Containers[0]
+	expectedHeader := mdd.Header{
+		Version:       1,
+		TotalField:    10,
+		Depth:         0,
+		Key:           235,
+		SchemaVersion: 5280,
+		ExtVersion:    1,
+	}
+	assert.Equal(t, expectedHeader, container.Header)
+	assert.Equal(t, "1", container.GetField(0).String())
+	assert.Equal(t, "20", container.GetField(1).String())
+	assert.Equal(t, "300", container.GetField(2).String())
+	assert.Equal(t, "4", container.GetField(3).String())
+
+	encoded, err := encodeStructValue(codec, containers)
+	assert.Nil(t, err)
+	assert.Equal(t, data, encoded)
+}
+
+func TestDecimalValue(t *testing.T) {
+	data := []byte("3.142")
+	value, err := decodeDecimalValue(data)
+	assert.Nil(t, err)
+	assert.Equal(t, "3.142", value.Text('f', -1))
+
+	encoded, err := encodeDecimalValue(value)
+	assert.Nil(t, err)
+	assert.Equal(t, data, encoded)
+}
+
 //
 // func TestDateTimeValue(t *testing.T) {
 // 	v := Value{Data: []byte("2017-01-01T12:00:00Z")}

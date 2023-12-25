@@ -2,6 +2,7 @@ package cmdc
 
 import (
 	"errors"
+	"math/big"
 
 	"github.com/matrixxsoftware/go-mdd/mdd"
 	"github.com/matrixxsoftware/go-mdd/mdd/field"
@@ -44,6 +45,10 @@ func (c *Cmdc) DecodeField(f *mdd.Field) (interface{}, error) {
 		return decodeUInt64Value(f.Data)
 	case field.Bool:
 		return decodeBoolValue(f.Data)
+	case field.Struct:
+		return decodeStructValue(f.Codec, f.Data)
+	case field.Decimal:
+		return decodeDecimalValue(f.Data)
 	default:
 		return nil, errors.New("Unsupported field type")
 	}
@@ -75,6 +80,10 @@ func (cmdc *Cmdc) EncodeField(f *mdd.Field) ([]byte, error) {
 		return encodeUInt64Value(f.Value.(uint64))
 	case field.Bool:
 		return encodeBoolValue(f.Value.(bool))
+	case field.Struct:
+		return encodeStructValue(f.Codec, f.Value.(*mdd.Containers))
+	case field.Decimal:
+		return encodeDecimalValue(f.Value.(*big.Float))
 	}
 
 	return f.Data, nil
