@@ -4,170 +4,183 @@ import (
 	"errors"
 	"math/big"
 	"strconv"
-	"time"
 
 	"github.com/matrixxsoftware/go-mdd/mdd"
 )
 
-type Value struct {
-	Data []byte
-	V    interface{}
+func encodeBoolValue(v bool) ([]byte, error) {
+	if v == true {
+		return []byte("1"), nil
+	} else {
+		return []byte("0"), nil
+	}
+
 }
 
-func (v Value) Bool() (bool, error) {
-	if v.V == nil {
-		value, err := strconv.ParseBool(string(v.Data))
-		if err != nil {
-			return false, err
-		}
-		v.V = value
+func decodeBoolValue(b []byte) (bool, error) {
+	v, err := strconv.ParseBool(string(b))
+	if err != nil {
+		return false, err
 	}
-	return v.V.(bool), nil
+	return v, nil
 }
 
-func (v Value) String() (string, error) {
-	if v.V != nil {
-		return v.V.(string), nil
+func encodeStringValue(v string) ([]byte, error) {
+	data := make([]byte, 0, len(v)+6)
+	data = append(data, '(')
+	data = append(data, []byte(strconv.Itoa(len(v)))...)
+	data = append(data, ':')
+	data = append(data, []byte(v)...)
+	data = append(data, ')')
+	return data, nil
+}
+
+func decodeStringValue(b []byte) (string, error) {
+	if len(b) == 0 {
+		return string(""), nil
 	}
-	if len(v.Data) == 0 {
-		return "", nil
+	if b[0] != '(' {
+		return string(""), errors.New("Invalid string value")
 	}
-	if v.Data[0] != '(' {
-		return "", errors.New("Invalid string value")
-	}
-	for idx := 1; idx < len(v.Data); idx++ {
-		c := v.Data[idx]
+	for idx := 1; idx < len(b); idx++ {
+		c := b[idx]
 		if c == ':' {
-			temp := v.Data[1:idx]
+			temp := b[1:idx]
 			len, err := bytesToInt(temp)
 			if err != nil {
 				panic("Invalid string length")
 			}
-			v.V = string(v.Data[idx+1 : idx+1+len])
-			return v.V.(string), nil
+			str := string(b[idx+1 : idx+1+len])
+			return string(str), nil
 		}
 	}
-	return "", errors.New("Invalid string value")
+	return string(""), errors.New("Invalid string value")
 }
 
-func (v Value) Int8() (int8, error) {
-	if v.V == nil {
-		value, err := strconv.ParseInt(string(v.Data), 10, 8)
-		if err != nil {
-			return 0, err
-		}
-		v.V = int8(value)
-	}
-	return v.V.(int8), nil
+func encodeInt8Value(v int8) ([]byte, error) {
+	return []byte(strconv.FormatInt(int64(v), 10)), nil
 }
 
-func (v Value) Int16() (int16, error) {
-	if v.V == nil {
-		value, err := strconv.ParseInt(string(v.Data), 10, 16)
-		if err != nil {
-			return 0, err
-		}
-		v.V = int16(value)
+func decodeInt8Value(b []byte) (int8, error) {
+	v, err := strconv.ParseInt(string(b), 10, 8)
+	if err != nil {
+		return int8(0), err
 	}
-	return v.V.(int16), nil
+	return int8(v), nil
 }
 
-func (v Value) Int32() (int32, error) {
-	if v.V == nil {
-		value, err := strconv.ParseInt(string(v.Data), 10, 32)
-		if err != nil {
-			return 0, err
-		}
-		v.V = int32(value)
-	}
-	return v.V.(int32), nil
+func encodeInt16Value(v int16) ([]byte, error) {
+	return []byte(strconv.FormatInt(int64(v), 10)), nil
 }
 
-func (v Value) Int64() (int64, error) {
-	if v.V == nil {
-		value, err := strconv.ParseInt(string(v.Data), 10, 64)
-		if err != nil {
-			return 0, err
-		}
-		v.V = value
+func decodeInt16Value(b []byte) (int16, error) {
+	v, err := strconv.ParseInt(string(b), 10, 16)
+	if err != nil {
+		return int16(0), err
 	}
-	return v.V.(int64), nil
+	return int16(v), nil
 }
 
-func (v Value) UInt8() (uint8, error) {
-	if v.V == nil {
-		value, err := strconv.ParseUint(string(v.Data), 10, 8)
-		if err != nil {
-			return 0, err
-		}
-		v.V = uint8(value)
-	}
-	return v.V.(uint8), nil
+func encodeInt32Value(v int32) ([]byte, error) {
+	return []byte(strconv.FormatInt(int64(v), 10)), nil
 }
 
-func (v Value) UInt16() (uint16, error) {
-	if v.V == nil {
-		value, err := strconv.ParseUint(string(v.Data), 10, 16)
-		if err != nil {
-			return 0, err
-		}
-		v.V = uint16(value)
+func decodeInt32Value(b []byte) (int32, error) {
+	v, err := strconv.ParseInt(string(b), 10, 32)
+	if err != nil {
+		return int32(0), err
 	}
-	return v.V.(uint16), nil
+	return int32(v), nil
 }
 
-func (v Value) UInt32() (uint32, error) {
-	if v.V == nil {
-		value, err := strconv.ParseUint(string(v.Data), 10, 32)
-		if err != nil {
-			return 0, err
-		}
-		v.V = uint32(value)
-	}
-	return v.V.(uint32), nil
+func encodeInt64Value(v int64) ([]byte, error) {
+	return []byte(strconv.FormatInt(v, 10)), nil
 }
 
-func (v Value) UInt64() (uint64, error) {
-	if v.V == nil {
-		value, err := strconv.ParseUint(string(v.Data), 10, 64)
-		if err != nil {
-			return 0, err
-		}
-		v.V = value
+func decodeInt64Value(b []byte) (int64, error) {
+	v, err := strconv.ParseInt(string(b), 10, 64)
+	if err != nil {
+		return int64(0), err
 	}
-	return v.V.(uint64), nil
+	return int64(v), nil
 }
 
-func (v Value) Struct() (*mdd.Containers, error) {
-	if v.V == nil {
-		containers, err := Decode([]byte(v.Data))
-		if err != nil {
-			return nil, err
-		}
-		v.V = containers
-	}
-	return v.V.(*mdd.Containers), nil
+func encodeUInt8Value(v uint8) ([]byte, error) {
+	return []byte(strconv.FormatUint(uint64(v), 10)), nil
 }
 
-func (v Value) Decimal() (*big.Float, error) {
-	if v.V == nil {
-		f, ok := new(big.Float).SetString(string(v.Data))
-		if !ok {
-			return nil, errors.New("Invalid decimal value")
-		}
-		v.V = f
+func decodeUInt8Value(b []byte) (uint8, error) {
+	v, err := strconv.ParseUint(string(b), 10, 8)
+	if err != nil {
+		return uint8(0), err
 	}
-	return v.V.(*big.Float), nil
+	return uint8(v), nil
 }
 
-func (v Value) DateTime() (*time.Time, error) {
-	if v.V == nil {
-		layout := "2006-01-02T15:04:05Z"
-		dt, err := time.Parse(layout, string(v.Data))
-		if err != nil {
-			return nil, err
-		}
-		v.V = &dt
-	}
-	return v.V.(*time.Time), nil
+func encodeUInt16Value(v uint16) ([]byte, error) {
+	return []byte(strconv.FormatUint(uint64(v), 10)), nil
 }
+
+func decodeUInt16Value(b []byte) (uint16, error) {
+	v, err := strconv.ParseUint(string(b), 10, 16)
+	if err != nil {
+		return uint16(0), err
+	}
+	return uint16(v), nil
+}
+
+func encodeUInt32Value(v uint32) ([]byte, error) {
+	return []byte(strconv.FormatUint(uint64(v), 10)), nil
+}
+
+func decodeUInt32Value(b []byte) (uint32, error) {
+	v, err := strconv.ParseUint(string(b), 10, 32)
+	if err != nil {
+		return uint32(0), err
+	}
+	return uint32(v), nil
+}
+
+func encodeUInt64Value(v uint64) ([]byte, error) {
+	return []byte(strconv.FormatUint(v, 10)), nil
+}
+
+func decodeUInt64Value(b []byte) (uint64, error) {
+	v, err := strconv.ParseUint(string(b), 10, 64)
+	if err != nil {
+		return uint64(0), err
+	}
+	return uint64(v), nil
+}
+
+func encodeStructValue(codec mdd.Codec, v *mdd.Containers) ([]byte, error) {
+	return codec.Encode(v)
+}
+
+func decodeStructValue(codec mdd.Codec, b []byte) (*mdd.Containers, error) {
+	return codec.Decode(b)
+}
+
+func encodeDecimalValue(v *big.Float) ([]byte, error) {
+	return []byte(v.String()), nil
+}
+
+func decodeDecimalValue(b []byte) (*big.Float, error) {
+	f, ok := new(big.Float).SetString(string(b))
+	if !ok {
+		return nil, errors.New("Invalid decimal value")
+	}
+	return f, nil
+}
+
+// func (v Value) DateTime() (*time.Time, error) {
+// 	if v.V == nil {
+// 		layout := "2006-01-02T15:04:05Z"
+// 		dt, err := time.Parse(layout, string(v.Data))
+// 		if err != nil {
+// 			return nil, err
+// 		}
+// 		v.V = &dt
+// 	}
+// 	return v.V.(*time.Time), nil
+// }

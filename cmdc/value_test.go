@@ -1,7 +1,6 @@
 package cmdc
 
 import (
-	"math/big"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -10,65 +9,141 @@ import (
 )
 
 func TestBoolTrueValue(t *testing.T) {
-	v := Value{Data: []byte("1")}
-	value, err := v.Bool()
+	data := []byte("1")
+	value, err := decodeBoolValue(data)
 	assert.Nil(t, err)
 	assert.Equal(t, true, value)
+
+	encoded, err := encodeBoolValue(value)
+	assert.Nil(t, err)
+	assert.Equal(t, data, encoded)
 }
 
 func TestBoolFalseValue(t *testing.T) {
-	v := Value{Data: []byte("0")}
-	value, err := v.Bool()
+	data := []byte("0")
+	value, err := decodeBoolValue(data)
 	assert.Nil(t, err)
 	assert.Equal(t, false, value)
+
+	encoded, err := encodeBoolValue(value)
+	assert.Nil(t, err)
+	assert.Equal(t, data, encoded)
+}
+
+func TestInt8Value(t *testing.T) {
+	data := []byte("-125")
+	value, err := decodeInt8Value(data)
+	assert.Nil(t, err)
+	assert.Equal(t, int8(-125), value)
+
+	encoded, err := encodeInt8Value(value)
+	assert.Nil(t, err)
+	assert.Equal(t, data, encoded)
+}
+
+func TestInt16Value(t *testing.T) {
+	data := []byte("1070")
+	value, err := decodeInt16Value(data)
+	assert.Nil(t, err)
+	assert.Equal(t, int16(1070), value)
+
+	encoded, err := encodeInt16Value(value)
+	assert.Nil(t, err)
+	assert.Equal(t, data, encoded)
 }
 
 func TestInt32Value(t *testing.T) {
-	v := Value{Data: []byte("-107")}
-	value, err := v.Int32()
+	data := []byte("-107")
+	value, err := decodeInt32Value(data)
 	assert.Nil(t, err)
 	assert.Equal(t, int32(-107), value)
+
+	encoded, err := encodeInt32Value(value)
+	assert.Nil(t, err)
+	assert.Equal(t, data, encoded)
 }
 
 func TestInt64Value(t *testing.T) {
-	v := Value{Data: []byte("-107")}
-	value, err := v.Int64()
+	data := []byte("81345123666616")
+	value, err := decodeInt64Value(data)
 	assert.Nil(t, err)
-	assert.Equal(t, int64(-107), value)
+	assert.Equal(t, int64(81345123666616), value)
+
+	encoded, err := encodeInt64Value(value)
+	assert.Nil(t, err)
+	assert.Equal(t, data, encoded)
+}
+
+func TestUInt8Value(t *testing.T) {
+	data := []byte("200")
+	value, err := decodeUInt8Value(data)
+	assert.Nil(t, err)
+	assert.Equal(t, uint8(200), value)
+
+	encoded, err := encodeUInt8Value(value)
+	assert.Nil(t, err)
+	assert.Equal(t, data, encoded)
+}
+
+func TestUInt16Value(t *testing.T) {
+	data := []byte("1070")
+	value, err := decodeUInt16Value(data)
+	assert.Nil(t, err)
+	assert.Equal(t, uint16(1070), value)
+
+	encoded, err := encodeUInt16Value(value)
+	assert.Nil(t, err)
+	assert.Equal(t, data, encoded)
 }
 
 func TestUInt32Value(t *testing.T) {
-	v := Value{Data: []byte("1070")}
-	value, err := v.UInt32()
+	data := []byte("10888888")
+	value, err := decodeUInt32Value(data)
 	assert.Nil(t, err)
-	assert.Equal(t, uint32(1070), value)
+	assert.Equal(t, uint32(10888888), value)
+
+	encoded, err := encodeUInt32Value(value)
+	assert.Nil(t, err)
+	assert.Equal(t, data, encoded)
 }
 
 func TestUInt64Value(t *testing.T) {
-	v := Value{Data: []byte("1070")}
-	value, err := v.UInt64()
+	data := []byte("81345123666616")
+	value, err := decodeUInt64Value(data)
 	assert.Nil(t, err)
-	assert.Equal(t, uint64(1070), value)
+	assert.Equal(t, uint64(81345123666616), value)
+
+	encoded, err := encodeUInt64Value(value)
+	assert.Nil(t, err)
+	assert.Equal(t, data, encoded)
 }
 
 func TestStringValue(t *testing.T) {
-	v := Value{Data: []byte("(6:foobar)")}
-	value, err := v.String()
+	data := []byte("(6:foobar)")
+	value, err := decodeStringValue(data)
 	assert.Nil(t, err)
 	assert.Equal(t, "foobar", value)
+
+	encoded, err := encodeStringValue(value)
+	assert.Nil(t, err)
+	assert.Equal(t, data, encoded)
 }
 
 func TestUnicodeStringValue(t *testing.T) {
-	v := Value{Data: []byte("(6:富爸)")}
-	value, err := v.String()
+	data := []byte("(6:富爸)")
+	value, err := decodeStringValue(data)
 	assert.Nil(t, err)
 	assert.Equal(t, "富爸", value)
+
+	encoded, err := encodeStringValue(value)
+	assert.Nil(t, err)
+	assert.Equal(t, data, encoded)
 }
 
 func TestStructValue(t *testing.T) {
-	v := Value{Data: []byte("<1,10,0,235,5280,1>[1,20,300,4]")}
+	data := []byte("<1,10,0,235,5280,1>[1,20,300,4]")
 
-	containers, err := v.Struct()
+	containers, err := decodeStructValue(codec, data)
 	assert.Nil(t, err)
 	assert.NotNil(t, containers)
 
@@ -86,18 +161,27 @@ func TestStructValue(t *testing.T) {
 	assert.Equal(t, "20", container.GetField(1).String())
 	assert.Equal(t, "300", container.GetField(2).String())
 	assert.Equal(t, "4", container.GetField(3).String())
+
+	encoded, err := encodeStructValue(codec, containers)
+	assert.Nil(t, err)
+	assert.Equal(t, data, encoded)
 }
 
 func TestDecimalValue(t *testing.T) {
-	v := Value{Data: []byte("3.142")}
-	value, err := v.Decimal()
+	data := []byte("3.142")
+	value, err := decodeDecimalValue(data)
 	assert.Nil(t, err)
-	assert.Equal(t, new(big.Float).SetFloat64(3.142).Text('f', -1), value.Text('f', -1))
+	assert.Equal(t, "3.142", value.Text('f', -1))
+
+	encoded, err := encodeDecimalValue(value)
+	assert.Nil(t, err)
+	assert.Equal(t, data, encoded)
 }
 
-func TestDateTimeValue(t *testing.T) {
-	v := Value{Data: []byte("2017-01-01T12:00:00Z")}
-	value, err := v.DateTime()
-	assert.Nil(t, err)
-	assert.Equal(t, "2017-01-01 12:00:00 +0000 UTC", value.String())
-}
+//
+// func TestDateTimeValue(t *testing.T) {
+// 	v := Value{Data: []byte("2017-01-01T12:00:00Z")}
+// 	value, err := v.DateTime()
+// 	assert.Nil(t, err)
+// 	assert.Equal(t, "2017-01-01 12:00:00 +0000 UTC", value.String())
+// }

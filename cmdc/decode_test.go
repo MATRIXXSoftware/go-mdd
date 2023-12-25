@@ -11,7 +11,7 @@ import (
 
 func TestDecodeSingleContainer1(t *testing.T) {
 	mdc := "<1,18,0,-6,5222,2>[1,20,300,4]"
-	containers, err := Decode([]byte(mdc))
+	containers, err := codec.Decode([]byte(mdc))
 	assert.Nil(t, err)
 
 	container := containers.Containers[0]
@@ -34,7 +34,7 @@ func TestDecodeSingleContainer1(t *testing.T) {
 func TestDecodeSingleContainer2(t *testing.T) {
 	mdc := "<1,18,0,-6,5222,2>[,(6:value2),3,2021-09-07T08:00:25.000001Z," +
 		"2021-10-31,09:13:02.667997Z,88,5.5,]"
-	containers, err := Decode([]byte(mdc))
+	containers, err := codec.Decode([]byte(mdc))
 	assert.Nil(t, err)
 
 	container := containers.Containers[0]
@@ -61,7 +61,7 @@ func TestDecodeSingleContainer2(t *testing.T) {
 
 func TestDecodeContainers(t *testing.T) {
 	mdc := "<1,18,0,-6,5222,2>[1,20,300,4]<1,5,0,-7,5222,2>[,2,(3:def),4]"
-	containers, err := Decode([]byte(mdc))
+	containers, err := codec.Decode([]byte(mdc))
 	assert.Nil(t, err)
 
 	container0 := containers.Containers[0]
@@ -99,7 +99,7 @@ func TestDecodeContainers(t *testing.T) {
 
 func TestDecodeNestedContainers(t *testing.T) {
 	mdc := "<1,18,0,-6,5222,2>[1,20,<1,2,0,452,5222,2>[100],4]"
-	containers, err := Decode([]byte(mdc))
+	containers, err := codec.Decode([]byte(mdc))
 	assert.Nil(t, err)
 
 	container0 := containers.Containers[0]
@@ -116,7 +116,7 @@ func TestDecodeNestedContainers(t *testing.T) {
 
 func TestDecodeNestedContainersWithReservedCharacter(t *testing.T) {
 	mdc := "<1,18,0,-6,5222,2>[1,2,<1,2,0,452,5222,2>[100,(5:a[<,(),300],3]"
-	containers, err := Decode([]byte(mdc))
+	containers, err := codec.Decode([]byte(mdc))
 	assert.Nil(t, err)
 
 	container0 := containers.Containers[0]
@@ -128,7 +128,7 @@ func TestDecodeNestedContainersWithReservedCharacter(t *testing.T) {
 
 func TestListIntegerValue(t *testing.T) {
 	mdc := "<1,18,0,-6,5222,2>[0,{1,2,3},,,300,{4,5}]"
-	containers, err := Decode([]byte(mdc))
+	containers, err := codec.Decode([]byte(mdc))
 	assert.Nil(t, err)
 
 	container0 := containers.Containers[0]
@@ -149,7 +149,7 @@ func TestListIntegerValue(t *testing.T) {
 
 func TestListStringValue(t *testing.T) {
 	mdc := "<1,18,0,-6,5222,2>[0,{(3:one),(3:two),(5:three)},,,300,{(4:four),(4:five)}]"
-	containers, err := Decode([]byte(mdc))
+	containers, err := codec.Decode([]byte(mdc))
 	assert.Nil(t, err)
 
 	container0 := containers.Containers[0]
@@ -170,7 +170,7 @@ func TestListStringValue(t *testing.T) {
 
 func TestListStructValue(t *testing.T) {
 	mdc := "<1,18,0,-6,5222,2>[0,{<1,3,0,100,5222,2>[,1000,,],<1,3,0,100,5222,2>[,2000,,],<1,3,0,100,5222,2>[,3000,]},,,{300},{<1,5,0,10,5222,2>[4000]}]"
-	containers, err := Decode([]byte(mdc))
+	containers, err := codec.Decode([]byte(mdc))
 	assert.Nil(t, err)
 	// t.Logf(containers.Dump())
 
@@ -199,7 +199,7 @@ func TestListStructValue(t *testing.T) {
 
 func TestDecodeEmptyBody(t *testing.T) {
 	mdc := "<1,18,0,-6,5222,2>[]"
-	containers, err := Decode([]byte(mdc))
+	containers, err := codec.Decode([]byte(mdc))
 	assert.Nil(t, err)
 	assert.Equal(t, 1, len(containers.Containers))
 	container0 := containers.Containers[0]
@@ -208,7 +208,7 @@ func TestDecodeEmptyBody(t *testing.T) {
 
 func TestZeroLenStringField(t *testing.T) {
 	mdc := "<1,18,0,-6,5222,2>[1,(0:),3,4]"
-	containers, err := Decode([]byte(mdc))
+	containers, err := codec.Decode([]byte(mdc))
 	assert.Nil(t, err)
 
 	container := containers.Containers[0]
@@ -220,7 +220,7 @@ func TestZeroLenStringField(t *testing.T) {
 
 func TestEmptyStringField(t *testing.T) {
 	mdc := "<1,18,0,-6,5222,2>[1,(),3,4]"
-	containers, err := Decode([]byte(mdc))
+	containers, err := codec.Decode([]byte(mdc))
 	assert.Nil(t, err)
 
 	container := containers.Containers[0]
@@ -232,7 +232,7 @@ func TestEmptyStringField(t *testing.T) {
 
 func TestUnicodeStringField(t *testing.T) {
 	mdc := "<1,18,0,-6,5222,2>[1,(6:富爸),3,4]"
-	containers, err := Decode([]byte(mdc))
+	containers, err := codec.Decode([]byte(mdc))
 	assert.Nil(t, err)
 
 	container := containers.Containers[0]
@@ -244,7 +244,7 @@ func TestUnicodeStringField(t *testing.T) {
 
 func TestReservedCharacterStringField(t *testing.T) {
 	mdc := "<1,18,0,-6,5222,2>[1,2,(10:v[<ue(obar),4,,6]"
-	containers, err := Decode([]byte(mdc))
+	containers, err := codec.Decode([]byte(mdc))
 	assert.Nil(t, err)
 
 	container0 := containers.Containers[0]
@@ -258,72 +258,72 @@ func TestReservedCharacterStringField(t *testing.T) {
 
 func TestInvalidHeader(t *testing.T) {
 	mdc := "<1,18,-6,5222,2>[1,20,300,4]"
-	_, err := Decode([]byte(mdc))
+	_, err := codec.Decode([]byte(mdc))
 	assert.Equal(t, errors.New("Invalid cMDC header, 6 fields expected"), err)
 }
 
 func TestInvalidHeader2(t *testing.T) {
 	mdc := "<1,18,0,-6,5222[1,20,300,4]"
-	_, err := Decode([]byte(mdc))
+	_, err := codec.Decode([]byte(mdc))
 	assert.Equal(t, errors.New("Invalid cMDC character '[' in header, numeric expected"), err)
 }
 
 func TestInvalidHeader3(t *testing.T) {
 	mdc := "<1,18,0,-6,5222,2"
-	_, err := Decode([]byte(mdc))
+	_, err := codec.Decode([]byte(mdc))
 	assert.Equal(t, errors.New("Invalid cMDC header, no end of header"), err)
 }
 
 func TestInvalidHeader4(t *testing.T) {
 	mdc := "1,18,0,-6,5222,2>[]"
-	_, err := Decode([]byte(mdc))
+	_, err := codec.Decode([]byte(mdc))
 	assert.Equal(t, errors.New("Invalid cMDC header, first character must be '<'"), err)
 }
 
 func TestInvalidHeader5(t *testing.T) {
 	mdc := "<1,18,0,1-6,5222,2>[]"
-	_, err := Decode([]byte(mdc))
+	_, err := codec.Decode([]byte(mdc))
 	assert.Equal(t, errors.New("Invalid cMDC header field '1-6', numeric expected"), err)
 }
 
 func TestInvalidBody(t *testing.T) {
 	mdc := "<1,18,0,-6,5222,2>[1,20,300,4"
-	_, err := Decode([]byte(mdc))
+	_, err := codec.Decode([]byte(mdc))
 	assert.Equal(t, errors.New("Invalid cMDC body, no end of body"), err)
 }
 
 func TestInvalidBody2(t *testing.T) {
 	mdc := "<1,18,0,-6,5222,2>"
-	_, err := Decode([]byte(mdc))
+	_, err := codec.Decode([]byte(mdc))
 	assert.Equal(t, errors.New("Invalid cMDC body, no body"), err)
 }
 
 func TestInvalidBody3(t *testing.T) {
 	mdc := "<1,18,0,-6,5222,2>1,2,3]"
-	_, err := Decode([]byte(mdc))
+	_, err := codec.Decode([]byte(mdc))
 	assert.Equal(t, errors.New("Invalid cMDC body, first character must be '['"), err)
 }
 
 func TestInvalidBody4(t *testing.T) {
 	mdc := "<1,18,0,-6,5222,2>[1,(abc:foo),3,4]"
-	_, err := Decode([]byte(mdc))
+	_, err := codec.Decode([]byte(mdc))
 	assert.Equal(t, errors.New("Invalid character 'a', numeric expected for string length"), err)
 }
 
 func TestInvalidBody5(t *testing.T) {
 	mdc := "<1,18,0,-6,5222,2>[1,(5:foo),3,4]"
-	_, err := Decode([]byte(mdc))
+	_, err := codec.Decode([]byte(mdc))
 	assert.Equal(t, errors.New("Invalid cMDC body, mismatch string length"), err)
 }
 
 func TestInvalidBody6(t *testing.T) {
 	mdc := "<1,18,0,-6,5222,2>[1,(5:foobar),3,4]"
-	_, err := Decode([]byte(mdc))
+	_, err := codec.Decode([]byte(mdc))
 	assert.Equal(t, errors.New("Invalid cMDC body, mismatch string length"), err)
 }
 
 func TestInvalidBody7(t *testing.T) {
 	mdc := "<1,18,0,-6,5222,2>[1,(5:fooba:),3,4]"
-	_, err := Decode([]byte(mdc))
+	_, err := codec.Decode([]byte(mdc))
 	assert.Equal(t, errors.New("Invalid cMDC body, mismatch string length"), err)
 }
