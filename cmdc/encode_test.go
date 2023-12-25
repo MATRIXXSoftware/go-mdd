@@ -121,9 +121,9 @@ func TestEncodeKnownType(t *testing.T) {
 					ExtVersion:    2,
 				},
 				Fields: []mdd.Field{
-					{Type: field.Int32, Value: Int32Value(1)},
-					{Type: field.String, Value: StringValue("three")},
-					{Type: field.String, Value: StringValue("富爸")},
+					{Type: field.Int32, Value: int32(1)},
+					{Type: field.String, Value: "three"},
+					{Type: field.String, Value: "富爸"},
 					{Data: []byte("4000")},
 				},
 			},

@@ -3,20 +3,14 @@ package cmdc
 import (
 	"errors"
 	"strconv"
-
-	"github.com/matrixxsoftware/go-mdd/mdd"
-	"github.com/matrixxsoftware/go-mdd/mdd/field"
 )
 
-// String
-type StringValue string
-
-func DecodeStringValue(b []byte) (mdd.Value, error) {
+func decodeStringValue(b []byte) (string, error) {
 	if len(b) == 0 {
-		return StringValue(""), nil
+		return string(""), nil
 	}
 	if b[0] != '(' {
-		return StringValue(""), errors.New("Invalid string value")
+		return string(""), errors.New("Invalid string value")
 	}
 	for idx := 1; idx < len(b); idx++ {
 		c := b[idx]
@@ -27,67 +21,20 @@ func DecodeStringValue(b []byte) (mdd.Value, error) {
 				panic("Invalid string length")
 			}
 			str := string(b[idx+1 : idx+1+len])
-			return StringValue(str), nil
+			return string(str), nil
 		}
 	}
-	return StringValue(""), errors.New("Invalid string value")
+	return string(""), errors.New("Invalid string value")
 }
 
-func (v StringValue) Type() field.Type {
-	return field.String
-}
-
-func (v StringValue) Serialize() []byte {
-	return []byte(v)
-}
-
-// Int32
-type Int32Value int32
-
-func DecodeInt32Value(b []byte) (mdd.Value, error) {
+func decodeInt32Value(b []byte) (int32, error) {
 	v, err := strconv.ParseInt(string(b), 10, 32)
 	if err != nil {
-		return Int32Value(0), err
+		return int32(0), err
 	}
-	return Int32Value(int32(v)), nil
+	return int32(v), nil
 }
 
-func (v Int32Value) Type() field.Type {
-	return field.Int32
-}
-
-func (v Int32Value) Serialize() []byte {
-	return []byte(string(v))
-}
-
-// type CmdcFieldCodec struct{}
-//
-// func (c CmdcFieldCodec) Decode(f *mdd.Field) (mdd.Value, error) {
-// 	switch f.Type {
-// 	case field.String:
-// 		return DecodeStringValue(f.Data)
-// 	case field.Int32:
-// 		return DecodeInt32Value(f.Data)
-// 	default:
-// 		return nil, errors.New("Unsupported field type")
-// 	}
-// }
-
-//
-// import (
-// 	"errors"
-// 	"math/big"
-// 	"strconv"
-// 	"time"
-//
-// 	"github.com/matrixxsoftware/go-mdd/mdd"
-// )
-//
-// type Value struct {
-// 	Data []byte
-// 	V    interface{}
-// }
-//
 // func (v Value) Bool() (bool, error) {
 // 	if v.V == nil {
 // 		value, err := strconv.ParseBool(string(v.Data))
