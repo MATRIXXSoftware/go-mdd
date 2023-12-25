@@ -5,6 +5,33 @@ import (
 	"strconv"
 )
 
+func encodeBoolValue(v bool) ([]byte, error) {
+	if v == true {
+		return []byte("1"), nil
+	} else {
+		return []byte("0"), nil
+	}
+
+}
+
+func decodeBoolValue(b []byte) (bool, error) {
+	v, err := strconv.ParseBool(string(b))
+	if err != nil {
+		return false, err
+	}
+	return v, nil
+}
+
+func encodeStringValue(v string) ([]byte, error) {
+	data := make([]byte, 0, len(v)+6)
+	data = append(data, '(')
+	data = append(data, []byte(strconv.Itoa(len(v)))...)
+	data = append(data, ':')
+	data = append(data, []byte(v)...)
+	data = append(data, ')')
+	return data, nil
+}
+
 func decodeStringValue(b []byte) (string, error) {
 	if len(b) == 0 {
 		return string(""), nil
@@ -27,14 +54,28 @@ func decodeStringValue(b []byte) (string, error) {
 	return string(""), errors.New("Invalid string value")
 }
 
-func encodeStringValue(v string) ([]byte, error) {
-	data := make([]byte, 0, len(v)+6)
-	data = append(data, '(')
-	data = append(data, []byte(strconv.Itoa(len(v)))...)
-	data = append(data, ':')
-	data = append(data, []byte(v)...)
-	data = append(data, ')')
-	return data, nil
+func encodeInt8Value(v int8) ([]byte, error) {
+	return []byte(strconv.FormatInt(int64(v), 10)), nil
+}
+
+func decodeInt8Value(b []byte) (int8, error) {
+	v, err := strconv.ParseInt(string(b), 10, 8)
+	if err != nil {
+		return int8(0), err
+	}
+	return int8(v), nil
+}
+
+func encodeInt16Value(v int16) ([]byte, error) {
+	return []byte(strconv.FormatInt(int64(v), 10)), nil
+}
+
+func decodeInt16Value(b []byte) (int16, error) {
+	v, err := strconv.ParseInt(string(b), 10, 16)
+	if err != nil {
+		return int16(0), err
+	}
+	return int16(v), nil
 }
 
 func encodeInt32Value(v int32) ([]byte, error) {
@@ -49,130 +90,66 @@ func decodeInt32Value(b []byte) (int32, error) {
 	return int32(v), nil
 }
 
-// func (v Value) Bool() (bool, error) {
-// 	if v.V == nil {
-// 		value, err := strconv.ParseBool(string(v.Data))
-// 		if err != nil {
-// 			return false, err
-// 		}
-// 		v.V = value
-// 	}
-// 	return v.V.(bool), nil
-// }
-//
-// func (v Value) String() (string, error) {
-// 	if v.V != nil {
-// 		return v.V.(string), nil
-// 	}
-// 	if len(v.Data) == 0 {
-// 		return "", nil
-// 	}
-// 	if v.Data[0] != '(' {
-// 		return "", errors.New("Invalid string value")
-// 	}
-// 	for idx := 1; idx < len(v.Data); idx++ {
-// 		c := v.Data[idx]
-// 		if c == ':' {
-// 			temp := v.Data[1:idx]
-// 			len, err := bytesToInt(temp)
-// 			if err != nil {
-// 				panic("Invalid string length")
-// 			}
-// 			v.V = string(v.Data[idx+1 : idx+1+len])
-// 			return v.V.(string), nil
-// 		}
-// 	}
-// 	return "", errors.New("Invalid string value")
-// }
-//
-// func (v Value) Int8() (int8, error) {
-// 	if v.V == nil {
-// 		value, err := strconv.ParseInt(string(v.Data), 10, 8)
-// 		if err != nil {
-// 			return 0, err
-// 		}
-// 		v.V = int8(value)
-// 	}
-// 	return v.V.(int8), nil
-// }
-//
-// func (v Value) Int16() (int16, error) {
-// 	if v.V == nil {
-// 		value, err := strconv.ParseInt(string(v.Data), 10, 16)
-// 		if err != nil {
-// 			return 0, err
-// 		}
-// 		v.V = int16(value)
-// 	}
-// 	return v.V.(int16), nil
-// }
-//
-// func (v Value) Int32() (int32, error) {
-// 	if v.V == nil {
-// 		value, err := strconv.ParseInt(string(v.Data), 10, 32)
-// 		if err != nil {
-// 			return 0, err
-// 		}
-// 		v.V = int32(value)
-// 	}
-// 	return v.V.(int32), nil
-// }
-//
-// func (v Value) Int64() (int64, error) {
-// 	if v.V == nil {
-// 		value, err := strconv.ParseInt(string(v.Data), 10, 64)
-// 		if err != nil {
-// 			return 0, err
-// 		}
-// 		v.V = value
-// 	}
-// 	return v.V.(int64), nil
-// }
-//
-// func (v Value) UInt8() (uint8, error) {
-// 	if v.V == nil {
-// 		value, err := strconv.ParseUint(string(v.Data), 10, 8)
-// 		if err != nil {
-// 			return 0, err
-// 		}
-// 		v.V = uint8(value)
-// 	}
-// 	return v.V.(uint8), nil
-// }
-//
-// func (v Value) UInt16() (uint16, error) {
-// 	if v.V == nil {
-// 		value, err := strconv.ParseUint(string(v.Data), 10, 16)
-// 		if err != nil {
-// 			return 0, err
-// 		}
-// 		v.V = uint16(value)
-// 	}
-// 	return v.V.(uint16), nil
-// }
-//
-// func (v Value) UInt32() (uint32, error) {
-// 	if v.V == nil {
-// 		value, err := strconv.ParseUint(string(v.Data), 10, 32)
-// 		if err != nil {
-// 			return 0, err
-// 		}
-// 		v.V = uint32(value)
-// 	}
-// 	return v.V.(uint32), nil
-// }
-//
-// func (v Value) UInt64() (uint64, error) {
-// 	if v.V == nil {
-// 		value, err := strconv.ParseUint(string(v.Data), 10, 64)
-// 		if err != nil {
-// 			return 0, err
-// 		}
-// 		v.V = value
-// 	}
-// 	return v.V.(uint64), nil
-// }
-//
+func encodeInt64Value(v int64) ([]byte, error) {
+	return []byte(strconv.FormatInt(v, 10)), nil
+}
+
+func decodeInt64Value(b []byte) (int64, error) {
+	v, err := strconv.ParseInt(string(b), 10, 64)
+	if err != nil {
+		return int64(0), err
+	}
+	return int64(v), nil
+}
+
+func encodeUInt8Value(v uint8) ([]byte, error) {
+	return []byte(strconv.FormatUint(uint64(v), 10)), nil
+}
+
+func decodeUInt8Value(b []byte) (uint8, error) {
+	v, err := strconv.ParseUint(string(b), 10, 8)
+	if err != nil {
+		return uint8(0), err
+	}
+	return uint8(v), nil
+}
+
+func encodeUInt16Value(v uint16) ([]byte, error) {
+	return []byte(strconv.FormatUint(uint64(v), 10)), nil
+}
+
+func decodeUInt16Value(b []byte) (uint16, error) {
+	v, err := strconv.ParseUint(string(b), 10, 16)
+	if err != nil {
+		return uint16(0), err
+	}
+	return uint16(v), nil
+}
+
+func encodeUInt32Value(v uint32) ([]byte, error) {
+	return []byte(strconv.FormatUint(uint64(v), 10)), nil
+}
+
+func decodeUInt32Value(b []byte) (uint32, error) {
+	v, err := strconv.ParseUint(string(b), 10, 32)
+	if err != nil {
+		return uint32(0), err
+	}
+	return uint32(v), nil
+}
+
+func encodeUInt64Value(v uint64) ([]byte, error) {
+	return []byte(strconv.FormatUint(v, 10)), nil
+}
+
+func decodeUInt64Value(b []byte) (uint64, error) {
+	v, err := strconv.ParseUint(string(b), 10, 64)
+	if err != nil {
+		return uint64(0), err
+	}
+	return uint64(v), nil
+}
+
 // func (v Value) Struct() (*mdd.Containers, error) {
 // 	if v.V == nil {
 // 		containers, err := Decode([]byte(v.Data))

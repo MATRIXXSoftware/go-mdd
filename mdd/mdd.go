@@ -31,8 +31,7 @@ type Field struct {
 	IsMulti     bool
 	IsContainer bool
 	Value       interface{}
-	// Value       Value
-	Codec Codec
+	Codec       Codec
 }
 
 func (c *Containers) GetContainer(key int) *Container {
