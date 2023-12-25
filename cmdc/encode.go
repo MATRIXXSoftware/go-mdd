@@ -4,14 +4,13 @@ import (
 	"strconv"
 
 	"github.com/matrixxsoftware/go-mdd/mdd"
-	"github.com/matrixxsoftware/go-mdd/mdd/field"
 )
 
-func Encode(containers *mdd.Containers) ([]byte, error) {
+func (cmdc *Cmdc) encodeContainers(containers *mdd.Containers) ([]byte, error) {
 
 	var data []byte
 	for _, container := range containers.Containers {
-		containerData, err := encodeContainer(&container)
+		containerData, err := cmdc.encodeContainer(&container)
 		if err != nil {
 			return nil, err
 		}
@@ -21,17 +20,17 @@ func Encode(containers *mdd.Containers) ([]byte, error) {
 	return data, nil
 }
 
-func encodeContainer(container *mdd.Container) ([]byte, error) {
+func (cmdc *Cmdc) encodeContainer(container *mdd.Container) ([]byte, error) {
 
 	var data []byte
 
-	headerData, err := encodeHeader(&container.Header)
+	headerData, err := cmdc.encodeHeader(&container.Header)
 	if err != nil {
 		return nil, err
 	}
 	data = append(data, headerData...)
 
-	bodyData, err := encodeBody(container.Fields)
+	bodyData, err := cmdc.encodeBody(container.Fields)
 	if err != nil {
 		return nil, err
 	}
@@ -40,7 +39,7 @@ func encodeContainer(container *mdd.Container) ([]byte, error) {
 	return data, nil
 }
 
-func encodeHeader(header *mdd.Header) ([]byte, error) {
+func (cmdc *Cmdc) encodeHeader(header *mdd.Header) ([]byte, error) {
 	// Estimate size:
 	// version          4
 	// totalField       1
@@ -70,7 +69,7 @@ func encodeHeader(header *mdd.Header) ([]byte, error) {
 	return b, nil
 }
 
-func encodeBody(fields []mdd.Field) ([]byte, error) {
+func (cmdc *Cmdc) encodeBody(fields []mdd.Field) ([]byte, error) {
 	// Pre-allocate a slice of bytes for better performance
 	estimatedLen := len(fields) + 2
 	for _, f := range fields {
@@ -81,7 +80,7 @@ func encodeBody(fields []mdd.Field) ([]byte, error) {
 	data = append(data, '[')
 	if len(fields) != 0 {
 		// First field
-		fieldData, err := encodeField(fields[0])
+		fieldData, err := cmdc.EncodeField(&fields[0])
 		if err != nil {
 			return nil, err
 		}
@@ -90,7 +89,7 @@ func encodeBody(fields []mdd.Field) ([]byte, error) {
 		// Remaining fields
 		for i := 1; i < len(fields); i++ {
 			data = append(data, ',')
-			fieldData, err := encodeField(fields[i])
+			fieldData, err := cmdc.EncodeField(&fields[i])
 			if err != nil {
 				return nil, err
 			}
@@ -102,65 +101,66 @@ func encodeBody(fields []mdd.Field) ([]byte, error) {
 	return data, nil
 }
 
-func encodeField(f mdd.Field) ([]byte, error) {
-	// If the f has data, use it
-	if len(f.Data) > 0 || f.Type == field.Unknown {
-		return f.Data, nil
-	}
-
-	// Otherwise, encode the value
-	switch f.Type {
-	case field.Int32:
-		v, err := f.Value.Int32()
-		if err != nil {
-			return nil, err
-		}
-		return []byte(strconv.FormatInt(int64(v), 10)), nil
-
-	case field.UInt32:
-		v, err := f.Value.UInt32()
-		if err != nil {
-			return nil, err
-		}
-		return []byte(strconv.FormatInt(int64(v), 10)), nil
-
-	case field.Int64:
-		v, err := f.Value.Int64()
-		if err != nil {
-			return nil, err
-		}
-		return []byte(strconv.FormatInt(v, 10)), nil
-
-	case field.UInt64:
-		v, err := f.Value.UInt64()
-		if err != nil {
-			return nil, err
-		}
-		return []byte(strconv.FormatInt(int64(v), 10)), nil
-
-	case field.String:
-		v, err := f.Value.String()
-		if err != nil {
-			return nil, err
-		}
-		data := make([]byte, 0, len(v)+6)
-		data = append(data, '(')
-		data = append(data, []byte(strconv.Itoa(len(v)))...)
-		data = append(data, ':')
-		data = append(data, []byte(v)...)
-		data = append(data, ')')
-		return data, nil
-
-	case field.Struct:
-		containers, err := f.Value.Struct()
-		if err != nil {
-			return nil, err
-		}
-		return encodeContainer(&containers.Containers[0])
-
-	// TODO support other types
-
-	default:
-		return f.Data, nil
-	}
-}
+// func (cmdc *Cmdc) encodeField(f mdd.Field) ([]byte, error) {
+// 	// If the f has data, use it
+// 	if len(f.Data) > 0 || f.Type == field.Unknown {
+// 		return f.Data, nil
+// 	}
+//
+// 	// Otherwise, encode the value
+// 	// switch f.Type {
+// 	// case field.Int32:
+// 	// 	v, err := f.Value.Int32()
+// 	// 	if err != nil {
+// 	// 		return nil, err
+// 	// 	}
+// 	// 	return []byte(strconv.FormatInt(int64(v), 10)), nil
+// 	//
+// 	// case field.UInt32:
+// 	// 	v, err := f.Value.UInt32()
+// 	// 	if err != nil {
+// 	// 		return nil, err
+// 	// 	}
+// 	// 	return []byte(strconv.FormatInt(int64(v), 10)), nil
+// 	//
+// 	// case field.Int64:
+// 	// 	v, err := f.Value.Int64()
+// 	// 	if err != nil {
+// 	// 		return nil, err
+// 	// 	}
+// 	// 	return []byte(strconv.FormatInt(v, 10)), nil
+// 	//
+// 	// case field.UInt64:
+// 	// 	v, err := f.Value.UInt64()
+// 	// 	if err != nil {
+// 	// 		return nil, err
+// 	// 	}
+// 	// 	return []byte(strconv.FormatInt(int64(v), 10)), nil
+// 	//
+// 	// case field.String:
+// 	// 	v, err := f.Value.String()
+// 	// 	if err != nil {
+// 	// 		return nil, err
+// 	// 	}
+// 	// 	data := make([]byte, 0, len(v)+6)
+// 	// 	data = append(data, '(')
+// 	// 	data = append(data, []byte(strconv.Itoa(len(v)))...)
+// 	// 	data = append(data, ':')
+// 	// 	data = append(data, []byte(v)...)
+// 	// 	data = append(data, ')')
+// 	// 	return data, nil
+// 	//
+// 	// case field.Struct:
+// 	// 	containers, err := f.Value.Struct()
+// 	// 	if err != nil {
+// 	// 		return nil, err
+// 	// 	}
+// 	// 	return encodeContainer(&containers.Containers[0])
+// 	//
+// 	// // TODO support other types
+// 	//
+// 	// default:
+// 	// 	return f.Data, nil
+// 	// }
+// 	return f.Data, nil
+// }

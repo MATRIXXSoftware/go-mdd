@@ -28,9 +28,10 @@ type Header struct {
 type Field struct {
 	Data        []byte
 	Type        field.Type
-	Value       Value
 	IsMulti     bool
 	IsContainer bool
+	Value       Value
+	Codec       Codec
 }
 
 func (c *Containers) GetContainer(key int) *Container {
@@ -77,6 +78,17 @@ func (h *Header) Dump() string {
 
 func (f *Field) String() string {
 	return string(f.Data)
+}
+
+func (f *Field) GetValue() (Value, error) {
+	if f.Value == nil {
+		v, err := f.Codec.DecodeField(f)
+		if err != nil {
+			return nil, err
+		}
+		f.Value = v
+	}
+	return f.Value, nil
 }
 
 func unicode(value bool) string {

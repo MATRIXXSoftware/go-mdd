@@ -7,14 +7,14 @@ import (
 	"github.com/matrixxsoftware/go-mdd/mdd"
 )
 
-func Decode(data []byte) (*mdd.Containers, error) {
+func (cmdc *Cmdc) decodeContainers(data []byte) (*mdd.Containers, error) {
 
 	var containers mdd.Containers
 	var idx int
 	slice := data
 
 	for idx < len(slice) {
-		container, idx, err := decodeContainer(slice)
+		container, idx, err := cmdc.decodeContainer(slice)
 		if err != nil {
 			return nil, err
 		}
@@ -26,12 +26,12 @@ func Decode(data []byte) (*mdd.Containers, error) {
 	return &containers, nil
 }
 
-func decodeContainer(data []byte) (*mdd.Container, int, error) {
+func (cmdc *Cmdc) decodeContainer(data []byte) (*mdd.Container, int, error) {
 	var container mdd.Container
 	idx := 0
 
 	// Decode Header
-	header, offset, err := decodeHeader(data[idx:])
+	header, offset, err := cmdc.decodeHeader(data[idx:])
 	if err != nil {
 		return nil, idx, err
 	}
@@ -39,7 +39,7 @@ func decodeContainer(data []byte) (*mdd.Container, int, error) {
 	idx += offset
 
 	// Decode Body
-	fields, offset, err := decodeBody(data[idx:])
+	fields, offset, err := cmdc.decodeBody(data[idx:])
 	if err != nil {
 		return &container, idx, err
 	}
@@ -49,7 +49,7 @@ func decodeContainer(data []byte) (*mdd.Container, int, error) {
 	return &container, idx, nil
 }
 
-func decodeBody(data []byte) ([]mdd.Field, int, error) {
+func (cmdc *Cmdc) decodeBody(data []byte) ([]mdd.Field, int, error) {
 
 	var fields []mdd.Field
 
@@ -126,9 +126,10 @@ func decodeBody(data []byte) ([]mdd.Field, int, error) {
 				mark = idx + 1
 				field := mdd.Field{
 					Data:        fieldData,
-					Value:       Value{Data: fieldData},
 					IsMulti:     isMulti,
 					IsContainer: isContainer,
+					Codec:       cmdc,
+					Value:       nil,
 				}
 
 				fields = append(fields, field)
@@ -153,16 +154,17 @@ func decodeBody(data []byte) ([]mdd.Field, int, error) {
 	fieldData := data[mark : idx-1]
 	field := mdd.Field{
 		Data:        fieldData,
-		Value:       Value{Data: fieldData},
 		IsMulti:     isMulti,
 		IsContainer: isContainer,
+		Codec:       cmdc,
+		Value:       nil,
 	}
 	fields = append(fields, field)
 
 	return fields, idx, nil
 }
 
-func decodeHeader(data []byte) (mdd.Header, int, error) {
+func (cmdc *Cmdc) decodeHeader(data []byte) (mdd.Header, int, error) {
 
 	var header mdd.Header
 
