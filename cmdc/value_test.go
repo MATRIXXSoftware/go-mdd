@@ -1,69 +1,88 @@
 package cmdc
 
+import (
+	"testing"
+
+	"github.com/stretchr/testify/assert"
+)
+
 // import (
-// 	"math/big"
-// 	"testing"
 //
-// 	"github.com/stretchr/testify/assert"
+//	"math/big"
+//	"testing"
 //
-// 	"github.com/matrixxsoftware/go-mdd/mdd"
+//	"github.com/stretchr/testify/assert"
+//
+//	"github.com/matrixxsoftware/go-mdd/mdd"
+//
 // )
 //
-// func TestBoolTrueValue(t *testing.T) {
-// 	v := Value{Data: []byte("1")}
-// 	value, err := v.Bool()
-// 	assert.Nil(t, err)
-// 	assert.Equal(t, true, value)
-// }
+//	func TestBoolTrueValue(t *testing.T) {
+//		v := Value{Data: []byte("1")}
+//		value, err := v.Bool()
+//		assert.Nil(t, err)
+//		assert.Equal(t, true, value)
+//	}
 //
-// func TestBoolFalseValue(t *testing.T) {
-// 	v := Value{Data: []byte("0")}
-// 	value, err := v.Bool()
-// 	assert.Nil(t, err)
-// 	assert.Equal(t, false, value)
-// }
+//	func TestBoolFalseValue(t *testing.T) {
+//		v := Value{Data: []byte("0")}
+//		value, err := v.Bool()
+//		assert.Nil(t, err)
+//		assert.Equal(t, false, value)
+//	}
+func TestInt32Value(t *testing.T) {
+	data := []byte("-107")
+	value, err := decodeInt32Value(data)
+	assert.Nil(t, err)
+	assert.Equal(t, int32(-107), value)
+
+	encoded, err := encodeInt32Value(value)
+	assert.Nil(t, err)
+	assert.Equal(t, data, encoded)
+}
+
+//	func TestInt64Value(t *testing.T) {
+//		v := Value{Data: []byte("-107")}
+//		value, err := v.Int64()
+//		assert.Nil(t, err)
+//		assert.Equal(t, int64(-107), value)
+//	}
 //
-// func TestInt32Value(t *testing.T) {
-// 	v := Value{Data: []byte("-107")}
-// 	value, err := v.Int32()
-// 	assert.Nil(t, err)
-// 	assert.Equal(t, int32(-107), value)
-// }
+//	func TestUInt32Value(t *testing.T) {
+//		v := Value{Data: []byte("1070")}
+//		value, err := v.UInt32()
+//		assert.Nil(t, err)
+//		assert.Equal(t, uint32(1070), value)
+//	}
 //
-// func TestInt64Value(t *testing.T) {
-// 	v := Value{Data: []byte("-107")}
-// 	value, err := v.Int64()
-// 	assert.Nil(t, err)
-// 	assert.Equal(t, int64(-107), value)
-// }
-//
-// func TestUInt32Value(t *testing.T) {
-// 	v := Value{Data: []byte("1070")}
-// 	value, err := v.UInt32()
-// 	assert.Nil(t, err)
-// 	assert.Equal(t, uint32(1070), value)
-// }
-//
-// func TestUInt64Value(t *testing.T) {
-// 	v := Value{Data: []byte("1070")}
-// 	value, err := v.UInt64()
-// 	assert.Nil(t, err)
-// 	assert.Equal(t, uint64(1070), value)
-// }
-//
-// func TestStringValue(t *testing.T) {
-// 	v := Value{Data: []byte("(6:foobar)")}
-// 	value, err := v.String()
-// 	assert.Nil(t, err)
-// 	assert.Equal(t, "foobar", value)
-// }
-//
-// func TestUnicodeStringValue(t *testing.T) {
-// 	v := Value{Data: []byte("(6:富爸)")}
-// 	value, err := v.String()
-// 	assert.Nil(t, err)
-// 	assert.Equal(t, "富爸", value)
-// }
+//	func TestUInt64Value(t *testing.T) {
+//		v := Value{Data: []byte("1070")}
+//		value, err := v.UInt64()
+//		assert.Nil(t, err)
+//		assert.Equal(t, uint64(1070), value)
+//	}
+func TestStringValue(t *testing.T) {
+	data := []byte("(6:foobar)")
+	value, err := decodeStringValue(data)
+	assert.Nil(t, err)
+	assert.Equal(t, "foobar", value)
+
+	encoded, err := encodeStringValue(value)
+	assert.Nil(t, err)
+	assert.Equal(t, data, encoded)
+}
+
+func TestUnicodeStringValue(t *testing.T) {
+	data := []byte("(6:富爸)")
+	value, err := decodeStringValue(data)
+	assert.Nil(t, err)
+	assert.Equal(t, "富爸", value)
+
+	encoded, err := encodeStringValue(value)
+	assert.Nil(t, err)
+	assert.Equal(t, data, encoded)
+}
+
 //
 // func TestStructValue(t *testing.T) {
 // 	v := Value{Data: []byte("<1,10,0,235,5280,1>[1,20,300,4]")}

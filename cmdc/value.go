@@ -27,6 +27,20 @@ func decodeStringValue(b []byte) (string, error) {
 	return string(""), errors.New("Invalid string value")
 }
 
+func encodeStringValue(v string) ([]byte, error) {
+	data := make([]byte, 0, len(v)+6)
+	data = append(data, '(')
+	data = append(data, []byte(strconv.Itoa(len(v)))...)
+	data = append(data, ':')
+	data = append(data, []byte(v)...)
+	data = append(data, ')')
+	return data, nil
+}
+
+func encodeInt32Value(v int32) ([]byte, error) {
+	return []byte(strconv.FormatInt(int64(v), 10)), nil
+}
+
 func decodeInt32Value(b []byte) (int32, error) {
 	v, err := strconv.ParseInt(string(b), 10, 32)
 	if err != nil {

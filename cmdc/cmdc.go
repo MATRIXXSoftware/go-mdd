@@ -2,7 +2,6 @@ package cmdc
 
 import (
 	"errors"
-	"strconv"
 
 	"github.com/matrixxsoftware/go-mdd/mdd"
 	"github.com/matrixxsoftware/go-mdd/mdd/field"
@@ -42,16 +41,10 @@ func (cmdc *Cmdc) EncodeField(f *mdd.Field) ([]byte, error) {
 	switch f.Type {
 	case field.Int32:
 		v := f.Value.(int32)
-		return []byte(strconv.FormatInt(int64(v), 10)), nil
+		return encodeInt32Value(v)
 	case field.String:
 		v := f.Value.(string)
-		data := make([]byte, 0, len(v)+6)
-		data = append(data, '(')
-		data = append(data, []byte(strconv.Itoa(len(v)))...)
-		data = append(data, ':')
-		data = append(data, []byte(v)...)
-		data = append(data, ')')
-		return data, nil
+		return encodeStringValue(v)
 	}
 
 	return f.Data, nil
