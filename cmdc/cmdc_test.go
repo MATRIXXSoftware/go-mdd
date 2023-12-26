@@ -127,5 +127,52 @@ func TestEncodeDecode(t *testing.T) {
 
 	// Re - encode
 	encoded, err := codec.Encode(decoded)
+	assert.Nil(t, err)
 	assert.Equal(t, data, string(encoded))
+}
+
+func TestEncodeValues(t *testing.T) {
+	nested := mdd.Containers{
+		Containers: []mdd.Container{
+			{
+				Header: mdd.Header{
+					Version:       1,
+					TotalField:    3,
+					Depth:         0,
+					Key:           100,
+					SchemaVersion: 5222,
+					ExtVersion:    2,
+				},
+				Fields: []mdd.Field{
+					{Value: int32(0), Type: field.Int32},
+					{Value: "OK", Type: field.String},
+					{IsNull: true, Type: field.UInt32},
+				},
+			},
+		},
+	}
+
+	containers := mdd.Containers{
+		Containers: []mdd.Container{
+			{
+				Header: mdd.Header{
+					Version:       1,
+					TotalField:    5,
+					Depth:         0,
+					Key:           200,
+					SchemaVersion: 5222,
+					ExtVersion:    2,
+				},
+				Fields: []mdd.Field{
+					{IsNull: true, Type: field.Int32},
+					{Value: uint32(100), Type: field.UInt32},
+					{Value: &nested, Type: field.Struct, Codec: codec},
+				},
+			},
+		},
+	}
+
+	encoded, err := codec.Encode(&containers)
+	assert.Nil(t, err)
+	assert.Equal(t, "<1,5,0,200,5222,2>[,100,<1,3,0,100,5222,2>[0,(2:OK),]]", string(encoded))
 }
