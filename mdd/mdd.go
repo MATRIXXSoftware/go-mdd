@@ -2,6 +2,7 @@ package mdd
 
 import (
 	"fmt"
+	"reflect"
 	"strings"
 
 	"github.com/matrixxsoftware/go-mdd/mdd/field"
@@ -100,4 +101,57 @@ func unicode(value bool) string {
 		return "✓"
 	}
 	return "✗"
+}
+
+// Global functions to initialize Fields
+
+func NewBasicField[T field.BasicTypes](value T) *Field {
+	var fieldType field.Type
+
+	valueType := reflect.TypeOf(value)
+	switch valueType.Kind() {
+	case reflect.String:
+		fieldType = field.String
+	case reflect.Bool:
+		fieldType = field.Bool
+	case reflect.Int8:
+		fieldType = field.Int8
+	case reflect.Int16:
+		fieldType = field.Int16
+	case reflect.Int32:
+		fieldType = field.Int32
+	case reflect.Int64:
+		fieldType = field.Int64
+	case reflect.Uint8:
+		fieldType = field.UInt8
+	case reflect.Uint16:
+		fieldType = field.UInt16
+	case reflect.Uint32:
+		fieldType = field.UInt32
+	case reflect.Uint64:
+		fieldType = field.UInt64
+
+	default:
+		fieldType = field.Unknown
+	}
+
+	return &Field{
+		Type:  fieldType,
+		Value: value,
+	}
+}
+
+func NewStructField(codec Codec, value *Containers) *Field {
+	return &Field{
+		Type:  field.Struct,
+		Value: value,
+		Codec: codec,
+	}
+}
+
+func NewNullField(fieldType field.Type) *Field {
+	return &Field{
+		Type:   fieldType,
+		IsNull: true,
+	}
 }

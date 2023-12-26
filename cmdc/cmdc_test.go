@@ -135,18 +135,11 @@ func TestEncodeValues(t *testing.T) {
 	nested := mdd.Containers{
 		Containers: []mdd.Container{
 			{
-				Header: mdd.Header{
-					Version:       1,
-					TotalField:    3,
-					Depth:         0,
-					Key:           100,
-					SchemaVersion: 5222,
-					ExtVersion:    2,
-				},
+				Header: mdd.Header{Version: 1, TotalField: 3, Depth: 0, Key: 100, SchemaVersion: 5222, ExtVersion: 2},
 				Fields: []mdd.Field{
-					{Value: int32(0), Type: field.Int32},
-					{Value: "OK", Type: field.String},
-					{IsNull: true, Type: field.UInt32},
+					*mdd.NewBasicField(uint32(0)),
+					*mdd.NewBasicField("OK"),
+					*mdd.NewNullField(field.UInt32),
 				},
 			},
 		},
@@ -155,18 +148,11 @@ func TestEncodeValues(t *testing.T) {
 	containers := mdd.Containers{
 		Containers: []mdd.Container{
 			{
-				Header: mdd.Header{
-					Version:       1,
-					TotalField:    5,
-					Depth:         0,
-					Key:           200,
-					SchemaVersion: 5222,
-					ExtVersion:    2,
-				},
+				Header: mdd.Header{Version: 1, TotalField: 5, Depth: 0, Key: 200, SchemaVersion: 5222, ExtVersion: 2},
 				Fields: []mdd.Field{
-					{IsNull: true, Type: field.Int32},
-					{Value: uint32(100), Type: field.UInt32},
-					{Value: &nested, Type: field.Struct, Codec: codec},
+					*mdd.NewNullField(field.Int32),
+					*mdd.NewBasicField(int32(100)),
+					*mdd.NewStructField(codec, &nested),
 				},
 			},
 		},

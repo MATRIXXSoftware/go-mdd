@@ -1,5 +1,9 @@
 package field
 
+type BasicTypes interface {
+	~string | ~bool | ~int8 | ~int32 | ~int64 | ~uint8 | ~uint16 | ~uint32 | ~uint64
+}
+
 type Type int
 
 const (
