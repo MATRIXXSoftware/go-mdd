@@ -126,6 +126,27 @@ func TestDecodeNestedContainersWithReservedCharacter(t *testing.T) {
 	assert.Equal(t, "3", container0.GetField(3).String())
 }
 
+func TestIsNull(t *testing.T) {
+	mdc := "<1,18,0,-6,5222,2>[,(6:foobar),,4,]"
+	containers, err := codec.Decode([]byte(mdc))
+	assert.Nil(t, err)
+
+	container := containers.Containers[0]
+
+	assert.Equal(t, 5, len(container.Fields))
+	assert.Equal(t, "", container.GetField(0).String())
+	assert.Equal(t, "(6:foobar)", container.GetField(1).String())
+	assert.Equal(t, "", container.GetField(2).String())
+	assert.Equal(t, "4", container.GetField(3).String())
+	assert.Equal(t, "", container.GetField(4).String())
+
+	assert.Equal(t, true, container.GetField(0).IsNull)
+	assert.Equal(t, false, container.GetField(1).IsNull)
+	assert.Equal(t, true, container.GetField(2).IsNull)
+	assert.Equal(t, false, container.GetField(3).IsNull)
+	assert.Equal(t, true, container.GetField(4).IsNull)
+}
+
 func TestListIntegerValue(t *testing.T) {
 	mdc := "<1,18,0,-6,5222,2>[0,{1,2,3},,,300,{4,5}]"
 	containers, err := codec.Decode([]byte(mdc))

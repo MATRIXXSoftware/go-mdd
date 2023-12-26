@@ -55,10 +55,15 @@ func (c *Cmdc) DecodeField(f *mdd.Field) (interface{}, error) {
 }
 
 func (cmdc *Cmdc) EncodeField(f *mdd.Field) ([]byte, error) {
+	// If the f is null, return empty data
+	if f.IsNull {
+		return []byte{}, nil
+	}
 	// If the f has data, use it
 	if len(f.Data) > 0 || f.Type == field.Unknown {
 		return f.Data, nil
 	}
+
 	switch f.Type {
 	case field.String:
 		return encodeStringValue(f.Value.(string))

@@ -30,6 +30,7 @@ type Field struct {
 	Type        field.Type
 	IsMulti     bool
 	IsContainer bool
+	IsNull      bool
 	Value       interface{}
 	Codec       Codec
 }
@@ -81,6 +82,9 @@ func (f *Field) String() string {
 }
 
 func (f *Field) GetValue() (interface{}, error) {
+	if f.IsNull {
+		return nil, nil
+	}
 	if f.Value == nil {
 		v, err := f.Codec.DecodeField(f)
 		if err != nil {

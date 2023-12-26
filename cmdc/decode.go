@@ -128,6 +128,7 @@ func (cmdc *Cmdc) decodeBody(data []byte) ([]mdd.Field, int, error) {
 					Data:        fieldData,
 					IsMulti:     isMulti,
 					IsContainer: isContainer,
+					IsNull:      len(fieldData) == 0,
 					Codec:       cmdc,
 					Value:       nil,
 				}
@@ -156,6 +157,7 @@ func (cmdc *Cmdc) decodeBody(data []byte) ([]mdd.Field, int, error) {
 		Data:        fieldData,
 		IsMulti:     isMulti,
 		IsContainer: isContainer,
+		IsNull:      len(fieldData) == 0,
 		Codec:       cmdc,
 		Value:       nil,
 	}

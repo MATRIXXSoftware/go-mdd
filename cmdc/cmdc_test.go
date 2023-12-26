@@ -29,7 +29,7 @@ func BenchmarkEncode(b *testing.B) {
 
 func TestEncodeDecode(t *testing.T) {
 
-	data := "<1,18,0,-6,5222,2>[1,-20,<1,2,0,452,5222,2>[(14:abcdefghijklmn),,100,5.8888,<1,3,0,400,5222,2>[]],0,400000000]"
+	data := "<1,18,0,-6,5222,2>[1,-20,<1,2,0,452,5222,2>[(14:abcdefghijklmn),,100,5.8888,<1,3,0,400,5222,2>[]],,400000000]"
 	decoded, err := codec.Decode([]byte(data))
 	assert.Nil(t, err)
 
@@ -40,7 +40,7 @@ func TestEncodeDecode(t *testing.T) {
 	assert.Equal(t, "1", decoded.Containers[0].GetField(0).String())
 	assert.Equal(t, "-20", decoded.Containers[0].GetField(1).String())
 	assert.Equal(t, "<1,2,0,452,5222,2>[(14:abcdefghijklmn),,100,5.8888,<1,3,0,400,5222,2>[]]", decoded.Containers[0].GetField(2).String())
-	assert.Equal(t, "0", decoded.Containers[0].GetField(3).String())
+	assert.Equal(t, "", decoded.Containers[0].GetField(3).String())
 	assert.Equal(t, "400000000", decoded.Containers[0].GetField(4).String())
 
 	// Mark field types
@@ -73,6 +73,7 @@ func TestEncodeDecode(t *testing.T) {
 		assert.Equal(t, "", nested.Containers[0].GetField(1).String())
 		assert.Equal(t, "100", nested.Containers[0].GetField(2).String())
 		assert.Equal(t, "5.8888", nested.Containers[0].GetField(3).String())
+		assert.Equal(t, "<1,3,0,400,5222,2>[]", nested.Containers[0].GetField(4).String())
 
 		// Mark field types
 		nested.Containers[0].GetField(0).Type = field.String
@@ -89,7 +90,7 @@ func TestEncodeDecode(t *testing.T) {
 		// Retrieve nested field 1 as null
 		field1, err := nested.Containers[0].GetField(1).GetValue()
 		assert.Nil(t, err)
-		assert.Equal(t, "", field1)
+		assert.Equal(t, nil, field1)
 
 		// Retrieve nested field 2 as UInt32
 		field2, err := nested.Containers[0].GetField(2).GetValue()
@@ -117,7 +118,7 @@ func TestEncodeDecode(t *testing.T) {
 	// Retrieve field 3 as uint32
 	field3, err := decoded.Containers[0].GetField(3).GetValue()
 	assert.Nil(t, err)
-	assert.Equal(t, uint32(0), field3)
+	assert.Equal(t, nil, field3)
 
 	// Retrieve field 4 as uint64
 	field4, err := decoded.Containers[0].GetField(4).GetValue()
