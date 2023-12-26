@@ -8,6 +8,9 @@ type Type int
 
 const (
 	Unknown Type = iota
+	// Nested
+	Struct
+	// Basic
 	String
 	Bool
 	Int8
@@ -20,7 +23,7 @@ const (
 	UInt32
 	UInt64
 	UInt128
-	Struct
+	// Complex
 	Decimal
 	// Date
 	// Time
@@ -36,6 +39,8 @@ func (t Type) String() string {
 	switch t {
 	case Unknown:
 		return "Unknown"
+	case Struct:
+		return "Struct"
 	case String:
 		return "String"
 	case Bool:
@@ -60,8 +65,6 @@ func (t Type) String() string {
 		return "UInt64"
 	case UInt128:
 		return "UInt128"
-	case Struct:
-		return "Struct"
 	case Decimal:
 		return "Decimal"
 	default:
