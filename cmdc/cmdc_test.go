@@ -27,6 +27,55 @@ func BenchmarkEncode(b *testing.B) {
 	}
 }
 
+func TestDecodeExample(t *testing.T) {
+	data := "<1,18,0,-6,5222,2>[1,,-20,(5:value)]"
+	decoded, err := codec.Decode([]byte(data))
+	assert.Nil(t, err)
+
+	decoded.Containers[0].GetField(0).Type = field.UInt8
+	decoded.Containers[0].GetField(1).Type = field.UInt32
+	decoded.Containers[0].GetField(2).Type = field.Int32
+	decoded.Containers[0].GetField(3).Type = field.String
+
+	v, err := decoded.Containers[0].GetField(0).GetValue()
+	assert.Nil(t, err)
+	assert.Equal(t, uint8(1), v)
+
+	v, err = decoded.Containers[0].GetField(1).GetValue()
+	assert.Nil(t, err)
+	assert.Equal(t, nil, v)
+
+	v, err = decoded.Containers[0].GetField(2).GetValue()
+	assert.Nil(t, err)
+	assert.Equal(t, int32(-20), v)
+
+	v, err = decoded.Containers[0].GetField(3).GetValue()
+	assert.Nil(t, err)
+	assert.Equal(t, "value", v)
+}
+
+func TestEncodeExample(t *testing.T) {
+	containers := mdd.Containers{
+		Containers: []mdd.Container{
+			{
+				Header: mdd.Header{Version: 1, TotalField: 18, Depth: 0, Key: -6, SchemaVersion: 5222, ExtVersion: 2},
+				Fields: []mdd.Field{
+					*mdd.NewBasicField(uint8(1)),
+					*mdd.NewNullField(field.UInt32),
+					*mdd.NewBasicField(int32(-20)),
+					*mdd.NewBasicField("value"),
+				},
+			},
+		},
+	}
+
+	expected := "<1,18,0,-6,5222,2>[1,,-20,(5:value)]"
+	encoded, err := codec.Encode(&containers)
+
+	assert.Nil(t, err)
+	assert.Equal(t, []byte(expected), encoded)
+}
+
 func TestDecodeEncode(t *testing.T) {
 
 	data := "<1,18,0,-6,5222,2>[1,-20,<1,2,0,452,5222,2>[(14:abcdefghijklmn),,100,5.8888,<1,3,0,400,5222,2>[]],,400000000]"
