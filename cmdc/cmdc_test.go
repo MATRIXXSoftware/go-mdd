@@ -27,7 +27,7 @@ func BenchmarkEncode(b *testing.B) {
 	}
 }
 
-func TestEncodeDecode(t *testing.T) {
+func TestDecodeEncode(t *testing.T) {
 
 	data := "<1,18,0,-6,5222,2>[1,-20,<1,2,0,452,5222,2>[(14:abcdefghijklmn),,100,5.8888,<1,3,0,400,5222,2>[]],,400000000]"
 	decoded, err := codec.Decode([]byte(data))
@@ -112,6 +112,12 @@ func TestEncodeDecode(t *testing.T) {
 
 			// Assert Nested2
 			assert.Equal(t, "", nested2.Containers[0].GetField(0).String())
+			// Field is null
+			assert.Equal(t, true, nested2.Containers[0].GetField(0).IsNull)
+
+			field0, err := nested2.Containers[0].GetField(0).GetValue()
+			assert.Nil(t, err)
+			assert.Equal(t, nil, field0)
 		}
 	}
 
@@ -129,37 +135,4 @@ func TestEncodeDecode(t *testing.T) {
 	encoded, err := codec.Encode(decoded)
 	assert.Nil(t, err)
 	assert.Equal(t, data, string(encoded))
-}
-
-func TestEncodeValues(t *testing.T) {
-	containers := mdd.Containers{
-		Containers: []mdd.Container{
-			{
-				Header: mdd.Header{Version: 1, TotalField: 5, Depth: 0, Key: 200, SchemaVersion: 5222, ExtVersion: 2},
-				Fields: []mdd.Field{
-					*mdd.NewNullField(field.Int32),
-					*mdd.NewBasicField(int32(100)),
-					*mdd.NewStructField(codec,
-						&mdd.Containers{
-							Containers: []mdd.Container{
-								{
-									Header: mdd.Header{Version: 1, TotalField: 3, Depth: 0, Key: 100, SchemaVersion: 5222, ExtVersion: 2},
-									Fields: []mdd.Field{
-										*mdd.NewBasicField(uint32(0)),
-										*mdd.NewBasicField("OK"),
-										*mdd.NewNullField(field.UInt32),
-									},
-								},
-							},
-						},
-					),
-					*mdd.NewBasicField(uint64(2000000000)),
-				},
-			},
-		},
-	}
-
-	encoded, err := codec.Encode(&containers)
-	assert.Nil(t, err)
-	assert.Equal(t, "<1,5,0,200,5222,2>[,100,<1,3,0,100,5222,2>[0,(2:OK),],2000000000]", string(encoded))
 }

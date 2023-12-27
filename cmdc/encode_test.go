@@ -137,55 +137,90 @@ func TestEncodeKnownType(t *testing.T) {
 	assert.Equal(t, []byte(expected), encoded)
 }
 
-//
-// func TestEncodeNested(t *testing.T) {
-//
-// 	subContainers := mdd.Containers{
-// 		Containers: []mdd.Container{
-// 			{
-// 				Header: mdd.Header{
-// 					Version:       1,
-// 					TotalField:    20,
-// 					Depth:         0,
-// 					Key:           -7,
-// 					SchemaVersion: 5222,
-// 					ExtVersion:    2,
-// 				},
-// 				Fields: []mdd.Field{
-// 					{Data: []byte("")},
-// 					{Data: []byte("200")},
-// 					{Data: []byte("(7:FooBar3)")},
-// 					{Data: []byte("")},
-// 					{Data: []byte("100000")},
-// 				},
-// 			},
-// 		},
-// 	}
-//
-// 	containers := mdd.Containers{
-// 		Containers: []mdd.Container{
-// 			{
-// 				Header: mdd.Header{
-// 					Version:       1,
-// 					TotalField:    18,
-// 					Depth:         0,
-// 					Key:           -6,
-// 					SchemaVersion: 5222,
-// 					ExtVersion:    2,
-// 				},
-// 				Fields: []mdd.Field{
-// 					{Data: []byte("1")},
-// 					{Type: field.Struct, Value: Value{V: &subContainers}},
-// 					{Data: []byte("(5:three)")},
-// 					{Data: []byte("4000")},
-// 				},
-// 			},
-// 		},
-// 	}
-//
-// 	expected := "<1,18,0,-6,5222,2>[1,<1,20,0,-7,5222,2>[,200,(7:FooBar3),,100000],(5:three),4000]"
-// 	encoded, err := Encode(&containers)
-//
-// 	assert.Nil(t, err)
-// 	assert.Equal(t, []byte(expected), encoded)
-// }
+func TestEncodeNested(t *testing.T) {
+
+	subContainers := mdd.Containers{
+		Containers: []mdd.Container{
+			{
+				Header: mdd.Header{
+					Version:       1,
+					TotalField:    20,
+					Depth:         0,
+					Key:           -7,
+					SchemaVersion: 5222,
+					ExtVersion:    2,
+				},
+				Fields: []mdd.Field{
+					{Data: []byte("")},
+					{Data: []byte("200")},
+					{Data: []byte("(7:FooBar3)")},
+					{Data: []byte("")},
+					{Data: []byte("100000")},
+				},
+			},
+		},
+	}
+
+	containers := mdd.Containers{
+		Containers: []mdd.Container{
+			{
+				Header: mdd.Header{
+					Version:       1,
+					TotalField:    18,
+					Depth:         0,
+					Key:           -6,
+					SchemaVersion: 5222,
+					ExtVersion:    2,
+				},
+				Fields: []mdd.Field{
+					*mdd.NewBasicField(int8(1)),
+					*mdd.NewStructField(codec, &subContainers),
+					*mdd.NewBasicField("three"),
+					{Data: []byte("(4:four)")},
+					*mdd.NewBasicField(uint32(5000)),
+				},
+			},
+		},
+	}
+
+	expected := "<1,18,0,-6,5222,2>[1,<1,20,0,-7,5222,2>[,200,(7:FooBar3),,100000],(5:three),(4:four),5000]"
+	encoded, err := codec.Encode(&containers)
+
+	assert.Nil(t, err)
+	assert.Equal(t, []byte(expected), encoded)
+}
+
+func TestEncodedNested2(t *testing.T) {
+	containers := mdd.Containers{
+		Containers: []mdd.Container{
+			{
+				Header: mdd.Header{Version: 1, TotalField: 5, Depth: 0, Key: 200, SchemaVersion: 5222, ExtVersion: 2},
+				Fields: []mdd.Field{
+					*mdd.NewNullField(field.Int32),
+					*mdd.NewBasicField(int32(100)),
+					*mdd.NewStructField(codec,
+						&mdd.Containers{
+							Containers: []mdd.Container{
+								{
+									Header: mdd.Header{Version: 1, TotalField: 3, Depth: 0, Key: 100, SchemaVersion: 5222, ExtVersion: 2},
+									Fields: []mdd.Field{
+										*mdd.NewBasicField(uint32(0)),
+										*mdd.NewBasicField("OK"),
+										*mdd.NewNullField(field.UInt32),
+									},
+								},
+							},
+						},
+					),
+					*mdd.NewBasicField(uint64(2000000000)),
+				},
+			},
+		},
+	}
+
+	expected := "<1,5,0,200,5222,2>[,100,<1,3,0,100,5222,2>[0,(2:OK),],2000000000]"
+	encoded, err := codec.Encode(&containers)
+
+	assert.Nil(t, err)
+	assert.Equal(t, []byte(expected), encoded)
+}
