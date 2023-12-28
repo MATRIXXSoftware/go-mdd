@@ -22,8 +22,8 @@ test-cover:
 	$(GO) test ./... -v -cover -coverprofile=coverage.out 
 	$(GO) tool cover -html=coverage.out
 
-test-benchmark:
-	$(GO) test $(ROOT_MODULE)/cmdc -v -bench=.
+test-bench:
+	$(GO) test $(ROOT_MODULE)/cmdc -v -bench=. -benchtime=1s
 test-profile:
 	$(GO) test $(ROOT_MODULE)/cmdc -v -bench=. -benchmem -cpuprofile cpu.prof
 	$(GO) tool pprof cpu.prof
