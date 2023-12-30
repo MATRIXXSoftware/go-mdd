@@ -13,22 +13,115 @@ import (
 
 var codec = NewCodec()
 
-func BenchmarkDecode(b *testing.B) {
-	data := "<1,18,0,-6,5222,2>[1,20,<1,2,0,452,5222,2>[100],4]"
-	for i := 0; i < b.N; i++ {
-		codec.Decode([]byte(data))
-	}
+func sampleData1() string {
+	return "<1,18,0,-6,5222,2>[1,20,<1,2,0,452,5222,2>[100],4]"
 }
 
-func BenchmarkEncode(b *testing.B) {
-	mdc := "<1,18,0,-6,5222,2>[1,20,<1,2,0,452,5222,2>[100],4]"
-	containers, _ := codec.Decode([]byte(mdc))
-	for i := 0; i < b.N; i++ {
-		codec.Encode(containers)
-	}
+func TestDecodeSampleData1(t *testing.T) {
+	data := sampleData1()
+	decoded, err := codec.Decode([]byte(data))
+	assert.Nil(t, err)
+
+	t.Logf("decoded: %s", decoded.Dump())
+
+	// Assert decoded
+	assert.Equal(t, 1, len(decoded.Containers))
+	assert.Equal(t, 1, decoded.Containers[0].Header.Version)
+	assert.Equal(t, 18, decoded.Containers[0].Header.TotalField)
+	assert.Equal(t, 0, decoded.Containers[0].Header.Depth)
+	assert.Equal(t, -6, decoded.Containers[0].Header.Key)
+	assert.Equal(t, 5222, decoded.Containers[0].Header.SchemaVersion)
+	assert.Equal(t, 2, decoded.Containers[0].Header.ExtVersion)
+
+	assert.Equal(t, 4, len(decoded.Containers[0].Fields))
+	assert.Equal(t, "1", decoded.Containers[0].GetField(0).String())
+	assert.Equal(t, "20", decoded.Containers[0].GetField(1).String())
+	assert.Equal(t, "<1,2,0,452,5222,2>[100]", decoded.Containers[0].GetField(2).String())
+	assert.Equal(t, "4", decoded.Containers[0].GetField(3).String())
 }
 
-func TestDecodeExample(t *testing.T) {
+func sampleData2() string {
+	return "<1,8,0,-6,5222,2>[,,2,(5:AMF-1),(4:eMBB),(11:SouthWestUK),1]<1,1,0,-5,5222,2>[1000001]<1,7,0,263,5222,2>[2,{<1,5,1,330,5222,2>[4,200,1,17485760.0,17485824.0]},(6:555555),0,0.0,64.0,200]<1,11,0,626,5222,2>[{1,3,1},,{<1,17,1,624,5222,2>[17485824.0,200,1,(21:Data: Asset + Overage),0:1:5:277,(7:2000000),3,0,,,,,,,,0]},,{(13:HXS0:1:52:409)},{<1,8,1,1000,5222,2>[4,(18:Triple Play Bundle),1,0,,,,0]},{<1,5,1,1277,5222,2>[4,(17:999 - 1200TB Plan),1,<1,6,1,-11,5222,2>[800000.0,1200.0,300000.0,5000000000.0,100000.0,5000000000.0]<1,0,0,1257,5222,2>[]]},,{<1,3,1,1360,5222,2>[,(5:Usage),(5:Usage)]},{<1,2,1,627,5222,2>[(13:HXS0:1:52:408),1]<1,29,0,208,5222,2>[0:1:5:279,(7:1000001),0:1:5:283,,4,0:1:5:278,0:1:5:277,(7:2000000),,,,{<1,14,1,209,5222,2>[,1000,2,1,4,2021-09-07T08:00:25.000000Z,2021-10-07T08:00:25.000000Z,1,0.0,,,-1258291032.242187,,0]},{<1,12,1,567,5222,2>[17485824.0,200,0,0,1,0.0,,1,,1,0]},2021-09-09T16:37:19.000000Z,,(13:HXS0:1:52:409),,,,,1,,,0:1:5:281,,1,2]}]<1,29,0,208,5222,2>[0:1:5:279,(7:1000001),0:1:5:283,,0,0:1:5:280,0:1:5:279,(7:1000001),,,,,,2021-09-09T16:37:19.000000Z,0,(13:HXS0:1:52:408),,,,,1,,,0:1:5:281,,1,1,(26:00000000000000594134:00000)]"
+}
+
+func TestDecodeSampleData2(t *testing.T) {
+	data := sampleData2()
+	decoded, err := codec.Decode([]byte(data))
+	assert.Nil(t, err)
+
+	t.Logf("decoded: %s", decoded.Dump())
+
+	// Assert decoded
+	assert.Equal(t, 5, len(decoded.Containers))
+	assert.Equal(t, -6, decoded.Containers[0].Header.Key)
+	assert.Equal(t, -5, decoded.Containers[1].Header.Key)
+	assert.Equal(t, 263, decoded.Containers[2].Header.Key)
+	assert.Equal(t, 626, decoded.Containers[3].Header.Key)
+	assert.Equal(t, 208, decoded.Containers[4].Header.Key)
+
+	assert.Equal(t, 7, len(decoded.Containers[0].Fields))
+	assert.Equal(t, 1, len(decoded.Containers[1].Fields))
+	assert.Equal(t, 7, len(decoded.Containers[2].Fields))
+	assert.Equal(t, 10, len(decoded.Containers[3].Fields))
+	assert.Equal(t, 28, len(decoded.Containers[4].Fields))
+
+	assert.Equal(t, "", decoded.Containers[0].GetField(0).String())
+	assert.Equal(t, "", decoded.Containers[0].GetField(1).String())
+	assert.Equal(t, "2", decoded.Containers[0].GetField(2).String())
+	assert.Equal(t, "(5:AMF-1)", decoded.Containers[0].GetField(3).String())
+	assert.Equal(t, "(4:eMBB)", decoded.Containers[0].GetField(4).String())
+	assert.Equal(t, "(11:SouthWestUK)", decoded.Containers[0].GetField(5).String())
+	assert.Equal(t, "1", decoded.Containers[0].GetField(6).String())
+
+	assert.Equal(t, "1000001", decoded.Containers[1].GetField(0).String())
+
+	assert.Equal(t, "2", decoded.Containers[2].GetField(0).String())
+	assert.Equal(t, "{<1,5,1,330,5222,2>[4,200,1,17485760.0,17485824.0]}", decoded.Containers[2].GetField(1).String())
+	assert.Equal(t, "(6:555555)", decoded.Containers[2].GetField(2).String())
+	assert.Equal(t, "0", decoded.Containers[2].GetField(3).String())
+	assert.Equal(t, "0.0", decoded.Containers[2].GetField(4).String())
+	assert.Equal(t, "64.0", decoded.Containers[2].GetField(5).String())
+	assert.Equal(t, "200", decoded.Containers[2].GetField(6).String())
+
+	assert.Equal(t, "{1,3,1}", decoded.Containers[3].GetField(0).String())
+	assert.Equal(t, "", decoded.Containers[3].GetField(1).String())
+	assert.Equal(t, "{<1,17,1,624,5222,2>[17485824.0,200,1,(21:Data: Asset + Overage),0:1:5:277,(7:2000000),3,0,,,,,,,,0]}", decoded.Containers[3].GetField(2).String())
+	assert.Equal(t, "", decoded.Containers[3].GetField(3).String())
+	assert.Equal(t, "{(13:HXS0:1:52:409)}", decoded.Containers[3].GetField(4).String())
+	assert.Equal(t, "{<1,8,1,1000,5222,2>[4,(18:Triple Play Bundle),1,0,,,,0]}", decoded.Containers[3].GetField(5).String())
+	assert.Equal(t, "{<1,5,1,1277,5222,2>[4,(17:999 - 1200TB Plan),1,<1,6,1,-11,5222,2>[800000.0,1200.0,300000.0,5000000000.0,100000.0,5000000000.0]<1,0,0,1257,5222,2>[]]}", decoded.Containers[3].GetField(6).String())
+	assert.Equal(t, "", decoded.Containers[3].GetField(7).String())
+	assert.Equal(t, "{<1,3,1,1360,5222,2>[,(5:Usage),(5:Usage)]}", decoded.Containers[3].GetField(8).String())
+	assert.Equal(t, "{<1,2,1,627,5222,2>[(13:HXS0:1:52:408),1]<1,29,0,208,5222,2>[0:1:5:279,(7:1000001),0:1:5:283,,4,0:1:5:278,0:1:5:277,(7:2000000),,,,{<1,14,1,209,5222,2>[,1000,2,1,4,2021-09-07T08:00:25.000000Z,2021-10-07T08:00:25.000000Z,1,0.0,,,-1258291032.242187,,0]},{<1,12,1,567,5222,2>[17485824.0,200,0,0,1,0.0,,1,,1,0]},2021-09-09T16:37:19.000000Z,,(13:HXS0:1:52:409),,,,,1,,,0:1:5:281,,1,2]}", decoded.Containers[3].GetField(9).String())
+
+	assert.Equal(t, "0:1:5:279", decoded.Containers[4].GetField(0).String())
+	assert.Equal(t, "(7:1000001)", decoded.Containers[4].GetField(1).String())
+	assert.Equal(t, "0:1:5:283", decoded.Containers[4].GetField(2).String())
+	assert.Equal(t, "", decoded.Containers[4].GetField(3).String())
+	assert.Equal(t, "0", decoded.Containers[4].GetField(4).String())
+	assert.Equal(t, "0:1:5:280", decoded.Containers[4].GetField(5).String())
+	assert.Equal(t, "0:1:5:279", decoded.Containers[4].GetField(6).String())
+	assert.Equal(t, "(7:1000001)", decoded.Containers[4].GetField(7).String())
+	assert.Equal(t, "", decoded.Containers[4].GetField(8).String())
+	assert.Equal(t, "", decoded.Containers[4].GetField(9).String())
+	assert.Equal(t, "2021-09-09T16:37:19.000000Z", decoded.Containers[4].GetField(13).String())
+	assert.Equal(t, "0", decoded.Containers[4].GetField(14).String())
+	assert.Equal(t, "(13:HXS0:1:52:408)", decoded.Containers[4].GetField(15).String())
+	assert.Equal(t, "", decoded.Containers[4].GetField(16).String())
+	assert.Equal(t, "", decoded.Containers[4].GetField(17).String())
+	assert.Equal(t, "", decoded.Containers[4].GetField(18).String())
+	assert.Equal(t, "", decoded.Containers[4].GetField(19).String())
+	assert.Equal(t, "1", decoded.Containers[4].GetField(20).String())
+	assert.Equal(t, "", decoded.Containers[4].GetField(21).String())
+	assert.Equal(t, "", decoded.Containers[4].GetField(22).String())
+	assert.Equal(t, "0:1:5:281", decoded.Containers[4].GetField(23).String())
+	assert.Equal(t, "", decoded.Containers[4].GetField(24).String())
+	assert.Equal(t, "1", decoded.Containers[4].GetField(25).String())
+	assert.Equal(t, "1", decoded.Containers[4].GetField(26).String())
+	assert.Equal(t, "(26:00000000000000594134:00000)", decoded.Containers[4].GetField(27).String())
+}
+
+func TestDecodeExample1(t *testing.T) {
 	data := "<1,18,0,-6,5222,2>[1,,-20,(5:value)]"
 	decoded, err := codec.Decode([]byte(data))
 	assert.Nil(t, err)
