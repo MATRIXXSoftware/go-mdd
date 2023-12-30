@@ -5,6 +5,7 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/matrixxsoftware/go-mdd/dictionary"
 	"github.com/matrixxsoftware/go-mdd/mdd/field"
 )
 
@@ -13,8 +14,9 @@ type Containers struct {
 }
 
 type Container struct {
-	Header Header
-	Fields []Field
+	Header     Header
+	Fields     []Field
+	Definition *dictionary.ContainerDefinition
 }
 
 type Header struct {
@@ -34,6 +36,7 @@ type Field struct {
 	IsNull      bool
 	Value       interface{}
 	Codec       Codec
+	Definition  *dictionary.FieldDefinition
 }
 
 func (c *Containers) GetContainer(key int) *Container {
@@ -50,6 +53,14 @@ func (c *Container) GetField(fieldNumber int) *Field {
 		return nil
 	}
 	return &c.Fields[fieldNumber]
+}
+
+func (c *Container) LoadDefinition(definition *dictionary.ContainerDefinition) {
+	c.Definition = definition
+	for i := range c.Fields {
+		c.Fields[i].Definition = &definition.Fields[i]
+		c.Fields[i].Type = definition.Fields[i].Type
+	}
 }
 
 // Dump to string

@@ -6,6 +6,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
+	"github.com/matrixxsoftware/go-mdd/dictionary"
 	"github.com/matrixxsoftware/go-mdd/mdd"
 	"github.com/matrixxsoftware/go-mdd/mdd/field"
 )
@@ -13,9 +14,9 @@ import (
 var codec = NewCodec()
 
 func BenchmarkDecode(b *testing.B) {
-	mdc := "<1,18,0,-6,5222,2>[1,20,<1,2,0,452,5222,2>[100],4]"
+	data := "<1,18,0,-6,5222,2>[1,20,<1,2,0,452,5222,2>[100],4]"
 	for i := 0; i < b.N; i++ {
-		codec.Decode([]byte(mdc))
+		codec.Decode([]byte(data))
 	}
 }
 
@@ -32,10 +33,14 @@ func TestDecodeExample(t *testing.T) {
 	decoded, err := codec.Decode([]byte(data))
 	assert.Nil(t, err)
 
-	decoded.Containers[0].GetField(0).Type = field.UInt8
-	decoded.Containers[0].GetField(1).Type = field.UInt32
-	decoded.Containers[0].GetField(2).Type = field.Int32
-	decoded.Containers[0].GetField(3).Type = field.String
+	decoded.Containers[0].LoadDefinition(&dictionary.ContainerDefinition{
+		Fields: []dictionary.FieldDefinition{
+			{Type: field.UInt8},
+			{Type: field.UInt32},
+			{Type: field.Int32},
+			{Type: field.String},
+		},
+	})
 
 	v, err := decoded.Containers[0].GetField(0).GetValue()
 	assert.Nil(t, err)
