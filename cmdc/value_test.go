@@ -63,6 +63,22 @@ func TestInt32Value(t *testing.T) {
 	assert.Equal(t, data, encoded)
 }
 
+func TestInt32ListValue(t *testing.T) {
+	data := []byte("{1,2,3,4,5}")
+	list, err := decodeInt32ListValue(data)
+	assert.Nil(t, err)
+	assert.Equal(t, 5, len(list))
+	assert.Equal(t, int32(1), list[0])
+	assert.Equal(t, int32(2), list[1])
+	assert.Equal(t, int32(3), list[2])
+	assert.Equal(t, int32(4), list[3])
+	assert.Equal(t, int32(5), list[4])
+
+	encoded, err := encodeInt32ListValue(list)
+	assert.Nil(t, err)
+	assert.Equal(t, data, encoded)
+}
+
 func TestInt64Value(t *testing.T) {
 	data := []byte("81345123666616")
 	value, err := decodeInt64Value(data)
@@ -136,6 +152,20 @@ func TestUnicodeStringValue(t *testing.T) {
 	assert.Equal(t, "富爸", value)
 
 	encoded, err := encodeStringValue(value)
+	assert.Nil(t, err)
+	assert.Equal(t, data, encoded)
+}
+
+func TestStringListValue(t *testing.T) {
+	data := []byte("{(6:value1),(7:value20),(8:value300)}")
+	list, err := decodeStringListValue(data)
+	assert.Nil(t, err)
+	assert.Equal(t, 3, len(list))
+	assert.Equal(t, "value1", list[0])
+	assert.Equal(t, "value20", list[1])
+	assert.Equal(t, "value300", list[2])
+
+	encoded, err := encodeStringListValue(list)
 	assert.Nil(t, err)
 	assert.Equal(t, data, encoded)
 }

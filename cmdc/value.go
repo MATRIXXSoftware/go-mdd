@@ -8,6 +8,75 @@ import (
 	"github.com/matrixxsoftware/go-mdd/mdd"
 )
 
+func encodeListValue[T any](list []T, f func(T) ([]byte, error)) ([]byte, error) {
+	// todo estimate size to allocate
+	data := make([]byte, 0, len(list)*8+2)
+	data = append(data, '{')
+
+	if len(list) > 0 {
+		// first element
+		b, err := f(list[0])
+		if err != nil {
+			return nil, err
+		}
+		data = append(data, b...)
+
+		// remaining elements
+		for i := 1; i < len(list); i++ {
+			data = append(data, ',')
+			b, err := f(list[i])
+			if err != nil {
+				return nil, err
+			}
+			data = append(data, b...)
+		}
+	}
+
+	data = append(data, '}')
+	return data, nil
+}
+
+func decodeListValue[T any](b []byte, f func([]byte) (T, error)) ([]T, error) {
+	fields, err := decodeList(b)
+	if err != nil {
+		return nil, err
+	}
+	var list []T
+	for _, field := range fields {
+		v, err := f(field)
+		if err != nil {
+			return nil, err
+		}
+		list = append(list, v)
+	}
+	return list, nil
+}
+
+func decodeList(b []byte) ([][]byte, error) {
+	if len(b) == 0 {
+		return nil, nil
+	}
+	if b[0] != '{' {
+		return nil, errors.New("Invalid list value, first character must be '{'")
+	}
+	if b[len(b)-1] != '}' {
+		return nil, errors.New("Invalid list value, last character must be '}'")
+	}
+	var list [][]byte
+	mark := 1
+	for idx := 1; idx < len(b); idx++ {
+		c := b[idx]
+		if c == ',' {
+			fieldData := b[mark:idx]
+			mark = idx + 1
+			list = append(list, fieldData)
+		}
+	}
+	fieldData := b[mark : len(b)-1]
+	list = append(list, fieldData)
+	return list, nil
+}
+
 func encodeBoolValue(v bool) ([]byte, error) {
 	if v == true {
 		return []byte("1"), nil
@@ -57,6 +126,14 @@ func decodeStringValue(b []byte) (string, error) {
 	return string(""), errors.New("Invalid string value")
 }
 
+func encodeStringListValue(v []string) ([]byte, error) {
+	return encodeListValue(v, encodeStringValue)
+}
+
+func decodeStringListValue(b []byte) ([]string, error) {
+	return decodeListValue(b, decodeStringValue)
+}
+
 func encodeInt8Value(v int8) ([]byte, error) {
 	return []byte(strconv.FormatInt(int64(v), 10)), nil
 }
@@ -91,6 +168,14 @@ func decodeInt32Value(b []byte) (int32, error) {
 		return int32(0), err
 	}
 	return int32(v), nil
+}
+
+func encodeInt32ListValue(v []int32) ([]byte, error) {
+	return encodeListValue(v, encodeInt32Value)
+}
+
+func decodeInt32ListValue(b []byte) ([]int32, error) {
+	return decodeListValue(b, decodeInt32Value)
 }
 
 func encodeInt64Value(v int64) ([]byte, error) {
