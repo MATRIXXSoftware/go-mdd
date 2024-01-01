@@ -126,14 +126,6 @@ func decodeStringValue(b []byte) (string, error) {
 	return string(""), errors.New("Invalid string value")
 }
 
-func encodeStringListValue(v []string) ([]byte, error) {
-	return encodeListValue(v, encodeStringValue)
-}
-
-func decodeStringListValue(b []byte) ([]string, error) {
-	return decodeListValue(b, decodeStringValue)
-}
-
 func encodeInt8Value(v int8) ([]byte, error) {
 	return []byte(strconv.FormatInt(int64(v), 10)), nil
 }
@@ -168,14 +160,6 @@ func decodeInt32Value(b []byte) (int32, error) {
 		return int32(0), err
 	}
 	return int32(v), nil
-}
-
-func encodeInt32ListValue(v []int32) ([]byte, error) {
-	return encodeListValue(v, encodeInt32Value)
-}
-
-func decodeInt32ListValue(b []byte) ([]int32, error) {
-	return decodeListValue(b, decodeInt32Value)
 }
 
 func encodeInt64Value(v int64) ([]byte, error) {

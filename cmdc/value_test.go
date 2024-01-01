@@ -65,7 +65,7 @@ func TestInt32Value(t *testing.T) {
 
 func TestInt32ListValue(t *testing.T) {
 	data := []byte("{1,2,3,4,5}")
-	list, err := decodeInt32ListValue(data)
+	list, err := decodeListValue(data, decodeInt32Value)
 	assert.Nil(t, err)
 	assert.Equal(t, 5, len(list))
 	assert.Equal(t, int32(1), list[0])
@@ -74,7 +74,7 @@ func TestInt32ListValue(t *testing.T) {
 	assert.Equal(t, int32(4), list[3])
 	assert.Equal(t, int32(5), list[4])
 
-	encoded, err := encodeInt32ListValue(list)
+	encoded, err := encodeListValue(list, encodeInt32Value)
 	assert.Nil(t, err)
 	assert.Equal(t, data, encoded)
 }
@@ -158,14 +158,14 @@ func TestUnicodeStringValue(t *testing.T) {
 
 func TestStringListValue(t *testing.T) {
 	data := []byte("{(6:value1),(7:value20),(8:value300)}")
-	list, err := decodeStringListValue(data)
+	list, err := decodeListValue(data, decodeStringValue)
 	assert.Nil(t, err)
 	assert.Equal(t, 3, len(list))
 	assert.Equal(t, "value1", list[0])
 	assert.Equal(t, "value20", list[1])
 	assert.Equal(t, "value300", list[2])
 
-	encoded, err := encodeStringListValue(list)
+	encoded, err := encodeListValue(list, encodeStringValue)
 	assert.Nil(t, err)
 	assert.Equal(t, data, encoded)
 }
@@ -195,6 +195,44 @@ func TestStructValue(t *testing.T) {
 	encoded, err := encodeStructValue(codec, containers)
 	assert.Nil(t, err)
 	assert.Equal(t, data, encoded)
+}
+
+func TestStructListValue(t *testing.T) {
+	// TODO fix this test
+
+	// data := []byte("{<1,10,0,235,5280,1>[100],<1,10,0,235,5280,1>[200],<1,10,0,235,5280,1>[300]}")
+	//
+	// values, err := decodeListValue(data, func(b []byte) (*mdd.Containers, error) {
+	// 	return decodeStructValue(codec, b)
+	// })
+	// assert.Nil(t, err)
+	// assert.NotNil(t, values)
+	//
+	// assert.Equal(t, 3, len(values))
+
+	// container := containers.Containers[0]
+	// expectedHeader := mdd.Header{
+	// 	Version:       1,
+	// 	TotalField:    10,
+	// 	Depth:         0,
+	// 	Key:           235,
+	// 	SchemaVersion: 5280,
+	// 	ExtVersion:    1,
+	// }
+	// assert.Equal(t, expectedHeader, container.Header)
+	// assert.Equal(t, "1", container.GetField(0).String())
+	// assert.Equal(t, "20", container.GetField(1).String())
+	// assert.Equal(t, "300", container.GetField(2).String())
+	// assert.Equal(t, "4", container.GetField(3).String())
+
+	// encoded, err := encodeListencodeStructValue(codec, containers)
+	// list := values.([]*mdd.Containers)
+
+	// encoded, err := encodeListValue(values.([]*mdd.Containers), func(v *mdd.Containers) ([]byte, error) {
+	// 	return encodeStructValue(codec, v)
+	// })
+	// assert.Nil(t, err)
+	// assert.Equal(t, data, encoded)
 }
 
 func TestDecimalValue(t *testing.T) {

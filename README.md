@@ -22,10 +22,15 @@ go get -u github.com/matrixxsoftware/go-mdd@latest
 	decoded, err := codec.Decode([]byte(data))
 	assert.Nil(t, err)
 
-	decoded.Containers[0].GetField(0).Type = field.UInt8
-	decoded.Containers[0].GetField(1).Type = field.UInt32
-	decoded.Containers[0].GetField(2).Type = field.Int32
-	decoded.Containers[0].GetField(3).Type = field.String
+	decoded.Containers[0].LoadDefinition(&dictionary.ContainerDefinition{
+		Fields: []dictionary.FieldDefinition{
+			{Type: field.UInt8},
+			{Type: field.UInt32},
+			{Type: field.Int32},
+			{Type: field.String},
+			{Type: field.Int32, IsMulti: true},
+		},
+	})
 
 	v, err := decoded.Containers[0].GetField(0).GetValue()
 	assert.Nil(t, err)
@@ -42,6 +47,10 @@ go get -u github.com/matrixxsoftware/go-mdd@latest
 	v, err = decoded.Containers[0].GetField(3).GetValue()
 	assert.Nil(t, err)
 	assert.Equal(t, "value", v)
+
+	v, err = decoded.Containers[0].GetField(4).GetValue()
+	assert.Nil(t, err)
+	assert.Equal(t, []int32{10, 20}, v)
 ```
 
 ## Encode

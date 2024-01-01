@@ -56,11 +56,32 @@ func (c *Cmdc) DecodeField(f *mdd.Field) (interface{}, error) {
 	} else {
 		switch f.Type {
 		case field.String:
-			return decodeStringListValue(f.Data)
+			return decodeListValue(f.Data, decodeStringValue)
+		case field.Int8:
+			return decodeListValue(f.Data, decodeInt8Value)
+		case field.Int16:
+			return decodeListValue(f.Data, decodeInt16Value)
 		case field.Int32:
-			return decodeInt32ListValue(f.Data)
+			return decodeListValue(f.Data, decodeInt32Value)
+		case field.Int64:
+			return decodeListValue(f.Data, decodeInt64Value)
+		case field.UInt8:
+			return decodeListValue(f.Data, decodeUInt8Value)
+		case field.UInt16:
+			return decodeListValue(f.Data, decodeUInt16Value)
+		case field.UInt32:
+			return decodeListValue(f.Data, decodeUInt32Value)
+		case field.UInt64:
+			return decodeListValue(f.Data, decodeUInt64Value)
+		case field.Bool:
+			return decodeListValue(f.Data, decodeBoolValue)
+		case field.Struct:
+			return decodeListValue(f.Data, func(b []byte) (*mdd.Containers, error) {
+				return decodeStructValue(f.Codec, b)
+			})
+		case field.Decimal:
+			return decodeListValue(f.Data, decodeDecimalValue)
 		default:
-			// TODO: Add support for other types
 			return nil, errors.New("Unsupported field type")
 		}
 	}
@@ -108,9 +129,29 @@ func (cmdc *Cmdc) EncodeField(f *mdd.Field) ([]byte, error) {
 	} else {
 		switch f.Type {
 		case field.String:
-			return encodeStringListValue(f.Value.([]string))
+			return encodeListValue(f.Value.([]string), encodeStringValue)
+		case field.Int8:
+			return encodeListValue(f.Value.([]int8), encodeInt8Value)
+		case field.Int16:
+			return encodeListValue(f.Value.([]int16), encodeInt16Value)
 		case field.Int32:
-			return encodeInt32ListValue(f.Value.([]int32))
+			return encodeListValue(f.Value.([]int32), encodeInt32Value)
+		case field.Int64:
+			return encodeListValue(f.Value.([]int64), encodeInt64Value)
+		case field.UInt8:
+			return encodeListValue(f.Value.([]uint8), encodeUInt8Value)
+		case field.UInt16:
+			return encodeListValue(f.Value.([]uint16), encodeUInt16Value)
+		case field.UInt32:
+			return encodeListValue(f.Value.([]uint32), encodeUInt32Value)
+		case field.UInt64:
+			return encodeListValue(f.Value.([]uint64), encodeUInt64Value)
+		case field.Struct:
+			return encodeListValue(f.Value.([]*mdd.Containers), func(v *mdd.Containers) ([]byte, error) {
+				return encodeStructValue(f.Codec, v)
+			})
+		case field.Decimal:
+			return encodeListValue(f.Value.([]*big.Float), encodeDecimalValue)
 		default:
 			// TODO: Add support for other types
 			return nil, errors.New("Unsupported field type")
