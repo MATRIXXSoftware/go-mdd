@@ -122,7 +122,7 @@ func TestDecodeSampleData2(t *testing.T) {
 }
 
 func TestDecodeExample1(t *testing.T) {
-	data := "<1,18,0,-6,5222,2>[1,,-20,(5:value)]"
+	data := "<1,18,0,-6,5222,2>[1,,-20,(5:value),{10,20}]"
 	decoded, err := codec.Decode([]byte(data))
 	assert.Nil(t, err)
 
@@ -132,6 +132,7 @@ func TestDecodeExample1(t *testing.T) {
 			{Type: field.UInt32},
 			{Type: field.Int32},
 			{Type: field.String},
+			{Type: field.Int32, IsMulti: true},
 		},
 	})
 
@@ -150,6 +151,10 @@ func TestDecodeExample1(t *testing.T) {
 	v, err = decoded.Containers[0].GetField(3).GetValue()
 	assert.Nil(t, err)
 	assert.Equal(t, "value", v)
+
+	v, err = decoded.Containers[0].GetField(4).GetValue()
+	assert.Nil(t, err)
+	assert.Equal(t, []int32{10, 20}, v)
 }
 
 func TestEncodeExample(t *testing.T) {
