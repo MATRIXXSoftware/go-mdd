@@ -167,12 +167,13 @@ func TestEncodeExample(t *testing.T) {
 					*mdd.NewNullField(field.UInt32),
 					*mdd.NewBasicField(int32(-20)),
 					*mdd.NewBasicField("value"),
+					*mdd.NewBasicListField([]int32{10, 20}),
 				},
 			},
 		},
 	}
 
-	expected := "<1,18,0,-6,5222,2>[1,,-20,(5:value)]"
+	expected := "<1,18,0,-6,5222,2>[1,,-20,(5:value),{10,20}]"
 	encoded, err := codec.Encode(&containers)
 
 	assert.Nil(t, err)
@@ -196,11 +197,15 @@ func TestDecodeEncode(t *testing.T) {
 	assert.Equal(t, "400000000", decoded.Containers[0].GetField(4).String())
 
 	// Mark field types
-	decoded.Containers[0].GetField(0).Type = field.UInt8
-	decoded.Containers[0].GetField(1).Type = field.Int32
-	decoded.Containers[0].GetField(2).Type = field.Struct
-	decoded.Containers[0].GetField(3).Type = field.UInt32
-	decoded.Containers[0].GetField(4).Type = field.UInt64
+	decoded.Containers[0].LoadDefinition(&dictionary.ContainerDefinition{
+		Fields: []dictionary.FieldDefinition{
+			{Type: field.UInt8},
+			{Type: field.Int32},
+			{Type: field.Struct},
+			{Type: field.UInt32},
+			{Type: field.UInt64},
+		},
+	})
 
 	// Retrieve field 0 as uint8
 	field0, err := decoded.Containers[0].GetField(0).GetValue()
@@ -228,11 +233,15 @@ func TestDecodeEncode(t *testing.T) {
 		assert.Equal(t, "<1,3,0,400,5222,2>[]", nested.Containers[0].GetField(4).String())
 
 		// Mark field types
-		nested.Containers[0].GetField(0).Type = field.String
-		nested.Containers[0].GetField(1).Type = field.String
-		nested.Containers[0].GetField(2).Type = field.UInt32
-		nested.Containers[0].GetField(3).Type = field.Decimal
-		nested.Containers[0].GetField(4).Type = field.Struct
+		nested.Containers[0].LoadDefinition(&dictionary.ContainerDefinition{
+			Fields: []dictionary.FieldDefinition{
+				{Type: field.String},
+				{Type: field.String},
+				{Type: field.UInt32},
+				{Type: field.Decimal},
+				{Type: field.Struct},
+			},
+		})
 
 		// Retrieve nested field 0 as string
 		field0, err := nested.Containers[0].GetField(0).GetValue()

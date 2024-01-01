@@ -18,7 +18,7 @@ go get -u github.com/matrixxsoftware/go-mdd@latest
 ```go
 	codec := cmdc.NewCodec()
 
-	data := "<1,18,0,-6,5222,2>[1,-20,(5:value)]"
+	data := "<1,18,0,-6,5222,2>[1,,-20,(5:value),{10,20}]"
 	decoded, err := codec.Decode([]byte(data))
 	assert.Nil(t, err)
 
@@ -66,12 +66,13 @@ go get -u github.com/matrixxsoftware/go-mdd@latest
 					*mdd.NewNullField(field.UInt32),
 					*mdd.NewBasicField(int32(-20)),
 					*mdd.NewBasicField("value"),
+					*mdd.NewBasicListField([]int32{10, 20}),
 				},
 			},
 		},
 	}
 
-	expected := "<1,18,0,-6,5222,2>[1,,-20,(5:value)]"
+	expected := "<1,18,0,-6,5222,2>[1,,-20,(5:value),{10,20}]"
 	encoded, err := codec.Encode(&containers)
 
 	assert.Nil(t, err)

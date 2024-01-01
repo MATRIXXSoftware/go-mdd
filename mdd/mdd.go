@@ -117,46 +117,47 @@ func unicode(value bool) string {
 // Global functions to initialize Fields
 
 func NewBasicField[T field.BasicTypes](value T) *Field {
-	var fieldType field.Type
 
 	valueType := reflect.TypeOf(value)
-	switch valueType.Kind() {
-	case reflect.String:
-		fieldType = field.String
-	case reflect.Bool:
-		fieldType = field.Bool
-	case reflect.Int8:
-		fieldType = field.Int8
-	case reflect.Int16:
-		fieldType = field.Int16
-	case reflect.Int32:
-		fieldType = field.Int32
-	case reflect.Int64:
-		fieldType = field.Int64
-	case reflect.Uint8:
-		fieldType = field.UInt8
-	case reflect.Uint16:
-		fieldType = field.UInt16
-	case reflect.Uint32:
-		fieldType = field.UInt32
-	case reflect.Uint64:
-		fieldType = field.UInt64
-
-	default:
-		fieldType = field.Unknown
-	}
+	fieldType := getFieldType(valueType)
 
 	return &Field{
-		Type:  fieldType,
-		Value: value,
+		Type:        fieldType,
+		Value:       value,
+		IsMulti:     false,
+		IsContainer: false,
+	}
+}
+
+func NewBasicListField[T field.BasicTypes](value []T) *Field {
+	valueType := reflect.TypeOf(value).Elem()
+	fieldType := getFieldType(valueType)
+
+	return &Field{
+		Type:        fieldType,
+		Value:       value,
+		IsMulti:     true,
+		IsContainer: false,
 	}
 }
 
 func NewStructField(codec Codec, value *Containers) *Field {
 	return &Field{
-		Type:  field.Struct,
-		Value: value,
-		Codec: codec,
+		Type:        field.Struct,
+		Value:       value,
+		Codec:       codec,
+		IsMulti:     false,
+		IsContainer: true,
+	}
+}
+
+func NewStrucListtField(codec Codec, value *Containers) *Field {
+	return &Field{
+		Type:        field.Struct,
+		Value:       value,
+		Codec:       codec,
+		IsMulti:     true,
+		IsContainer: true,
 	}
 }
 
@@ -164,5 +165,32 @@ func NewNullField(fieldType field.Type) *Field {
 	return &Field{
 		Type:   fieldType,
 		IsNull: true,
+	}
+}
+
+func getFieldType(t reflect.Type) field.Type {
+	switch t.Kind() {
+	case reflect.String:
+		return field.String
+	case reflect.Bool:
+		return field.Bool
+	case reflect.Int8:
+		return field.Int8
+	case reflect.Int16:
+		return field.Int16
+	case reflect.Int32:
+		return field.Int32
+	case reflect.Int64:
+		return field.Int64
+	case reflect.Uint8:
+		return field.UInt8
+	case reflect.Uint16:
+		return field.UInt16
+	case reflect.Uint32:
+		return field.UInt32
+	case reflect.Uint64:
+		return field.UInt64
+	default:
+		return field.Unknown
 	}
 }
