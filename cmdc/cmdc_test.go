@@ -121,6 +121,38 @@ func TestDecodeSampleData2(t *testing.T) {
 	assert.Equal(t, "(26:00000000000000594134:00000)", decoded.Containers[4].GetField(27).String())
 }
 
+func sampleData3() string {
+	return "<1,8,0,-6,5222,2>[,,,(5:AMF-1),(4:eMBB),(11:SouthWestUK),1]<1,1,0,-5,5222,2>[1000001]<1,7,0,263,5222,2>[2,{<1,5,1,330,5222,2>[200,4,1],<1,5,1,330,5222,2>[202,6,2]},(6:555555)]<1,11,0,626,5222,2>[{1,3,1},,{<1,17,1,624,5222,2>[17485824.0,200,1,(21:Data: Asset + Overage),0:1:5:277,(7:2000000),3,0,,,,,,,,0]},0:1:5:144,{(13:HXS0:1:52:409)}]<1,29,0,208,5222,2>[]"
+}
+
+func TestDecodeSampleData3(t *testing.T) {
+	data := sampleData3()
+	decoded, err := codec.Decode([]byte(data))
+	assert.Nil(t, err)
+
+	t.Logf("decoded: %s", decoded.Dump())
+
+	// Assert decoded
+	assert.Equal(t, 5, len(decoded.Containers))
+	assert.Equal(t, -6, decoded.Containers[0].Header.Key)
+	assert.Equal(t, -5, decoded.Containers[1].Header.Key)
+	assert.Equal(t, 263, decoded.Containers[2].Header.Key)
+	assert.Equal(t, 626, decoded.Containers[3].Header.Key)
+	assert.Equal(t, 208, decoded.Containers[4].Header.Key)
+
+	assert.Equal(t, "1000001", decoded.Containers[1].GetField(0).String())
+
+	assert.Equal(t, "2", decoded.Containers[2].GetField(0).String())
+	assert.Equal(t, "{<1,5,1,330,5222,2>[200,4,1],<1,5,1,330,5222,2>[202,6,2]}", decoded.Containers[2].GetField(1).String())
+	assert.Equal(t, "(6:555555)", decoded.Containers[2].GetField(2).String())
+
+	assert.Equal(t, "{1,3,1}", decoded.Containers[3].GetField(0).String())
+	assert.Equal(t, "", decoded.Containers[3].GetField(1).String())
+	assert.Equal(t, "{<1,17,1,624,5222,2>[17485824.0,200,1,(21:Data: Asset + Overage),0:1:5:277,(7:2000000),3,0,,,,,,,,0]}", decoded.Containers[3].GetField(2).String())
+	assert.Equal(t, "0:1:5:144", decoded.Containers[3].GetField(3).String())
+	assert.Equal(t, "{(13:HXS0:1:52:409)}", decoded.Containers[3].GetField(4).String())
+}
+
 func TestDecodeExample1(t *testing.T) {
 	data := "<1,18,0,-6,5222,2>[1,,-20,(5:value),{10,20}]"
 	decoded, err := codec.Decode([]byte(data))

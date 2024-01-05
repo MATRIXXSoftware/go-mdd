@@ -146,6 +146,8 @@ func (cmdc *Cmdc) EncodeField(f *mdd.Field) ([]byte, error) {
 			return encodeListValue(f.Value.([]uint32), encodeUInt32Value)
 		case field.UInt64:
 			return encodeListValue(f.Value.([]uint64), encodeUInt64Value)
+		case field.Bool:
+			return encodeListValue(f.Value.([]bool), encodeBoolValue)
 		case field.Struct:
 			return encodeListValue(f.Value.([]*mdd.Containers), func(v *mdd.Containers) ([]byte, error) {
 				return encodeStructValue(f.Codec, v)
