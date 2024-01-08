@@ -64,13 +64,61 @@ func decodeList(b []byte) ([][]byte, error) {
 	}
 	var list [][]byte
 	mark := 1
+	roundMark := 0
+
+	square := 0
+	angle := 0
+	round := 0
+	curly := 1
+
 	for idx := 1; idx < len(b); idx++ {
 		c := b[idx]
-		if c == ',' {
-			fieldData := b[mark:idx]
-			mark = idx + 1
-			list = append(list, fieldData)
+
+		if round != 0 {
+			if c == ')' {
+				round--
+			} else if roundMark == 0 {
+				return nil, errors.New("Invalid cMDC list, mismatch string length")
+			} else if c == ':' {
+				temp := b[roundMark+1 : idx]
+				len, err := bytesToInt(temp)
+				if err != nil {
+					panic("Invalid string length")
+				}
+				// reset round mark
+				roundMark = 0
+				// skip the string field
+				idx += len
+			} else if c < '0' || c > '9' {
+				return nil, errors.New("Invalid character '" + string(c) + "', numeric expected for string length")
+			}
+			continue
 		}
+
+		switch c {
+		case '(':
+			roundMark = idx
+			round++
+		case '[':
+			square++
+		case ']':
+			square--
+		case '<':
+			angle++
+		case '>':
+			angle--
+		case '{':
+			curly++
+		case '}':
+			curly--
+		case ',':
+			if square == 0 && angle == 0 && curly == 1 {
+				fieldData := b[mark:idx]
+				mark = idx + 1
+				list = append(list, fieldData)
+			}
+		}
+
 	}
 	fieldData := b[mark : len(b)-1]
 	list = append(list, fieldData)
