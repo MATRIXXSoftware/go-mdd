@@ -303,3 +303,29 @@ func decodeDateTimeValue(b []byte) (*time.Time, error) {
 	}
 	return &dt, nil
 }
+
+func encodeDateValue(v *time.Time) ([]byte, error) {
+	return []byte(v.Format("2006-01-02")), nil
+}
+
+func decodeDateValue(b []byte) (*time.Time, error) {
+	layout := "2006-01-02"
+	dt, err := time.Parse(layout, string(b))
+	if err != nil {
+		return nil, err
+	}
+	return &dt, nil
+}
+
+func encodeTimeValue(v *time.Time) ([]byte, error) {
+	return []byte(v.Format("15:04:05")), nil
+}
+
+func decodeTimeValue(b []byte) (*time.Time, error) {
+	layout := "15:04:05"
+	dt, err := time.Parse(layout, string(b))
+	if err != nil {
+		return nil, err
+	}
+	return &dt, nil
+}

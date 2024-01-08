@@ -248,3 +248,25 @@ func TestDateTimeValue(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, data, encoded)
 }
+
+func TestDateValue(t *testing.T) {
+	data := []byte("2024-01-08")
+	value, err := decodeDateValue(data)
+	assert.Nil(t, err)
+	assert.Equal(t, "2024-01-08 00:00:00 +0000 UTC", value.String())
+
+	encoded, err := encodeDateValue(value)
+	assert.Nil(t, err)
+	assert.Equal(t, data, encoded)
+}
+
+func TestTimeValue(t *testing.T) {
+	data := []byte("21:54:10")
+	value, err := decodeTimeValue(data)
+	assert.Nil(t, err)
+	assert.Equal(t, "0000-01-01 21:54:10 +0000 UTC", value.String())
+
+	encoded, err := encodeTimeValue(value)
+	assert.Nil(t, err)
+	assert.Equal(t, data, encoded)
+}

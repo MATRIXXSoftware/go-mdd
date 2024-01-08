@@ -25,14 +25,14 @@ const (
 	UInt128
 	// Complex
 	Decimal
-	// Date
-	// Time
+	Date
+	Time
 	DateTime
 	// Blob
 	// BufferID
 	// FieldKey
 	// PhoneNo
-	// tObjectID
+	// ObjectID
 )
 
 func (t Type) String() string {
