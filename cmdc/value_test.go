@@ -238,10 +238,13 @@ func TestDecimalValue(t *testing.T) {
 	assert.Equal(t, data, encoded)
 }
 
-//
-// func TestDateTimeValue(t *testing.T) {
-// 	v := Value{Data: []byte("2017-01-01T12:00:00Z")}
-// 	value, err := v.DateTime()
-// 	assert.Nil(t, err)
-// 	assert.Equal(t, "2017-01-01 12:00:00 +0000 UTC", value.String())
-// }
+func TestDateTimeValue(t *testing.T) {
+	data := []byte("2024-01-08T21:54:10Z")
+	value, err := decodeDateTimeValue(data)
+	assert.Nil(t, err)
+	assert.Equal(t, "2024-01-08 21:54:10 +0000 UTC", value.String())
+
+	encoded, err := encodeDateTimeValue(value)
+	assert.Nil(t, err)
+	assert.Equal(t, data, encoded)
+}

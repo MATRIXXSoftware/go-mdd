@@ -27,7 +27,7 @@ const (
 	Decimal
 	// Date
 	// Time
-	// DateTime
+	DateTime
 	// Blob
 	// BufferID
 	// FieldKey

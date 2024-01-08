@@ -4,6 +4,7 @@ import (
 	"errors"
 	"math/big"
 	"strconv"
+	"time"
 
 	"github.com/matrixxsoftware/go-mdd/mdd"
 )
@@ -290,14 +291,15 @@ func decodeDecimalValue(b []byte) (*big.Float, error) {
 	return f, nil
 }
 
-// func (v Value) DateTime() (*time.Time, error) {
-// 	if v.V == nil {
-// 		layout := "2006-01-02T15:04:05Z"
-// 		dt, err := time.Parse(layout, string(v.Data))
-// 		if err != nil {
-// 			return nil, err
-// 		}
-// 		v.V = &dt
-// 	}
-// 	return v.V.(*time.Time), nil
-// }
+func encodeDateTimeValue(v *time.Time) ([]byte, error) {
+	return []byte(v.Format(time.RFC3339)), nil
+}
+
+func decodeDateTimeValue(b []byte) (*time.Time, error) {
+	layout := "2006-01-02T15:04:05Z"
+	dt, err := time.Parse(layout, string(b))
+	if err != nil {
+		return nil, err
+	}
+	return &dt, nil
+}

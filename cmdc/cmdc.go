@@ -3,6 +3,7 @@ package cmdc
 import (
 	"errors"
 	"math/big"
+	"time"
 
 	"github.com/matrixxsoftware/go-mdd/mdd"
 	"github.com/matrixxsoftware/go-mdd/mdd/field"
@@ -50,6 +51,8 @@ func (c *Cmdc) DecodeField(f *mdd.Field) (interface{}, error) {
 			return decodeStructValue(f.Codec, f.Data)
 		case field.Decimal:
 			return decodeDecimalValue(f.Data)
+		case field.DateTime:
+			return decodeDateTimeValue(f.Data)
 		default:
 			return nil, errors.New("Unsupported field type")
 		}
@@ -81,6 +84,8 @@ func (c *Cmdc) DecodeField(f *mdd.Field) (interface{}, error) {
 			})
 		case field.Decimal:
 			return decodeListValue(f.Data, decodeDecimalValue)
+		case field.DateTime:
+			return decodeListValue(f.Data, decodeDateTimeValue)
 		default:
 			return nil, errors.New("Unsupported field type")
 		}
@@ -123,6 +128,8 @@ func (cmdc *Cmdc) EncodeField(f *mdd.Field) ([]byte, error) {
 			return encodeStructValue(f.Codec, f.Value.(*mdd.Containers))
 		case field.Decimal:
 			return encodeDecimalValue(f.Value.(*big.Float))
+		case field.DateTime:
+			return encodeDateTimeValue(f.Value.(*time.Time))
 		default:
 			return nil, errors.New("Unsupported field type")
 		}
@@ -154,6 +161,8 @@ func (cmdc *Cmdc) EncodeField(f *mdd.Field) ([]byte, error) {
 			})
 		case field.Decimal:
 			return encodeListValue(f.Value.([]*big.Float), encodeDecimalValue)
+		case field.DateTime:
+			return encodeListValue(f.Value.([]*time.Time), encodeDateTimeValue)
 		default:
 			// TODO: Add support for other types
 			return nil, errors.New("Unsupported field type")
