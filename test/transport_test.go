@@ -54,7 +54,7 @@ func TestTransport(t *testing.T) {
 				Transport: serverTransport,
 			}
 
-			server.MessageHandler(func(request *mdd.Containers) *mdd.Containers {
+			server.MessageHandler(func(request *mdd.Containers) (*mdd.Containers, error) {
 				t.Logf("Server received request:\n%s", request.Dump())
 
 				container0 := request.GetContainer(101)
@@ -82,7 +82,7 @@ func TestTransport(t *testing.T) {
 							},
 						},
 					},
-				}
+				}, nil
 			})
 
 			go func() {
