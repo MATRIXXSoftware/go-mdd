@@ -41,7 +41,7 @@ type Server struct {
 	Transport ServerTransport
 }
 
-func (s *Server) MessageHandler(handler func(*Containers) *Containers) {
+func (s *Server) MessageHandler(handler func(*Containers) (*Containers, error)) {
 
 	h := func(reqBody []byte) ([]byte, error) {
 		request, err := s.Codec.Decode(reqBody)
@@ -49,7 +49,10 @@ func (s *Server) MessageHandler(handler func(*Containers) *Containers) {
 			return nil, err
 		}
 
-		response := handler(request)
+		response, err := handler(request)
+		if err != nil {
+			return nil, err
+		}
 
 		respBody, err := s.Codec.Encode(response)
 		if err != nil {
