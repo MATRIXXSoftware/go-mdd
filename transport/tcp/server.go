@@ -65,12 +65,14 @@ func (s *ServerTransport) handleConnection(conn net.Conn) {
 
 		response, err := s.handler(request)
 		if err != nil {
-			log.Panic(err)
+			log.Errorf("%s", err)
+			return
 		}
 
 		err = Encode(conn, response)
 		if err != nil {
-			log.Panic(err)
+			log.Errorf("%s", err)
+			return
 		}
 	}
 }
