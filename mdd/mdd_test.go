@@ -1,8 +1,10 @@
 package mdd
 
 import (
+	"strconv"
 	"testing"
 
+	"github.com/matrixxsoftware/go-mdd/mdd/field"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -71,4 +73,39 @@ func TestGetContainer(t *testing.T) {
 	// Container 2 does not exist
 	container2 := mdc.GetContainer(1000)
 	assert.Nil(t, container2)
+}
+
+func TestSetContainer(t *testing.T) {
+	containers := Containers{
+		Containers: []Container{
+			{
+				Header: Header{
+					Version:       1,
+					TotalField:    25,
+					Depth:         0,
+					Key:           93,
+					SchemaVersion: 5263,
+					ExtVersion:    13,
+				},
+				Fields: []Field{
+					*NewBasicField("aaa"),
+					*NewNullField(field.DateTime),
+					*NewBasicField(int32(-1877540863)),
+				},
+			},
+		},
+	}
+	container0 := containers.GetContainer(93)
+
+	container0.SetField(0, &Field{Data: []byte("(3:bbb)"), Value: "bbb"})
+	t.Logf("containers: \n%s\n", containers.Dump())
+	field0, err := containers.GetContainer(93).GetField(0).GetValue()
+	assert.Nil(t, err)
+	assert.Equal(t, "bbb", field0)
+
+	container0.SetField(18, &Field{Data: []byte(strconv.Itoa(2001)), Value: int32(2001)})
+	t.Logf("containers: \n%s\n", containers.Dump())
+	field18, err := containers.GetContainer(93).GetField(18).GetValue()
+	assert.Nil(t, err)
+	assert.Equal(t, int32(2001), field18)
 }
