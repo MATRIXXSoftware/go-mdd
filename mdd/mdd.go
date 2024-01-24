@@ -40,9 +40,10 @@ type Field struct {
 }
 
 func (c *Containers) GetContainer(key int) *Container {
-	for _, container := range c.Containers {
+	for i := range c.Containers {
+		container := &c.Containers[i]
 		if container.Header.Key == key {
-			return &container
+			return container
 		}
 	}
 	return nil
@@ -53,6 +54,18 @@ func (c *Container) GetField(fieldNumber int) *Field {
 		return nil
 	}
 	return &c.Fields[fieldNumber]
+}
+
+func (c *Container) SetField(fieldNumber int, f *Field) {
+	if len(c.Fields) > fieldNumber {
+		c.Fields[fieldNumber] = *f
+		return
+	}
+
+	for i := len(c.Fields); i < fieldNumber; i++ {
+		c.Fields = append(c.Fields, *NewNullField(field.Unknown))
+	}
+	c.Fields = append(c.Fields, *f)
 }
 
 func (c *Container) LoadDefinition(definition *dictionary.ContainerDefinition) {
