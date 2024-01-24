@@ -9,8 +9,9 @@ import (
 func (cmdc *Cmdc) encodeContainers(containers *mdd.Containers) ([]byte, error) {
 
 	var data []byte
-	for _, container := range containers.Containers {
-		containerData, err := cmdc.encodeContainer(&container)
+	for i := range containers.Containers {
+		container := &containers.Containers[i]
+		containerData, err := cmdc.encodeContainer(container)
 		if err != nil {
 			return nil, err
 		}
@@ -72,7 +73,8 @@ func (cmdc *Cmdc) encodeHeader(header *mdd.Header) ([]byte, error) {
 func (cmdc *Cmdc) encodeBody(fields []mdd.Field) ([]byte, error) {
 	// Pre-allocate a slice of bytes for better performance
 	estimatedLen := len(fields) + 2
-	for _, f := range fields {
+	for i := range fields {
+		f := &fields[i]
 		estimatedLen += len(f.Data)
 	}
 	data := make([]byte, 0, estimatedLen)

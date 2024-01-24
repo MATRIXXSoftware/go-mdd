@@ -157,12 +157,12 @@ func TestUnicodeStringValue(t *testing.T) {
 }
 
 func TestStringListValue(t *testing.T) {
-	data := []byte("{(6:value1),(7:value20),(8:value300)}")
+	data := []byte("{(6:value1),(7:valu(20),(8:value300)}")
 	list, err := decodeListValue(data, decodeStringValue)
 	assert.Nil(t, err)
 	assert.Equal(t, 3, len(list))
 	assert.Equal(t, "value1", list[0])
-	assert.Equal(t, "value20", list[1])
+	assert.Equal(t, "valu(20", list[1])
 	assert.Equal(t, "value300", list[2])
 
 	encoded, err := encodeListValue(list, encodeStringValue)

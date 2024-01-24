@@ -43,7 +43,8 @@ func decodeListValue[T any](b []byte, f func([]byte) (T, error)) ([]T, error) {
 		return nil, err
 	}
 	var list []T
-	for _, field := range fields {
+	for i := range fields {
+		field := fields[i]
 		v, err := f(field)
 		if err != nil {
 			return nil, err
