@@ -90,6 +90,17 @@ func TestInt64Value(t *testing.T) {
 	assert.Equal(t, data, encoded)
 }
 
+func TestInt128Value(t *testing.T) {
+	data := []byte("10000000000000000000000000000000")
+	value, err := decodeInt128Value(data)
+	assert.Nil(t, err)
+	assert.Equal(t, "10000000000000000000000000000000", value.String())
+
+	encoded, err := encodeInt128Value(value)
+	assert.Nil(t, err)
+	assert.Equal(t, data, encoded)
+}
+
 func TestUInt8Value(t *testing.T) {
 	data := []byte("200")
 	value, err := decodeUInt8Value(data)
@@ -130,6 +141,17 @@ func TestUInt64Value(t *testing.T) {
 	assert.Equal(t, uint64(81345123666616), value)
 
 	encoded, err := encodeUInt64Value(value)
+	assert.Nil(t, err)
+	assert.Equal(t, data, encoded)
+}
+
+func TestUInt128Value(t *testing.T) {
+	data := []byte("10000000000000000000000000000000")
+	value, err := decodeUInt128Value(data)
+	assert.Nil(t, err)
+	assert.Equal(t, "10000000000000000000000000000000", value.String())
+
+	encoded, err := encodeUInt128Value(value)
 	assert.Nil(t, err)
 	assert.Equal(t, data, encoded)
 }

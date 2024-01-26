@@ -37,6 +37,8 @@ func (c *Cmdc) DecodeField(f *mdd.Field) (interface{}, error) {
 			return decodeInt32Value(f.Data)
 		case field.Int64:
 			return decodeInt64Value(f.Data)
+		case field.Int128:
+			return decodeInt128Value(f.Data)
 		case field.UInt8:
 			return decodeUInt8Value(f.Data)
 		case field.UInt16:
@@ -45,6 +47,8 @@ func (c *Cmdc) DecodeField(f *mdd.Field) (interface{}, error) {
 			return decodeUInt32Value(f.Data)
 		case field.UInt64:
 			return decodeUInt64Value(f.Data)
+		case field.UInt128:
+			return decodeUInt128Value(f.Data)
 		case field.Bool:
 			return decodeBoolValue(f.Data)
 		case field.Struct:
@@ -68,6 +72,8 @@ func (c *Cmdc) DecodeField(f *mdd.Field) (interface{}, error) {
 			return decodeListValue(f.Data, decodeInt32Value)
 		case field.Int64:
 			return decodeListValue(f.Data, decodeInt64Value)
+		case field.Int128:
+			return decodeListValue(f.Data, decodeInt128Value)
 		case field.UInt8:
 			return decodeListValue(f.Data, decodeUInt8Value)
 		case field.UInt16:
@@ -76,6 +82,8 @@ func (c *Cmdc) DecodeField(f *mdd.Field) (interface{}, error) {
 			return decodeListValue(f.Data, decodeUInt32Value)
 		case field.UInt64:
 			return decodeListValue(f.Data, decodeUInt64Value)
+		case field.UInt128:
+			return decodeListValue(f.Data, decodeUInt128Value)
 		case field.Bool:
 			return decodeListValue(f.Data, decodeBoolValue)
 		case field.Struct:
@@ -114,6 +122,8 @@ func (cmdc *Cmdc) EncodeField(f *mdd.Field) ([]byte, error) {
 			return encodeInt32Value(f.Value.(int32))
 		case field.Int64:
 			return encodeInt64Value(f.Value.(int64))
+		case field.Int128:
+			return encodeInt128Value(f.Value.(*big.Int))
 		case field.UInt8:
 			return encodeUInt8Value(f.Value.(uint8))
 		case field.UInt16:
@@ -122,6 +132,8 @@ func (cmdc *Cmdc) EncodeField(f *mdd.Field) ([]byte, error) {
 			return encodeUInt32Value(f.Value.(uint32))
 		case field.UInt64:
 			return encodeUInt64Value(f.Value.(uint64))
+		case field.UInt128:
+			return encodeUInt128Value(f.Value.(*big.Int))
 		case field.Bool:
 			return encodeBoolValue(f.Value.(bool))
 		case field.Struct:
@@ -145,6 +157,8 @@ func (cmdc *Cmdc) EncodeField(f *mdd.Field) ([]byte, error) {
 			return encodeListValue(f.Value.([]int32), encodeInt32Value)
 		case field.Int64:
 			return encodeListValue(f.Value.([]int64), encodeInt64Value)
+		case field.Int128:
+			return encodeListValue(f.Value.([]*big.Int), encodeInt128Value)
 		case field.UInt8:
 			return encodeListValue(f.Value.([]uint8), encodeUInt8Value)
 		case field.UInt16:
@@ -153,6 +167,8 @@ func (cmdc *Cmdc) EncodeField(f *mdd.Field) ([]byte, error) {
 			return encodeListValue(f.Value.([]uint32), encodeUInt32Value)
 		case field.UInt64:
 			return encodeListValue(f.Value.([]uint64), encodeUInt64Value)
+		case field.UInt128:
+			return encodeListValue(f.Value.([]*big.Int), encodeUInt128Value)
 		case field.Bool:
 			return encodeListValue(f.Value.([]bool), encodeBoolValue)
 		case field.Struct:

@@ -224,6 +224,18 @@ func decodeInt64Value(b []byte) (int64, error) {
 	return int64(v), nil
 }
 
+func encodeInt128Value(v *big.Int) ([]byte, error) {
+	return []byte(v.String()), nil
+}
+
+func decodeInt128Value(b []byte) (*big.Int, error) {
+	v, ok := new(big.Int).SetString(string(b), 10)
+	if !ok {
+		return nil, errors.New("Invalid int128 value")
+	}
+	return v, nil
+}
+
 func encodeUInt8Value(v uint8) ([]byte, error) {
 	return []byte(strconv.FormatUint(uint64(v), 10)), nil
 }
@@ -270,6 +282,18 @@ func decodeUInt64Value(b []byte) (uint64, error) {
 		return uint64(0), err
 	}
 	return uint64(v), nil
+}
+
+func encodeUInt128Value(v *big.Int) ([]byte, error) {
+	return []byte(v.String()), nil
+}
+
+func decodeUInt128Value(b []byte) (*big.Int, error) {
+	v, ok := new(big.Int).SetString(string(b), 10)
+	if !ok {
+		return nil, errors.New("Invalid uint128 value")
+	}
+	return v, nil
 }
 
 func encodeStructValue(codec mdd.Codec, v *mdd.Containers) ([]byte, error) {
