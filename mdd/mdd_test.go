@@ -67,8 +67,9 @@ func TestGetContainer(t *testing.T) {
 	assert.Equal(t, "", container1.GetField(5).String())
 	assert.Equal(t, "777", container1.GetField(6).String())
 
-	// Field 6 does not exist
-	assert.Nil(t, container1.GetField(7))
+	// Field 7 does not exist
+	assert.Equal(t, "", container1.GetField(7).String())
+	assert.Equal(t, true, container1.GetField(7).IsNull)
 
 	// Container 2 does not exist
 	container2 := mdc.GetContainer(1000)
