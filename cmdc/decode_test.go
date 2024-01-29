@@ -280,71 +280,71 @@ func TestReservedCharacterStringField(t *testing.T) {
 func TestInvalidHeader(t *testing.T) {
 	mdc := "<1,18,-6,5222,2>[1,20,300,4]"
 	_, err := codec.Decode([]byte(mdc))
-	assert.Equal(t, errors.New("Invalid cMDC header, 6 fields expected"), err)
+	assert.Equal(t, errors.New("invalid cMDC header, 6 fields expected"), err)
 }
 
 func TestInvalidHeader2(t *testing.T) {
 	mdc := "<1,18,0,-6,5222[1,20,300,4]"
 	_, err := codec.Decode([]byte(mdc))
-	assert.Equal(t, errors.New("Invalid cMDC character '[' in header, numeric expected"), err)
+	assert.Equal(t, errors.New("invalid cMDC character '[' in header, numeric expected"), err)
 }
 
 func TestInvalidHeader3(t *testing.T) {
 	mdc := "<1,18,0,-6,5222,2"
 	_, err := codec.Decode([]byte(mdc))
-	assert.Equal(t, errors.New("Invalid cMDC header, no end of header"), err)
+	assert.Equal(t, errors.New("invalid cMDC header, no end of header"), err)
 }
 
 func TestInvalidHeader4(t *testing.T) {
 	mdc := "1,18,0,-6,5222,2>[]"
 	_, err := codec.Decode([]byte(mdc))
-	assert.Equal(t, errors.New("Invalid cMDC header, first character must be '<'"), err)
+	assert.Equal(t, errors.New("invalid cMDC header, first character must be '<'"), err)
 }
 
 func TestInvalidHeader5(t *testing.T) {
 	mdc := "<1,18,0,1-6,5222,2>[]"
 	_, err := codec.Decode([]byte(mdc))
-	assert.Equal(t, errors.New("Invalid cMDC header field '1-6', numeric expected"), err)
+	assert.Equal(t, errors.New("invalid cMDC header field '1-6', numeric expected"), err)
 }
 
 func TestInvalidBody(t *testing.T) {
 	mdc := "<1,18,0,-6,5222,2>[1,20,300,4"
 	_, err := codec.Decode([]byte(mdc))
-	assert.Equal(t, errors.New("Invalid cMDC body, no end of body"), err)
+	assert.Equal(t, errors.New("invalid cMDC body, no end of body"), err)
 }
 
 func TestInvalidBody2(t *testing.T) {
 	mdc := "<1,18,0,-6,5222,2>"
 	_, err := codec.Decode([]byte(mdc))
-	assert.Equal(t, errors.New("Invalid cMDC body, no body"), err)
+	assert.Equal(t, errors.New("invalid cMDC body, no body"), err)
 }
 
 func TestInvalidBody3(t *testing.T) {
 	mdc := "<1,18,0,-6,5222,2>1,2,3]"
 	_, err := codec.Decode([]byte(mdc))
-	assert.Equal(t, errors.New("Invalid cMDC body, first character must be '['"), err)
+	assert.Equal(t, errors.New("invalid cMDC body, first character must be '['"), err)
 }
 
 func TestInvalidBody4(t *testing.T) {
 	mdc := "<1,18,0,-6,5222,2>[1,(abc:foo),3,4]"
 	_, err := codec.Decode([]byte(mdc))
-	assert.Equal(t, errors.New("Invalid character 'a', numeric expected for string length"), err)
+	assert.Equal(t, errors.New("invalid character 'a', numeric expected for string length"), err)
 }
 
 func TestInvalidBody5(t *testing.T) {
 	mdc := "<1,18,0,-6,5222,2>[1,(5:foo),3,4]"
 	_, err := codec.Decode([]byte(mdc))
-	assert.Equal(t, errors.New("Invalid cMDC body, mismatch string length"), err)
+	assert.Equal(t, errors.New("invalid cMDC body, mismatch string length"), err)
 }
 
 func TestInvalidBody6(t *testing.T) {
 	mdc := "<1,18,0,-6,5222,2>[1,(5:foobar),3,4]"
 	_, err := codec.Decode([]byte(mdc))
-	assert.Equal(t, errors.New("Invalid cMDC body, mismatch string length"), err)
+	assert.Equal(t, errors.New("invalid cMDC body, mismatch string length"), err)
 }
 
 func TestInvalidBody7(t *testing.T) {
 	mdc := "<1,18,0,-6,5222,2>[1,(5:fooba:),3,4]"
 	_, err := codec.Decode([]byte(mdc))
-	assert.Equal(t, errors.New("Invalid cMDC body, mismatch string length"), err)
+	assert.Equal(t, errors.New("invalid cMDC body, mismatch string length"), err)
 }

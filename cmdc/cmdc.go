@@ -1,7 +1,7 @@
 package cmdc
 
 import (
-	"errors"
+	"fmt"
 	"math/big"
 	"time"
 
@@ -58,7 +58,7 @@ func (c *Cmdc) DecodeField(f *mdd.Field) (interface{}, error) {
 		case field.DateTime:
 			return decodeDateTimeValue(f.Data)
 		default:
-			return nil, errors.New("Unsupported field type")
+			return nil, fmt.Errorf("unsupported field type '%v'", f.Type)
 		}
 	} else {
 		switch f.Type {
@@ -95,7 +95,7 @@ func (c *Cmdc) DecodeField(f *mdd.Field) (interface{}, error) {
 		case field.DateTime:
 			return decodeListValue(f.Data, decodeDateTimeValue)
 		default:
-			return nil, errors.New("Unsupported field type")
+			return nil, fmt.Errorf("unsupported field type '%v'", f.Type)
 		}
 	}
 }
@@ -143,7 +143,7 @@ func (cmdc *Cmdc) EncodeField(f *mdd.Field) ([]byte, error) {
 		case field.DateTime:
 			return encodeDateTimeValue(f.Value.(*time.Time))
 		default:
-			return nil, errors.New("Unsupported field type")
+			return nil, fmt.Errorf("unsupported field type '%v'", f.Type)
 		}
 	} else {
 		switch f.Type {
@@ -181,7 +181,7 @@ func (cmdc *Cmdc) EncodeField(f *mdd.Field) ([]byte, error) {
 			return encodeListValue(f.Value.([]*time.Time), encodeDateTimeValue)
 		default:
 			// TODO: Add support for other types
-			return nil, errors.New("Unsupported field type")
+			return nil, fmt.Errorf("unsupported field type '%v'", f.Type)
 		}
 	}
 }

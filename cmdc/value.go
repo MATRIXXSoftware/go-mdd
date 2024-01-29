@@ -59,10 +59,10 @@ func decodeList(b []byte) ([][]byte, error) {
 		return nil, nil
 	}
 	if b[0] != '{' {
-		return nil, errors.New("Invalid list value, first character must be '{'")
+		return nil, errors.New("invalid list value, first character must be '{'")
 	}
 	if b[len(b)-1] != '}' {
-		return nil, errors.New("Invalid list value, last character must be '}'")
+		return nil, errors.New("invalid list value, last character must be '}'")
 	}
 	var list [][]byte
 	mark := 1
@@ -80,19 +80,19 @@ func decodeList(b []byte) ([][]byte, error) {
 			if c == ')' {
 				round--
 			} else if roundMark == 0 {
-				return nil, errors.New("Invalid cMDC list, mismatch string length")
+				return nil, errors.New("invalid cMDC list, mismatch string length")
 			} else if c == ':' {
 				temp := b[roundMark+1 : idx]
 				len, err := bytesToInt(temp)
 				if err != nil {
-					panic("Invalid string length")
+					panic("invalid string length")
 				}
 				// reset round mark
 				roundMark = 0
 				// skip the string field
 				idx += len
 			} else if c < '0' || c > '9' {
-				return nil, errors.New("Invalid character '" + string(c) + "', numeric expected for string length")
+				return nil, errors.New("invalid character '" + string(c) + "', numeric expected for string length")
 			}
 			continue
 		}
@@ -159,7 +159,7 @@ func decodeStringValue(b []byte) (string, error) {
 		return string(""), nil
 	}
 	if b[0] != '(' {
-		return string(""), errors.New("Invalid string value")
+		return string(""), errors.New("invalid string value")
 	}
 	for idx := 1; idx < len(b); idx++ {
 		c := b[idx]
@@ -167,13 +167,13 @@ func decodeStringValue(b []byte) (string, error) {
 			temp := b[1:idx]
 			len, err := bytesToInt(temp)
 			if err != nil {
-				panic("Invalid string length")
+				panic("invalid string length")
 			}
 			str := string(b[idx+1 : idx+1+len])
 			return string(str), nil
 		}
 	}
-	return string(""), errors.New("Invalid string value")
+	return string(""), errors.New("invalid string value")
 }
 
 func encodeInt8Value(v int8) ([]byte, error) {
@@ -231,7 +231,7 @@ func encodeInt128Value(v *big.Int) ([]byte, error) {
 func decodeInt128Value(b []byte) (*big.Int, error) {
 	v, ok := new(big.Int).SetString(string(b), 10)
 	if !ok {
-		return nil, errors.New("Invalid int128 value")
+		return nil, errors.New("invalid int128 value")
 	}
 	return v, nil
 }
@@ -291,7 +291,7 @@ func encodeUInt128Value(v *big.Int) ([]byte, error) {
 func decodeUInt128Value(b []byte) (*big.Int, error) {
 	v, ok := new(big.Int).SetString(string(b), 10)
 	if !ok {
-		return nil, errors.New("Invalid uint128 value")
+		return nil, errors.New("invalid uint128 value")
 	}
 	return v, nil
 }
@@ -311,7 +311,7 @@ func encodeDecimalValue(v *big.Float) ([]byte, error) {
 func decodeDecimalValue(b []byte) (*big.Float, error) {
 	f, ok := new(big.Float).SetString(string(b))
 	if !ok {
-		return nil, errors.New("Invalid decimal value")
+		return nil, errors.New("invalid decimal value")
 	}
 	return f, nil
 }

@@ -55,12 +55,12 @@ func (cmdc *Cmdc) decodeBody(data []byte) ([]mdd.Field, int, error) {
 
 	// Check if there is a body
 	if len(data) <= 0 {
-		return nil, 0, errors.New("Invalid cMDC body, no body")
+		return nil, 0, errors.New("invalid cMDC body, no body")
 	}
 
 	// First char following a header must be '['
 	if data[0] != '[' {
-		return nil, 0, errors.New("Invalid cMDC body, first character must be '['")
+		return nil, 0, errors.New("invalid cMDC body, first character must be '['")
 	}
 
 	idx := 1
@@ -84,19 +84,19 @@ func (cmdc *Cmdc) decodeBody(data []byte) ([]mdd.Field, int, error) {
 			if c == ')' {
 				round--
 			} else if roundMark == 0 {
-				return nil, idx, errors.New("Invalid cMDC body, mismatch string length")
+				return nil, idx, errors.New("invalid cMDC body, mismatch string length")
 			} else if c == ':' {
 				temp := data[roundMark+1 : idx]
 				len, err := bytesToInt(temp)
 				if err != nil {
-					panic("Invalid string length")
+					return nil, idx, errors.New("invalid cMDC body, invalid string length")
 				}
 				// reset round mark
 				roundMark = 0
 				// skip the string field
 				idx += len
 			} else if c < '0' || c > '9' {
-				return nil, idx, errors.New("Invalid character '" + string(c) + "', numeric expected for string length")
+				return nil, idx, errors.New("invalid character '" + string(c) + "', numeric expected for string length")
 			}
 			continue
 		}
@@ -148,7 +148,7 @@ func (cmdc *Cmdc) decodeBody(data []byte) ([]mdd.Field, int, error) {
 	}
 
 	if complete == false {
-		return nil, idx, errors.New("Invalid cMDC body, no end of body")
+		return nil, idx, errors.New("invalid cMDC body, no end of body")
 	}
 
 	// Extract last field
@@ -172,12 +172,12 @@ func (cmdc *Cmdc) decodeHeader(data []byte) (mdd.Header, int, error) {
 
 	// Check if there is a header
 	if len(data) <= 0 {
-		return header, 0, errors.New("Invalid cMDC header, no header")
+		return header, 0, errors.New("invalid cMDC header, no header")
 	}
 
 	// First char must be '<'
 	if data[0] != '<' {
-		return header, 0, errors.New("Invalid cMDC header, first character must be '<'")
+		return header, 0, errors.New("invalid cMDC header, first character must be '<'")
 	}
 
 	idx := 1
@@ -195,7 +195,7 @@ func (cmdc *Cmdc) decodeHeader(data []byte) (mdd.Header, int, error) {
 			mark = idx + 1
 			v, err := bytesToInt(fieldData)
 			if err != nil {
-				return header, idx, errors.New("Invalid cMDC header field '" + string(fieldData) + "', numeric expected")
+				return header, idx, errors.New("invalid cMDC header field '" + string(fieldData) + "', numeric expected")
 			}
 			switch fieldNumber {
 			case 0:
@@ -211,12 +211,12 @@ func (cmdc *Cmdc) decodeHeader(data []byte) (mdd.Header, int, error) {
 			}
 			fieldNumber++
 		} else if (c < '0' || c > '9') && c != '-' {
-			return header, idx, errors.New("Invalid cMDC character '" + string(c) + "' in header, numeric expected")
+			return header, idx, errors.New("invalid cMDC character '" + string(c) + "' in header, numeric expected")
 		}
 	}
 
 	if complete == false {
-		return header, idx, errors.New("Invalid cMDC header, no end of header")
+		return header, idx, errors.New("invalid cMDC header, no end of header")
 	}
 
 	// last field
@@ -227,7 +227,7 @@ func (cmdc *Cmdc) decodeHeader(data []byte) (mdd.Header, int, error) {
 	}
 
 	if fieldNumber != 5 {
-		return header, idx, errors.New("Invalid cMDC header, 6 fields expected")
+		return header, idx, errors.New("invalid cMDC header, 6 fields expected")
 	}
 
 	header.ExtVersion = v
@@ -253,7 +253,7 @@ func bytesToInt(b []byte) (int, error) {
 
 	for i := len(b) - 1; i >= startIndex; i-- {
 		if b[i] < '0' || b[i] > '9' {
-			return 0, fmt.Errorf("Invalid character in byte slice: %c", b[i])
+			return 0, fmt.Errorf("invalid character in byte slice: %c", b[i])
 		}
 		result += int(b[i]-'0') * multiplier
 		multiplier *= 10
