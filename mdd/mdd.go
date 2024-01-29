@@ -51,7 +51,7 @@ func (c *Containers) GetContainer(key int) *Container {
 
 func (c *Container) GetField(fieldNumber int) *Field {
 	if fieldNumber >= len(c.Fields) {
-		return nil
+		return NewNullField(field.Unknown)
 	}
 	return &c.Fields[fieldNumber]
 }

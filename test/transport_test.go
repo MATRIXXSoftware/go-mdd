@@ -7,7 +7,10 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/matrixxsoftware/go-mdd/cmdc"
+	"github.com/matrixxsoftware/go-mdd/dictionary"
 	"github.com/matrixxsoftware/go-mdd/mdd"
+
+	"github.com/matrixxsoftware/go-mdd/mdd/field"
 	"github.com/matrixxsoftware/go-mdd/transport/http"
 	"github.com/matrixxsoftware/go-mdd/transport/tcp"
 )
@@ -135,14 +138,32 @@ func TestTransport(t *testing.T) {
 				panic(err)
 			}
 
+			container0 := response.GetContainer(88)
+			container0.LoadDefinition(&dictionary.ContainerDefinition{
+				Key:  88,
+				Name: "Response",
+				Fields: []dictionary.FieldDefinition{
+					{Name: "ResultCode", Type: field.Int32},
+					{Name: "ResultMessage", Type: field.String},
+				},
+			})
+
 			t.Logf("Client received response:\n%s", response.Dump())
 
-			container0 := response.GetContainer(88)
-			assert.Equal(t, "0", container0.GetField(0).String())
-			assert.Equal(t, "(2:OK)", container0.GetField(1).String())
+			// Result Code
+			v, err := container0.GetField(0).GetValue()
+			assert.Nil(t, err)
+			assert.Equal(t, int32(0), v.(int32))
 
-			// assert.Equal(t, 0, container0.GetField(0).Value.Integer())
-			// assert.Equal(t, "OK", container0.GetField(1).Value.String())
+			// Result Message
+			v, err = container0.GetField(1).GetValue()
+			assert.Nil(t, err)
+			assert.Equal(t, "OK", v.(string))
+
+			// Does not exist
+			v, err = container0.GetField(2).GetValue()
+			assert.Nil(t, err)
+			assert.Equal(t, nil, v)
 		})
 	}
 
