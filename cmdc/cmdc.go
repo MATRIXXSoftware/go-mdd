@@ -5,11 +5,19 @@ import (
 	"math/big"
 	"time"
 
+	"github.com/matrixxsoftware/go-mdd/dictionary"
 	"github.com/matrixxsoftware/go-mdd/mdd"
 	"github.com/matrixxsoftware/go-mdd/mdd/field"
 )
 
 type Cmdc struct {
+	dict *dictionary.Dictionary
+}
+
+func NewCodecWithDict(dict *dictionary.Dictionary) *Cmdc {
+	return &Cmdc{
+		dict: dict,
+	}
 }
 
 func NewCodec() *Cmdc {

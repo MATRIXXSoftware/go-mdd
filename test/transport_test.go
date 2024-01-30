@@ -39,7 +39,7 @@ func TestTransport(t *testing.T) {
 		},
 	})
 
-	codec := cmdc.NewCodec()
+	codec := cmdc.NewCodecWithDict(dict)
 
 	transports := []struct {
 		name               string
@@ -80,7 +80,6 @@ func TestTransport(t *testing.T) {
 			}
 
 			server.MessageHandler(func(request *mdd.Containers) (*mdd.Containers, error) {
-				request.LoadDefinition(dict)
 				t.Logf("Server received request:\n%s", request.Dump())
 
 				container0 := request.GetContainer(101)
@@ -160,7 +159,6 @@ func TestTransport(t *testing.T) {
 			if err != nil {
 				panic(err)
 			}
-			response.LoadDefinition(dict)
 			t.Logf("Client received response:\n%s", response.Dump())
 
 			container0 := response.GetContainer(88)

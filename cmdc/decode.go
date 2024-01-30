@@ -46,6 +46,14 @@ func (cmdc *Cmdc) decodeContainer(data []byte) (*mdd.Container, int, error) {
 	container.Fields = fields
 	idx += offset
 
+	// Load Definition
+	if cmdc.dict != nil {
+		definition, ok := cmdc.dict.Get(container.Header.Key)
+		if ok {
+			container.LoadDefinition(definition)
+		}
+	}
+
 	return &container, idx, nil
 }
 
