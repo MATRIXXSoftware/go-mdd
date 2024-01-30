@@ -49,6 +49,16 @@ func (c *Containers) GetContainer(key int) *Container {
 	return nil
 }
 
+func (c *Containers) LoadDefinition(definitions *dictionary.Dictionary) {
+	for i := range c.Containers {
+		container := &c.Containers[i]
+		definition, ok := definitions.Get(container.Header.Key)
+		if ok {
+			container.LoadDefinition(definition)
+		}
+	}
+}
+
 func (c *Container) GetField(fieldNumber int) *Field {
 	if fieldNumber >= len(c.Fields) {
 		return NewNullField(field.Unknown)

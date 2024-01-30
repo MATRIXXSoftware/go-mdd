@@ -17,6 +17,28 @@ import (
 
 func TestTransport(t *testing.T) {
 
+	dict := dictionary.New()
+	dict.Add(&dictionary.ContainerDefinition{
+		Key:  101,
+		Name: "Request",
+		Fields: []dictionary.FieldDefinition{
+			{Name: "Field1", Type: field.Int32},
+			{Name: "Field2", Type: field.String},
+			{Name: "Field3", Type: field.Decimal},
+			{Name: "Field4", Type: field.UInt32},
+			{Name: "Field5", Type: field.UInt16},
+			{Name: "Field6", Type: field.UInt64},
+		},
+	})
+	dict.Add(&dictionary.ContainerDefinition{
+		Key:  88,
+		Name: "Response",
+		Fields: []dictionary.FieldDefinition{
+			{Name: "ResultCode", Type: field.UInt32},
+			{Name: "ResultMessage", Type: field.String},
+		},
+	})
+
 	codec := cmdc.NewCodec()
 
 	transports := []struct {
@@ -58,6 +80,7 @@ func TestTransport(t *testing.T) {
 			}
 
 			server.MessageHandler(func(request *mdd.Containers) (*mdd.Containers, error) {
+				request.LoadDefinition(dict)
 				t.Logf("Server received request:\n%s", request.Dump())
 
 				container0 := request.GetContainer(101)
@@ -137,23 +160,15 @@ func TestTransport(t *testing.T) {
 			if err != nil {
 				panic(err)
 			}
+			response.LoadDefinition(dict)
+			t.Logf("Client received response:\n%s", response.Dump())
 
 			container0 := response.GetContainer(88)
-			container0.LoadDefinition(&dictionary.ContainerDefinition{
-				Key:  88,
-				Name: "Response",
-				Fields: []dictionary.FieldDefinition{
-					{Name: "ResultCode", Type: field.Int32},
-					{Name: "ResultMessage", Type: field.String},
-				},
-			})
-
-			t.Logf("Client received response:\n%s", response.Dump())
 
 			// Result Code
 			v, err := container0.GetField(0).GetValue()
 			assert.Nil(t, err)
-			assert.Equal(t, int32(0), v.(int32))
+			assert.Equal(t, uint32(0), v.(uint32))
 
 			// Result Message
 			v, err = container0.GetField(1).GetValue()
