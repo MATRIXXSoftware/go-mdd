@@ -1,6 +1,7 @@
 package test
 
 import (
+	"math/big"
 	"testing"
 	"time"
 
@@ -83,12 +84,35 @@ func TestTransport(t *testing.T) {
 				t.Logf("Server received request:\n%s", request.Dump())
 
 				container0 := request.GetContainer(101)
-				assert.Equal(t, "1", container0.GetField(0).String())
-				assert.Equal(t, "(3:two)", container0.GetField(1).String())
-				assert.Equal(t, "3.3", container0.GetField(2).String())
-				assert.Equal(t, "", container0.GetField(3).String())
-				assert.Equal(t, "", container0.GetField(4).String())
-				assert.Equal(t, "666", container0.GetField(5).String())
+				// Field 1
+				v, err := container0.GetField(0).GetValue()
+				assert.Nil(t, err)
+				assert.Equal(t, int32(1), v.(int32))
+
+				// Field 2
+				v, err = container0.GetField(1).GetValue()
+				assert.Nil(t, err)
+				assert.Equal(t, "two", v.(string))
+
+				// Field 3
+				v, err = container0.GetField(2).GetValue()
+				assert.Nil(t, err)
+				assert.Equal(t, "3.3", v.(*big.Float).Text('f', 1))
+
+				// Field 4
+				v, err = container0.GetField(3).GetValue()
+				assert.Nil(t, err)
+				assert.Equal(t, nil, v)
+
+				// Field 5
+				v, err = container0.GetField(4).GetValue()
+				assert.Nil(t, err)
+				assert.Equal(t, nil, v)
+
+				// Field 6
+				v, err = container0.GetField(5).GetValue()
+				assert.Nil(t, err)
+				assert.Equal(t, uint64(666), v.(uint64))
 
 				return &mdd.Containers{
 					Containers: []mdd.Container{

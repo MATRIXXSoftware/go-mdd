@@ -99,13 +99,28 @@ func (c *Containers) Dump() string {
 
 func (c *Container) Dump() string {
 	var sb strings.Builder
-	sb.WriteString(c.Header.Dump())
 
-	sb.WriteString(fmt.Sprintf(" %5s  %-10s %8s %8s   %-30s\n", "index", "type", "multi", "struct", "data"))
-	for i, field := range c.Fields {
-		sb.WriteString(fmt.Sprintf(" %5d  %-10s %8s %8s   %-30s\n", i, field.Type.String(), unicode(field.IsMulti), unicode(field.IsContainer), field.String()))
+	if c.Definition != nil {
+		// Dump with definition
+		sb.WriteString(c.Header.DumpWithName(c.Definition.Name))
+		sb.WriteString(fmt.Sprintf(" %5s  %-30s %-10s %8s %8s   %-30s\n", "index", "name", "type", "multi", "struct", "data"))
+		for i, field := range c.Fields {
+			name := c.Definition.Fields[i].Name
+			sb.WriteString(fmt.Sprintf(" %5d  %-30s %-10s %8s %8s   %-30s\n", i, name, field.Type.String(), unicode(field.IsMulti), unicode(field.IsContainer), field.String()))
+		}
+	} else {
+		// Dump without definition
+		sb.WriteString(c.Header.Dump())
+		sb.WriteString(fmt.Sprintf(" %5s  %-10s %8s %8s   %-30s\n", "index", "type", "multi", "struct", "data"))
+		for i, field := range c.Fields {
+			sb.WriteString(fmt.Sprintf(" %5d  %-10s %8s %8s   %-30s\n", i, field.Type.String(), unicode(field.IsMulti), unicode(field.IsContainer), field.String()))
+		}
 	}
 	return sb.String()
+}
+
+func (h *Header) DumpWithName(name string) string {
+	return fmt.Sprintf("%s (%d)  %d/%d\n", name, h.Key, h.SchemaVersion, h.ExtVersion)
 }
 
 func (h *Header) Dump() string {
