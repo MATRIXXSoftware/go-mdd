@@ -98,7 +98,24 @@ func TestDecodeContainers(t *testing.T) {
 }
 
 func TestDecodeNestedContainers(t *testing.T) {
-	mdc := "<1,18,0,-6,5222,2>[1,20,<1,2,0,452,5222,2>[100],4]"
+	mdc := "<1,18,0,-6,5222,2>[1,20,<1,2,0,452,5222,2>[100,<1,2,0,450,5222,2>[999]],4]"
+	containers, err := codec.Decode([]byte(mdc))
+	assert.Nil(t, err)
+
+	container0 := containers.Containers[0]
+	assert.Equal(t, "1", container0.GetField(0).String())
+	assert.Equal(t, "20", container0.GetField(1).String())
+	assert.Equal(t, "<1,2,0,452,5222,2>[100,<1,2,0,450,5222,2>[999]]", container0.GetField(2).String())
+	assert.Equal(t, "4", container0.GetField(3).String())
+
+	assert.Equal(t, false, container0.GetField(0).IsContainer)
+	assert.Equal(t, false, container0.GetField(1).IsContainer)
+	assert.Equal(t, true, container0.GetField(2).IsContainer)
+	assert.Equal(t, false, container0.GetField(3).IsContainer)
+}
+
+func TestDecodeMultipleNestedContainers(t *testing.T) {
+	mdc := "<1,18,0,-6,5222,2>[1,20,<1,2,0,452,5222,2>[100],4,<1,2,0,451,5222,2>[666]]"
 	containers, err := codec.Decode([]byte(mdc))
 	assert.Nil(t, err)
 
@@ -107,11 +124,35 @@ func TestDecodeNestedContainers(t *testing.T) {
 	assert.Equal(t, "20", container0.GetField(1).String())
 	assert.Equal(t, "<1,2,0,452,5222,2>[100]", container0.GetField(2).String())
 	assert.Equal(t, "4", container0.GetField(3).String())
+	assert.Equal(t, "<1,2,0,451,5222,2>[666]", container0.GetField(4).String())
 
 	assert.Equal(t, false, container0.GetField(0).IsContainer)
 	assert.Equal(t, false, container0.GetField(1).IsContainer)
 	assert.Equal(t, true, container0.GetField(2).IsContainer)
 	assert.Equal(t, false, container0.GetField(3).IsContainer)
+	assert.Equal(t, true, container0.GetField(4).IsContainer)
+}
+
+func TestDecodeNestedContainersWithList(t *testing.T) {
+	mdc := "<1,18,0,-6,5222,2>[1,20,<1,2,0,452,5222,2>[100,{1,2,3}],4]"
+	containers, err := codec.Decode([]byte(mdc))
+	assert.Nil(t, err)
+
+	container0 := containers.Containers[0]
+	assert.Equal(t, "1", container0.GetField(0).String())
+	assert.Equal(t, "20", container0.GetField(1).String())
+	assert.Equal(t, "<1,2,0,452,5222,2>[100,{1,2,3}]", container0.GetField(2).String())
+	assert.Equal(t, "4", container0.GetField(3).String())
+
+	assert.Equal(t, false, container0.GetField(0).IsContainer)
+	assert.Equal(t, false, container0.GetField(1).IsContainer)
+	assert.Equal(t, true, container0.GetField(2).IsContainer)
+	assert.Equal(t, false, container0.GetField(3).IsContainer)
+
+	assert.Equal(t, false, container0.GetField(0).IsMulti)
+	assert.Equal(t, false, container0.GetField(1).IsMulti)
+	assert.Equal(t, false, container0.GetField(2).IsMulti)
+	assert.Equal(t, false, container0.GetField(3).IsMulti)
 }
 
 func TestDecodeNestedContainersWithReservedCharacter(t *testing.T) {

@@ -123,7 +123,9 @@ func (cmdc *Cmdc) decodeBody(data []byte) ([]mdd.Field, int, error) {
 		case '>':
 			angle--
 		case '{':
-			isMulti = true
+			if square == 1 {
+				isMulti = true
+			}
 			curly++
 		case '}':
 			curly--
