@@ -20,8 +20,10 @@ func TestTransport(t *testing.T) {
 
 	dict := dictionary.New()
 	dict.Add(&dictionary.ContainerDefinition{
-		Key:  101,
-		Name: "Request",
+		Key:           101,
+		Name:          "Request",
+		SchemaVersion: 5222,
+		ExtVersion:    2,
 		Fields: []dictionary.FieldDefinition{
 			{Name: "Field1", Type: field.Int32},
 			{Name: "Field2", Type: field.String},
@@ -32,8 +34,10 @@ func TestTransport(t *testing.T) {
 		},
 	})
 	dict.Add(&dictionary.ContainerDefinition{
-		Key:  88,
-		Name: "Response",
+		Key:           88,
+		Name:          "Response",
+		SchemaVersion: 5222,
+		ExtVersion:    2,
 		Fields: []dictionary.FieldDefinition{
 			{Name: "ResultCode", Type: field.UInt32},
 			{Name: "ResultMessage", Type: field.String},
@@ -81,7 +85,7 @@ func TestTransport(t *testing.T) {
 			}
 
 			server.MessageHandler(func(request *mdd.Containers) (*mdd.Containers, error) {
-				t.Logf("Server received request:\n%s", request.Dump())
+				// t.Logf("Server received request:\n%s", request.Dump())
 
 				container0 := request.GetContainer(101)
 				// Field 1
@@ -183,7 +187,7 @@ func TestTransport(t *testing.T) {
 			if err != nil {
 				panic(err)
 			}
-			t.Logf("Client received response:\n%s", response.Dump())
+			// t.Logf("Client received response:\n%s", response.Dump())
 
 			container0 := response.GetContainer(88)
 

@@ -52,11 +52,42 @@ func (c *Containers) GetContainer(key int) *Container {
 func (c *Containers) LoadDefinition(definitions *dictionary.Dictionary) {
 	for i := range c.Containers {
 		container := &c.Containers[i]
-		definition, ok := definitions.Get(container.Header.Key)
+		definition, ok := definitions.Lookup(
+			container.Header.Key,
+			container.Header.SchemaVersion,
+			container.Header.ExtVersion,
+		)
 		if ok {
 			container.LoadDefinition(definition)
 		}
 	}
+
+}
+
+func (c *Containers) CastVersion(definitions *dictionary.Dictionary, schemaVersion int, extVersion int) (*Containers, error) {
+	newContainers := &Containers{}
+	for i := range c.Containers {
+		container := &c.Containers[i]
+		targetDefinition, ok := definitions.Lookup(
+			container.Header.Key,
+			schemaVersion,
+			extVersion,
+		)
+		if !ok {
+			return nil, fmt.Errorf("definition not found for key: %d, schemaVersion: %d, extVersion: %d",
+				container.Header.Key,
+				schemaVersion,
+				extVersion)
+		}
+
+		newContainer, err := container.CastVersion(targetDefinition)
+		if err != nil {
+			return nil, err
+		}
+
+		newContainers.Containers = append(newContainers.Containers, *newContainer)
+	}
+	return newContainers, nil
 }
 
 func (c *Container) GetField(fieldNumber int) *Field {
@@ -78,12 +109,64 @@ func (c *Container) SetField(fieldNumber int, f *Field) {
 	c.Fields = append(c.Fields, *f)
 }
 
+func (c *Container) GetFieldByName(fieldName string) *Field {
+	if c.Definition == nil {
+		return nil
+	}
+
+	for i := range c.Fields {
+		if c.Definition.Fields[i].Name == fieldName {
+			return &c.Fields[i]
+		}
+	}
+	return nil
+}
+
 func (c *Container) LoadDefinition(definition *dictionary.ContainerDefinition) {
 	c.Definition = definition
 	for i := range c.Fields {
 		c.Fields[i].Definition = &definition.Fields[i]
 		c.Fields[i].Type = definition.Fields[i].Type
 	}
+}
+
+func (c *Container) CastVersion(targetDefinition *dictionary.ContainerDefinition) (*Container, error) {
+	// Validation
+	if targetDefinition.Key != c.Header.Key {
+		return nil, fmt.Errorf("key mismatch: %d != %d", targetDefinition.Key, c.Header.Key)
+	}
+
+	if c.Definition == nil {
+		return nil, fmt.Errorf("source container has no definition")
+	}
+
+	// Header
+	header := Header{
+		Version:       c.Header.Version,
+		TotalField:    len(targetDefinition.Fields),
+		Depth:         c.Header.Depth,
+		Key:           c.Header.Key,
+		SchemaVersion: targetDefinition.SchemaVersion,
+		ExtVersion:    targetDefinition.ExtVersion,
+	}
+
+	// Fields
+	fields := make([]Field, len(targetDefinition.Fields))
+	for i := range targetDefinition.Fields {
+		fieldName := targetDefinition.Fields[i].Name
+		f := c.GetFieldByName(fieldName)
+		if f != nil {
+			fields[i] = *f
+		} else {
+			fields[i] = *NewNullField(targetDefinition.Fields[i].Type)
+		}
+	}
+
+	return &Container{
+		Header:     header,
+		Fields:     fields,
+		Definition: targetDefinition,
+	}, nil
 }
 
 // Dump to string
@@ -109,15 +192,22 @@ func (c *Container) Dump() string {
 			"multi",
 			"struct",
 			"data"))
+
 		for i, field := range c.Fields {
 			name := c.Definition.Fields[i].Name
+			value, err := field.GetValueString()
+			if err != nil {
+				value = field.String()
+			}
+
 			sb.WriteString(fmt.Sprintf(" %5d  %-30s %-10s %8s %8s   %-30s\n",
 				i,
 				name,
 				field.Type.String(),
 				unicode(field.IsMulti),
 				unicode(field.IsContainer),
-				field.String()))
+				value,
+			))
 		}
 	} else {
 		// Dump without definition
@@ -172,6 +262,14 @@ func (f *Field) GetValue() (interface{}, error) {
 		f.Value = v
 	}
 	return f.Value, nil
+}
+
+func (f *Field) GetValueString() (string, error) {
+	v, err := f.GetValue()
+	if err != nil {
+		return "", err
+	}
+	return fmt.Sprintf("%v", v), nil
 }
 
 func unicode(value bool) string {
