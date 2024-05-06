@@ -113,6 +113,7 @@ func TestSetContainer(t *testing.T) {
 }
 
 func TestCastVersion(t *testing.T) {
+
 	container := &Container{
 		Header: Header{
 			Version:       1,
@@ -139,8 +140,13 @@ func TestCastVersion(t *testing.T) {
 			},
 		},
 	}
+	containers := Containers{
+		Containers: []Container{
+			*container,
+		},
+	}
 
-	// t.Logf("Original containers \n%s\n", container.Dump())
+	t.Logf("Original containers \n%s\n", containers.Dump())
 
 	definition := &dictionary.ContainerDefinition{
 		Key:           10101,
@@ -155,10 +161,16 @@ func TestCastVersion(t *testing.T) {
 		},
 	}
 
-	newContainer, err := container.CastVersion(definition)
-	assert.Nil(t, err)
+	definitions := dictionary.New()
+	definitions.Add(definition)
 
-	// t.Logf("New version casted container: \n%s\n", newContainer.Dump())
+	newContainers, err := containers.CastVersion(definitions, 5270, 1)
+	assert.Nil(t, err)
+	t.Logf("New version casted containers: \n%s\n", newContainers.Dump())
+
+	assert.Equal(t, 1, len(newContainers.Containers))
+	newContainer := newContainers.GetContainer(10101)
+	assert.NotNil(t, newContainer)
 
 	assert.Equal(t, 10101, newContainer.Header.Key)
 	assert.Equal(t, 5270, newContainer.Header.SchemaVersion)
