@@ -48,7 +48,11 @@ func (cmdc *Cmdc) decodeContainer(data []byte) (*mdd.Container, int, error) {
 
 	// Load Definition
 	if cmdc.dict != nil {
-		definition, ok := cmdc.dict.Get(container.Header.Key)
+		definition, ok := cmdc.dict.Lookup(
+			container.Header.Key,
+			container.Header.SchemaVersion,
+			container.Header.ExtVersion,
+		)
 		if ok {
 			container.LoadDefinition(definition)
 		}
