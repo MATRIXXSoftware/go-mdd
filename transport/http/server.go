@@ -54,6 +54,6 @@ func (s *ServerTransport) requestHandler(w http.ResponseWriter, r *http.Request)
 		panic(err)
 	}
 
-	log.Debugf("received request body: %s", string(respBody))
+	log.Debugf("response body: %s", string(respBody))
 	fmt.Fprint(w, string(respBody))
 }
