@@ -54,6 +54,7 @@ func (s *ServerTransport) handleConnection(conn net.Conn) {
 
 	// Handle message synchronously
 	for {
+		log.Debugf("received conn: %s", conn)
 		request, err := Decode(conn)
 		if err != nil {
 			if err == io.EOF {
@@ -63,12 +64,14 @@ func (s *ServerTransport) handleConnection(conn net.Conn) {
 			log.Panic(err)
 		}
 
+		log.Debugf("decoded request: %s", request)
 		response, err := s.handler(request)
 		if err != nil {
 			log.Errorf("%s", err)
 			return
 		}
 
+		log.Debugf("server response: %s", response)
 		err = Encode(conn, response)
 		if err != nil {
 			log.Errorf("%s", err)
