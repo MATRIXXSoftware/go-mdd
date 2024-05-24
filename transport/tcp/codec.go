@@ -3,6 +3,8 @@ package tcp
 import (
 	"encoding/binary"
 	"io"
+
+	log "github.com/sirupsen/logrus"
 )
 
 func Encode(w io.Writer, encoded []byte) error {
@@ -25,6 +27,7 @@ func Encode(w io.Writer, encoded []byte) error {
 func Decode(r io.Reader) ([]byte, error) {
 	var len uint32
 	if err := binary.Read(r, binary.BigEndian, &len); err != nil {
+		log.WithError(err).Error("Error reading length")
 		return nil, err
 	}
 
@@ -34,6 +37,7 @@ func Decode(r io.Reader) ([]byte, error) {
 
 	_, err := io.ReadFull(r, payload)
 	if err != nil {
+		log.WithError(err).Error("Error reading payload")
 		return nil, err
 	}
 
