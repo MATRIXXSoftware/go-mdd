@@ -178,19 +178,19 @@ func TestCastVersion(t *testing.T) {
 	assert.Equal(t, 4, newContainer.Header.TotalField)
 	assert.Equal(t, 4, len(newContainer.Fields))
 
-	field0, err := newContainer.GetField(0).GetValue()
+	v, err := newContainer.GetField(0).GetValue()
 	assert.Nil(t, err)
-	assert.Equal(t, "aaa", field0)
+	assert.Equal(t, "aaa", v)
 
-	field1, err := newContainer.GetField(1).GetValue()
+	v, err = newContainer.GetField(1).GetValue()
 	assert.Nil(t, err)
-	assert.Nil(t, field1)
+	assert.Nil(t, v)
 
-	field2, err := newContainer.GetField(2).GetValue()
+	v, err = newContainer.GetField(2).GetValue()
 	assert.Nil(t, err)
-	assert.Nil(t, field2)
+	assert.Nil(t, v)
 
-	field3, err := newContainer.GetField(3).GetValue()
+	v, err = newContainer.GetField(3).GetValue()
 	assert.Nil(t, err)
-	assert.Equal(t, int32(-1877540863), field3)
+	assert.Equal(t, int32(-1877540863), v)
 }

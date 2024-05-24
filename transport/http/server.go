@@ -41,19 +41,20 @@ func (s *ServerTransport) Handler(handler func([]byte) ([]byte, error)) {
 }
 
 func (s *ServerTransport) requestHandler(w http.ResponseWriter, r *http.Request) {
-	log.Debugf("received request: %v", r)
 	reqBody, err := io.ReadAll(r.Body)
 	if err != nil {
 		panic(err)
 	}
 	defer r.Body.Close()
 
-	log.Debugf("received request body: %s", reqBody)
+	log.Infof("Received request: %s", string(reqBody))
+
 	respBody, err := s.handler(reqBody)
 	if err != nil {
 		panic(err)
 	}
 
-	log.Debugf("response body: %s", string(respBody))
+	log.Infof("Sending response: %s", string(respBody))
+
 	fmt.Fprint(w, string(respBody))
 }

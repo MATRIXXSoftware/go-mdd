@@ -14,9 +14,12 @@ import (
 	"github.com/matrixxsoftware/go-mdd/mdd/field"
 	"github.com/matrixxsoftware/go-mdd/transport/http"
 	"github.com/matrixxsoftware/go-mdd/transport/tcp"
+
+	log "github.com/sirupsen/logrus"
 )
 
 func TestTransport(t *testing.T) {
+	log.SetLevel(log.DebugLevel)
 
 	dict := dictionary.New()
 	dict.Add(&dictionary.ContainerDefinition{
