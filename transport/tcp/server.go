@@ -63,15 +63,11 @@ func (s *ServerTransport) handleConnection(conn net.Conn) {
 			log.Panic(err)
 		}
 
-		log.Infof("Received request: %s", string(request))
-
 		response, err := s.handler(request)
 		if err != nil {
 			log.Errorf("%s", err)
 			return
 		}
-
-		log.Infof("Sending response: %s", string(response))
 
 		err = Encode(conn, response)
 		if err != nil {

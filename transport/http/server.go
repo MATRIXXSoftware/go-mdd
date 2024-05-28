@@ -7,8 +7,6 @@ import (
 
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/h2c"
-
-	log "github.com/sirupsen/logrus"
 )
 
 type ServerTransport struct {
@@ -47,14 +45,10 @@ func (s *ServerTransport) requestHandler(w http.ResponseWriter, r *http.Request)
 	}
 	defer r.Body.Close()
 
-	log.Infof("Received request: %s", string(reqBody))
-
 	respBody, err := s.handler(reqBody)
 	if err != nil {
 		panic(err)
 	}
-
-	log.Infof("Sending response: %s", string(respBody))
 
 	fmt.Fprint(w, string(respBody))
 }
