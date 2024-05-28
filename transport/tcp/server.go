@@ -59,6 +59,9 @@ func (s *ServerTransport) handleConnection(conn net.Conn) {
 			if err == io.EOF {
 				log.Infof("Connection closed")
 				return
+			} else if err == io.ErrUnexpectedEOF {
+				log.Infof("Connection closed unexpectedly")
+				return
 			}
 			log.Panic(err)
 		}

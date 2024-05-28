@@ -13,7 +13,7 @@ func Encode(w io.Writer, encoded []byte) error {
 
 	len := uint32(len(encoded))
 
-	log.Tracef("Writing to TCP stream with MDC payload of length: %d", len)
+	log.Tracef("Writing to TCP length: %d", len)
 
 	len += 4
 
@@ -27,7 +27,7 @@ func Encode(w io.Writer, encoded []byte) error {
 
 	if log.IsLevelEnabled(log.TraceLevel) {
 		hexdump := PrettyHexDump(encoded)
-		log.Trace("MDC payload written to TCP stream:")
+		log.Trace("Written to TCP stream:")
 		fmt.Printf(hexdump)
 	}
 
@@ -42,18 +42,23 @@ func Decode(r io.Reader) ([]byte, error) {
 
 	len -= 4
 
-	log.Tracef("Expecting to read from TCP stream MDC payload of length: %d", len)
+	log.Tracef("Reading from TCP length: %d", len)
 
 	payload := make([]byte, len)
 
-	_, err := io.ReadFull(r, payload)
+	n, err := io.ReadFull(r, payload)
 	if err != nil {
+		if err == io.ErrUnexpectedEOF {
+			if log.IsLevelEnabled(log.TraceLevel) {
+				log.Tracef("Partial data read: %s", PrettyHexDump(payload[:n]))
+			}
+		}
 		return nil, err
 	}
 
 	if log.IsLevelEnabled(log.TraceLevel) {
+		log.Trace("Read from TCP stream:")
 		hexdump := PrettyHexDump(payload)
-		log.Trace("MDC payload read from TCP stream:")
 		fmt.Printf(hexdump)
 	}
 

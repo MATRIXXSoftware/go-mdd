@@ -19,7 +19,7 @@ import (
 )
 
 func TestTransport(t *testing.T) {
-	log.SetLevel(log.DebugLevel)
+	log.SetLevel(log.TraceLevel)
 
 	dict := dictionary.New()
 	dict.Add(&dictionary.ContainerDefinition{
