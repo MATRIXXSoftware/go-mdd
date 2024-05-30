@@ -13,7 +13,7 @@ func Encode(w io.Writer, encoded []byte) error {
 
 	len := uint32(len(encoded))
 
-	log.Tracef("Writing to TCP length: %d", len)
+	log.Tracef("Writing %d to TCP", len)
 
 	len += 4
 
@@ -21,14 +21,14 @@ func Encode(w io.Writer, encoded []byte) error {
 		return err
 	}
 
-	if _, err := w.Write(encoded); err != nil {
+	n, err := w.Write(encoded)
+	if err != nil {
 		return err
 	}
 
 	if log.IsLevelEnabled(log.TraceLevel) {
 		hexdump := PrettyHexDump(encoded)
-		log.Trace("Written to TCP stream:")
-		fmt.Printf(hexdump)
+		log.Tracef("Written %d to TCP:\n%s", n, hexdump)
 	}
 
 	return nil
@@ -42,7 +42,7 @@ func Decode(r io.Reader) ([]byte, error) {
 
 	len -= 4
 
-	log.Tracef("Reading from TCP length: %d", len)
+	log.Tracef("Reading %d from TCP", len)
 
 	payload := make([]byte, len)
 
@@ -50,16 +50,17 @@ func Decode(r io.Reader) ([]byte, error) {
 	if err != nil {
 		if err == io.ErrUnexpectedEOF {
 			if log.IsLevelEnabled(log.TraceLevel) {
-				log.Tracef("Partial data read: %s", PrettyHexDump(payload[:n]))
+				log.Tracef("Partial data read %d from TCP:\n%s",
+					n,
+					PrettyHexDump(payload[:n]))
 			}
 		}
 		return nil, err
 	}
 
 	if log.IsLevelEnabled(log.TraceLevel) {
-		log.Trace("Read from TCP stream:")
 		hexdump := PrettyHexDump(payload)
-		fmt.Printf(hexdump)
+		log.Tracef("Read %d from TCP:\n%s", n, hexdump)
 	}
 
 	return payload, nil

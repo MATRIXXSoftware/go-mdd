@@ -19,6 +19,9 @@ import (
 )
 
 func TestTransport(t *testing.T) {
+	formatter := &log.TextFormatter{}
+	formatter.DisableQuote = true
+	log.SetFormatter(formatter)
 	log.SetLevel(log.TraceLevel)
 
 	dict := dictionary.New()
