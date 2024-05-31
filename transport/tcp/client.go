@@ -25,12 +25,12 @@ func (c *ClientTransport) Close() error {
 
 func (c *ClientTransport) Send(request []byte) ([]byte, error) {
 
-	err := Encode(c.conn, request)
+	err := Write(c.conn, request)
 	if err != nil {
 		return nil, err
 	}
 
-	response, err := Decode(c.conn)
+	response, err := Read(c.conn)
 	if err != nil {
 		return nil, err
 	}

@@ -54,7 +54,7 @@ func (s *ServerTransport) handleConnection(conn net.Conn) {
 
 	// Handle message synchronously
 	for {
-		request, err := Decode(conn)
+		request, err := Read(conn)
 		if err != nil {
 			if err == io.EOF {
 				log.Infof("Connection closed")
@@ -72,7 +72,7 @@ func (s *ServerTransport) handleConnection(conn net.Conn) {
 			return
 		}
 
-		err = Encode(conn, response)
+		err = Write(conn, response)
 		if err != nil {
 			log.Errorf("%s", err)
 			return
