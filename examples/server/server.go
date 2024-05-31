@@ -11,8 +11,11 @@ import (
 )
 
 func main() {
-	formatter := &log.TextFormatter{}
-	formatter.DisableQuote = true
+	formatter := &log.TextFormatter{
+		DisableQuote:    true,
+		FullTimestamp:   true,
+		TimestampFormat: "2006-01-02 15:04:05.000000",
+	}
 	log.SetFormatter(formatter)
 	log.SetLevel(log.TraceLevel)
 

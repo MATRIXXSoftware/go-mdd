@@ -65,26 +65,26 @@ func (s *ServerTransport) handleConnection(conn net.Conn) {
 		request, err := Read(ctx, conn)
 		if err != nil {
 			if err == io.EOF {
-				log.Infof("Connection closed")
+				log.Infof("%s Connection closed", connStr(conn))
 			} else if err == io.ErrUnexpectedEOF {
-				log.Errorf("Connection closed unexpectedly")
+				log.Errorf("%s Connection closed unexpectedly", connStr(conn))
 			} else if err == context.DeadlineExceeded {
-				log.Errorf("Timeout reading from connection")
+				log.Errorf("%s Timeout reading from connection", connStr(conn))
 			} else {
-				log.Errorf("Error reading from connection: %s", err)
+				log.Errorf("%s Error reading from connection: %s", connStr(conn), err)
 			}
 			return
 		}
 
 		response, err := s.handler(request)
 		if err != nil {
-			log.Errorf("%s", err)
+			log.Errorf("%s %s", connStr(conn), err)
 			return
 		}
 
 		err = Write(conn, response)
 		if err != nil {
-			log.Errorf("%s", err)
+			log.Errorf("%s %s", connStr(conn), err)
 			return
 		}
 	}

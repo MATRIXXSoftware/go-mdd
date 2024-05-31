@@ -5,45 +5,56 @@ import (
 	"encoding/binary"
 	"fmt"
 	"io"
+	"net"
 	"strings"
 
 	log "github.com/sirupsen/logrus"
 )
 
-func Write(w io.Writer, encoded []byte) error {
-
+func Write(conn net.Conn, encoded []byte) error {
 	len := uint32(len(encoded))
 
-	log.Tracef("Writing %d bytes to TCP", len)
+	if log.IsLevelEnabled(log.TraceLevel) {
+		log.Tracef("%s Writing %d bytes to TCP",
+			connStr(conn),
+			len)
+	}
 
 	len += 4
 
-	if err := binary.Write(w, binary.BigEndian, len); err != nil {
+	if err := binary.Write(conn, binary.BigEndian, len); err != nil {
 		return err
 	}
 
-	n, err := w.Write(encoded)
+	n, err := conn.Write(encoded)
 	if err != nil {
 		return err
 	}
 
 	if log.IsLevelEnabled(log.TraceLevel) {
 		hexdump := PrettyHexDump(encoded)
-		log.Tracef("Written %d bytes to TCP:\n%s", n, hexdump)
+		log.Tracef("%s Written %d bytes to TCP:\n%s",
+			connStr(conn),
+			n,
+			hexdump)
 	}
 
 	return nil
 }
 
-func Read(ctx context.Context, r io.Reader) ([]byte, error) {
+func Read(ctx context.Context, conn net.Conn) ([]byte, error) {
 	var len uint32
-	if err := binary.Read(r, binary.BigEndian, &len); err != nil {
+	if err := binary.Read(conn, binary.BigEndian, &len); err != nil {
 		return nil, err
 	}
 
 	len -= 4
 
-	log.Tracef("Reading %d bytes from TCP", len)
+	if log.IsLevelEnabled(log.TraceLevel) {
+		log.Tracef("%s Reading %d bytes from TCP",
+			connStr(conn),
+			len)
+	}
 
 	payload := make([]byte, len)
 
@@ -54,7 +65,7 @@ func Read(ctx context.Context, r io.Reader) ([]byte, error) {
 	c := make(chan Result, 1)
 
 	go func() {
-		n, err := io.ReadFull(r, payload)
+		n, err := io.ReadFull(conn, payload)
 		c <- Result{n, err}
 	}()
 
@@ -67,7 +78,8 @@ func Read(ctx context.Context, r io.Reader) ([]byte, error) {
 		if err != nil {
 			if err == io.ErrUnexpectedEOF {
 				if log.IsLevelEnabled(log.TraceLevel) {
-					log.Tracef("Partial data read %d bytes from TCP:\n%s",
+					log.Tracef("%s Partial data read %d bytes from TCP:\n%s",
+						connStr(conn),
 						n,
 						PrettyHexDump(payload[:n]))
 				}
@@ -76,11 +88,20 @@ func Read(ctx context.Context, r io.Reader) ([]byte, error) {
 		}
 		if log.IsLevelEnabled(log.TraceLevel) {
 			hexdump := PrettyHexDump(payload)
-			log.Tracef("Read %d bytes from TCP:\n%s", n, hexdump)
+			log.Tracef("%s Read %d bytes from TCP:\n%s",
+				connStr(conn),
+				n,
+				hexdump)
 		}
 
 		return payload, nil
 	}
+}
+
+func connStr(conn net.Conn) string {
+	remote := conn.RemoteAddr().String()
+	local := conn.LocalAddr().String()
+	return fmt.Sprintf("[%s/%s]", local, remote)
 }
 
 func PrettyHexDump(data []byte) string {
