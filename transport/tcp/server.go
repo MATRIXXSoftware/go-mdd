@@ -66,12 +66,14 @@ func (s *ServerTransport) handleConnection(conn net.Conn) {
 		if err != nil {
 			if err == io.EOF {
 				log.Infof("Connection closed")
-				return
 			} else if err == io.ErrUnexpectedEOF {
-				log.Infof("Connection closed unexpectedly")
-				return
+				log.Errorf("Connection closed unexpectedly")
+			} else if err == context.DeadlineExceeded {
+				log.Errorf("Timeout reading from connection")
+			} else {
+				log.Errorf("Error reading from connection: %s", err)
 			}
-			log.Panic(err)
+			return
 		}
 
 		response, err := s.handler(request)
