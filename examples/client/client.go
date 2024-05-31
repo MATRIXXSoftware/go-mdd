@@ -81,10 +81,15 @@ func main() {
 			},
 		},
 	}
+
+	// for {
 	response, err := client.SendMessage(&request)
 	if err != nil {
 		panic(err)
 	}
 
 	log.Infof("Client received response:\n%s", response.Dump())
+
+	// 	<-time.After(5 * time.Second)
+	// }
 }

@@ -1,8 +1,12 @@
 package tcp
 
 import (
+	"context"
 	"io"
 	"net"
+	"time"
+
+	// "time"
 
 	log "github.com/sirupsen/logrus"
 )
@@ -54,7 +58,11 @@ func (s *ServerTransport) handleConnection(conn net.Conn) {
 
 	// Handle message synchronously
 	for {
-		request, err := Read(conn)
+		// Hard code 3 second for now. Make it configurable later
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
+		defer cancel()
+
+		request, err := Read(ctx, conn)
 		if err != nil {
 			if err == io.EOF {
 				log.Infof("Connection closed")

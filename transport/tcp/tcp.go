@@ -1,6 +1,7 @@
 package tcp
 
 import (
+	"context"
 	"encoding/binary"
 	"fmt"
 	"io"
@@ -34,7 +35,7 @@ func Write(w io.Writer, encoded []byte) error {
 	return nil
 }
 
-func Read(r io.Reader) ([]byte, error) {
+func Read(ctx context.Context, r io.Reader) ([]byte, error) {
 	var len uint32
 	if err := binary.Read(r, binary.BigEndian, &len); err != nil {
 		return nil, err
@@ -46,24 +47,40 @@ func Read(r io.Reader) ([]byte, error) {
 
 	payload := make([]byte, len)
 
-	n, err := io.ReadFull(r, payload)
-	if err != nil {
-		if err == io.ErrUnexpectedEOF {
-			if log.IsLevelEnabled(log.TraceLevel) {
-				log.Tracef("Partial data read %d bytes from TCP:\n%s",
-					n,
-					PrettyHexDump(payload[:n]))
+	type Result struct {
+		n   int
+		err error
+	}
+	c := make(chan Result, 1)
+
+	go func() {
+		n, err := io.ReadFull(r, payload)
+		c <- Result{n, err}
+	}()
+
+	select {
+	case <-ctx.Done():
+		return nil, ctx.Err()
+	case res := <-c:
+		n := res.n
+		err := res.err
+		if err != nil {
+			if err == io.ErrUnexpectedEOF {
+				if log.IsLevelEnabled(log.TraceLevel) {
+					log.Tracef("Partial data read %d bytes from TCP:\n%s",
+						n,
+						PrettyHexDump(payload[:n]))
+				}
 			}
+			return nil, err
 		}
-		return nil, err
-	}
+		if log.IsLevelEnabled(log.TraceLevel) {
+			hexdump := PrettyHexDump(payload)
+			log.Tracef("Read %d bytes from TCP:\n%s", n, hexdump)
+		}
 
-	if log.IsLevelEnabled(log.TraceLevel) {
-		hexdump := PrettyHexDump(payload)
-		log.Tracef("Read %d bytes from TCP:\n%s", n, hexdump)
+		return payload, nil
 	}
-
-	return payload, nil
 }
 
 func PrettyHexDump(data []byte) string {
