@@ -3,6 +3,7 @@ package tcp
 import (
 	"context"
 	"net"
+	"time"
 )
 
 type ClientTransport struct {
@@ -31,10 +32,30 @@ func (c *ClientTransport) Send(request []byte) ([]byte, error) {
 		return nil, err
 	}
 
-	response, err := Read(context.Background(), c.conn)
-	if err != nil {
-		return nil, err
-	}
+	// Hard code 3 second for now. Make it configurable later
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
+	defer cancel()
 
-	return response, nil
+	type Result struct {
+		response []byte
+		err      error
+	}
+	ch := make(chan Result, 1)
+
+	go func() {
+		response, err := Read(c.conn)
+		ch <- Result{response, err}
+	}()
+
+	select {
+	case <-ctx.Done():
+		return nil, ctx.Err()
+	case res := <-ch:
+		response := res.response
+		err := res.err
+		if err != nil {
+			return nil, err
+		}
+		return response, nil
+	}
 }

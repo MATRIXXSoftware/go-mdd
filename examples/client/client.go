@@ -92,7 +92,7 @@ func main() {
 	}
 
 	log.Infof("Client received response:\n%s", response.Dump())
-
-	// 	<-time.After(5 * time.Second)
+	//
+	// 	<-time.After(2 * time.Second)
 	// }
 }

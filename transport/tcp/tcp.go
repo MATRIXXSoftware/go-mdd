@@ -7,6 +7,7 @@ import (
 	"io"
 	"net"
 	"strings"
+	"time"
 
 	log "github.com/sirupsen/logrus"
 )
@@ -42,7 +43,7 @@ func Write(conn net.Conn, encoded []byte) error {
 	return nil
 }
 
-func Read(ctx context.Context, conn net.Conn) ([]byte, error) {
+func Read(conn net.Conn) ([]byte, error) {
 	var len uint32
 	if err := binary.Read(conn, binary.BigEndian, &len); err != nil {
 		return nil, err
@@ -58,21 +59,25 @@ func Read(ctx context.Context, conn net.Conn) ([]byte, error) {
 
 	payload := make([]byte, len)
 
+	// Hard code 3 second for now. Make it configurable later
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
+	defer cancel()
+
 	type Result struct {
 		n   int
 		err error
 	}
-	c := make(chan Result, 1)
+	ch := make(chan Result, 1)
 
 	go func() {
 		n, err := io.ReadFull(conn, payload)
-		c <- Result{n, err}
+		ch <- Result{n, err}
 	}()
 
 	select {
 	case <-ctx.Done():
 		return nil, ctx.Err()
-	case res := <-c:
+	case res := <-ch:
 		n := res.n
 		err := res.err
 		if err != nil {
