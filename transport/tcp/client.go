@@ -4,6 +4,8 @@ import (
 	"context"
 	"net"
 	"time"
+
+	"github.com/matrixxsoftware/go-mdd/transport"
 )
 
 type ClientTransport struct {
@@ -49,6 +51,9 @@ func (c *ClientTransport) Send(request []byte) ([]byte, error) {
 
 	select {
 	case <-ctx.Done():
+		if ctx.Err() == context.DeadlineExceeded {
+			return nil, transport.ErrTimeout
+		}
 		return nil, ctx.Err()
 	case res := <-ch:
 		response := res.response
