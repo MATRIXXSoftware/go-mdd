@@ -7,15 +7,17 @@ import (
 	"net"
 	"net/http"
 
+	"github.com/matrixxsoftware/go-mdd/mdd"
 	"golang.org/x/net/http2"
 )
 
 type ClientTransport struct {
 	httpClient http.Client
 	address    string
+	Codec      mdd.Codec
 }
 
-func NewClientTransport(addr string) (*ClientTransport, error) {
+func NewClientTransport(addr string, codec mdd.Codec) (*ClientTransport, error) {
 	httpClient := http.Client{
 		Transport: &http2.Transport{
 			AllowHTTP: true,
@@ -28,6 +30,7 @@ func NewClientTransport(addr string) (*ClientTransport, error) {
 	return &ClientTransport{
 		httpClient: httpClient,
 		address:    addr,
+		Codec:      codec,
 	}, nil
 }
 
@@ -52,4 +55,24 @@ func (c *ClientTransport) Send(reqBody []byte) ([]byte, error) {
 	}
 
 	return respBody, nil
+}
+
+func (c *ClientTransport) SendMessage(request *mdd.Containers) (*mdd.Containers, error) {
+
+	reqBody, err := c.Codec.Encode(request)
+	if err != nil {
+		return nil, err
+	}
+
+	respBody, err := c.Send(reqBody)
+	if err != nil {
+		return nil, err
+	}
+
+	response, err := c.Codec.Decode(respBody)
+	if err != nil {
+		return nil, err
+	}
+
+	return response, nil
 }

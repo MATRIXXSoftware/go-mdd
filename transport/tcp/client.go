@@ -5,26 +5,49 @@ import (
 	"net"
 	"time"
 
+	"github.com/matrixxsoftware/go-mdd/mdd"
 	"github.com/matrixxsoftware/go-mdd/transport"
 )
 
 type ClientTransport struct {
-	conn net.Conn
+	conn  net.Conn
+	Codec mdd.Codec
 }
 
-func NewClientTransport(addr string) (*ClientTransport, error) {
+func NewClientTransport(addr string, codec mdd.Codec) (*ClientTransport, error) {
 	conn, err := net.Dial("tcp", addr)
 	if err != nil {
 		return nil, err
 	}
 
 	return &ClientTransport{
-		conn: conn,
+		conn:  conn,
+		Codec: codec,
 	}, nil
 }
 
 func (c *ClientTransport) Close() error {
 	return c.conn.Close()
+}
+
+func (c *ClientTransport) SendMessage(request *mdd.Containers) (*mdd.Containers, error) {
+
+	reqBody, err := c.Codec.Encode(request)
+	if err != nil {
+		return nil, err
+	}
+
+	respBody, err := c.Send(reqBody)
+	if err != nil {
+		return nil, err
+	}
+
+	response, err := c.Codec.Decode(respBody)
+	if err != nil {
+		return nil, err
+	}
+
+	return response, nil
 }
 
 func (c *ClientTransport) Send(request []byte) ([]byte, error) {

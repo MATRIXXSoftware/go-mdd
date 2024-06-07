@@ -80,19 +80,19 @@ func TestTransport(t *testing.T) {
 		{
 			"TCP",
 			func(addr string) (mdd.ServerTransport, error) {
-				return tcp.NewServerTransport(addr)
+				return tcp.NewServerTransport(addr, codec)
 			},
 			func(addr string) (mdd.ClientTransport, error) {
-				return tcp.NewClientTransport(addr)
+				return tcp.NewClientTransport(addr, codec)
 			},
 		},
 		{
 			"HTTP",
 			func(addr string) (mdd.ServerTransport, error) {
-				return http.NewServerTransport(addr)
+				return http.NewServerTransport(addr, codec)
 			},
 			func(addr string) (mdd.ClientTransport, error) {
-				return http.NewClientTransport(addr)
+				return http.NewClientTransport(addr, codec)
 			},
 		},
 	}

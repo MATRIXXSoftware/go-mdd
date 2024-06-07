@@ -45,16 +45,17 @@ func main() {
 		},
 	})
 
+	codec := cmdc.NewCodecWithDict(dict)
+
 	addr := "0.0.0.0:14060"
 	log.Infof("Server listening on %s", addr)
 
-	transport, err := tcp.NewServerTransport(addr)
+	transport, err := tcp.NewServerTransport(addr, codec)
 	if err != nil {
 		panic(err)
 	}
 	defer transport.Close()
 
-	codec := cmdc.NewCodecWithDict(dict)
 	server := &mdd.Server{
 		Codec:     codec,
 		Transport: transport,
