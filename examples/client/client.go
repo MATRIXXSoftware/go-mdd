@@ -57,7 +57,6 @@ func main() {
 	defer transport.Close()
 
 	client := &mdd.Client{
-		Codec:     codec,
 		Transport: transport,
 	}
 

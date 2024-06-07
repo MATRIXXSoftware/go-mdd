@@ -57,7 +57,6 @@ func main() {
 	defer transport.Close()
 
 	server := &mdd.Server{
-		Codec:     codec,
 		Transport: transport,
 	}
 

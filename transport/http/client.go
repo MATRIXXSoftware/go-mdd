@@ -38,7 +38,27 @@ func (c *ClientTransport) Close() error {
 	return nil
 }
 
-func (c *ClientTransport) Send(reqBody []byte) ([]byte, error) {
+func (c *ClientTransport) SendMessage(request *mdd.Containers) (*mdd.Containers, error) {
+
+	reqBody, err := c.Codec.Encode(request)
+	if err != nil {
+		return nil, err
+	}
+
+	respBody, err := c.send(reqBody)
+	if err != nil {
+		return nil, err
+	}
+
+	response, err := c.Codec.Decode(respBody)
+	if err != nil {
+		return nil, err
+	}
+
+	return response, nil
+}
+
+func (c *ClientTransport) send(reqBody []byte) ([]byte, error) {
 
 	req, err := http.NewRequest("POST", "http://"+c.address, bytes.NewReader(reqBody))
 
@@ -55,24 +75,4 @@ func (c *ClientTransport) Send(reqBody []byte) ([]byte, error) {
 	}
 
 	return respBody, nil
-}
-
-func (c *ClientTransport) SendMessage(request *mdd.Containers) (*mdd.Containers, error) {
-
-	reqBody, err := c.Codec.Encode(request)
-	if err != nil {
-		return nil, err
-	}
-
-	respBody, err := c.Send(reqBody)
-	if err != nil {
-		return nil, err
-	}
-
-	response, err := c.Codec.Decode(respBody)
-	if err != nil {
-		return nil, err
-	}
-
-	return response, nil
 }

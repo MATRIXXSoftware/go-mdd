@@ -37,7 +37,7 @@ func (c *ClientTransport) SendMessage(request *mdd.Containers) (*mdd.Containers,
 		return nil, err
 	}
 
-	respBody, err := c.Send(reqBody)
+	respBody, err := c.send(reqBody)
 	if err != nil {
 		return nil, err
 	}
@@ -50,7 +50,7 @@ func (c *ClientTransport) SendMessage(request *mdd.Containers) (*mdd.Containers,
 	return response, nil
 }
 
-func (c *ClientTransport) Send(request []byte) ([]byte, error) {
+func (c *ClientTransport) send(request []byte) ([]byte, error) {
 
 	err := Write(c.conn, request)
 	if err != nil {

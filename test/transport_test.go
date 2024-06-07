@@ -106,7 +106,6 @@ func TestTransport(t *testing.T) {
 			defer serverTransport.Close()
 
 			server := &mdd.Server{
-				Codec:     codec,
 				Transport: serverTransport,
 			}
 
@@ -210,7 +209,6 @@ func TestTransport(t *testing.T) {
 			defer clientTransport.Close()
 
 			client := &mdd.Client{
-				Codec:     codec,
 				Transport: clientTransport,
 			}
 
