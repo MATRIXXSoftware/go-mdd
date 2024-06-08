@@ -2,12 +2,10 @@ package tcp
 
 import (
 	"context"
-	"fmt"
 	"io"
 	"net"
 
 	"github.com/matrixxsoftware/go-mdd/mdd"
-	"github.com/matrixxsoftware/go-mdd/mdd/field"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -58,7 +56,6 @@ func (s *ServerTransport) Handler(handler func(*mdd.Containers) (*mdd.Containers
 func (s *ServerTransport) handleConnection(conn net.Conn) {
 	defer conn.Close()
 
-	// Handle message synchronously
 	for {
 		reqBody, err := Read(conn)
 		if err != nil {
@@ -74,17 +71,19 @@ func (s *ServerTransport) handleConnection(conn net.Conn) {
 			return
 		}
 
-		respBody, err := s.processMessage(reqBody)
-		if err != nil {
-			log.Errorf("%s %s", connStr(conn), err)
-			return
-		}
+		go func() {
+			respBody, err := s.processMessage(reqBody)
+			if err != nil {
+				log.Errorf("%s %s", connStr(conn), err)
+				return
+			}
 
-		err = Write(conn, respBody)
-		if err != nil {
-			log.Errorf("%s %s", connStr(conn), err)
-			return
-		}
+			err = Write(conn, respBody)
+			if err != nil {
+				log.Errorf("%s %s", connStr(conn), err)
+				return
+			}
+		}()
 	}
 }
 
@@ -93,12 +92,6 @@ func (s *ServerTransport) processMessage(reqBody []byte) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	// hopId, err := extractHopId(req)
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// fmt.Printf("HopId: %d\n", hopId)
 
 	response, err := s.handler(req)
 	if err != nil {
@@ -110,34 +103,4 @@ func (s *ServerTransport) processMessage(reqBody []byte) ([]byte, error) {
 		return nil, err
 	}
 	return respBody, nil
-}
-
-func extractHopId(containers *mdd.Containers) (uint32, error) {
-	// Get MtxMsg container (key 93)
-	mtxMsg := containers.GetContainer(93)
-	if mtxMsg == nil {
-		return 0, fmt.Errorf("container MtxMsg is missing")
-	}
-
-	// Assume no changes to the position of hopId field
-	f := mtxMsg.GetField(14)
-
-	if f.Data == nil {
-		return 0, fmt.Errorf("hopId field is missing")
-	}
-
-	// Copy the field data to a new field
-	hopIdField := mdd.Field{
-		Data:  f.Data,
-		Type:  field.UInt32,
-		Codec: f.Codec,
-	}
-
-	// Get the value of the field
-	hopId, err := hopIdField.GetValue()
-	if err != nil {
-		return 0, err
-	}
-
-	return hopId.(uint32), nil
 }
