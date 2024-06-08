@@ -1,19 +1,22 @@
 package tcp
 
 import (
-	"context"
+	"errors"
 	"fmt"
+	"io"
 	"net"
-	"time"
+	"sync"
 
 	"github.com/matrixxsoftware/go-mdd/mdd"
 	"github.com/matrixxsoftware/go-mdd/mdd/field"
-	"github.com/matrixxsoftware/go-mdd/transport"
+	log "github.com/sirupsen/logrus"
 )
 
 type ClientTransport struct {
-	conn  net.Conn
-	Codec mdd.Codec
+	conn     net.Conn
+	Codec    mdd.Codec
+	msgCache map[uint32]chan *mdd.Containers
+	mu       sync.Mutex
 }
 
 func NewClientTransport(addr string, codec mdd.Codec) (*ClientTransport, error) {
@@ -22,14 +25,77 @@ func NewClientTransport(addr string, codec mdd.Codec) (*ClientTransport, error) 
 		return nil, err
 	}
 
-	return &ClientTransport{
-		conn:  conn,
-		Codec: codec,
-	}, nil
+	c := &ClientTransport{
+		conn:     conn,
+		Codec:    codec,
+		msgCache: make(map[uint32]chan *mdd.Containers),
+	}
+
+	// Processing goroutine
+	go func() {
+		for {
+			// Read response from the server
+			respBody, err := Read(c.conn)
+			if err != nil {
+				if err == io.EOF {
+					log.Errorf("Connection closed by server")
+					return
+				} else if err == io.ErrUnexpectedEOF {
+					log.Errorf("Connection closed unexpectedly by server")
+					return
+				}
+				// TODO: handle error properly
+				// panic(err)
+				log.Errorf("Error reading from connection: %v", err)
+				return
+			}
+
+			// Handle the response
+			err = c.HandleResponse(respBody)
+			if err != nil {
+				log.Errorf("Error handling response: %v", err)
+				// TODO: handle error properly
+				panic(err)
+			}
+		}
+	}()
+
+	return c, nil
 }
 
 func (c *ClientTransport) Close() error {
 	return c.conn.Close()
+}
+
+func (c *ClientTransport) HandleResponse(respBody []byte) error {
+	// Decode the response
+	response, err := c.Codec.Decode(respBody)
+	if err != nil {
+		return err
+	}
+
+	hopId, err := extractHopId(response)
+	if err != nil {
+		return err
+	}
+
+	// Find the corresponding request
+	c.mu.Lock()
+	ch, exists := c.msgCache[hopId]
+	if exists {
+		delete(c.msgCache, hopId)
+	}
+	c.mu.Unlock()
+
+	if !exists {
+		return errors.New("unexpected response hopId")
+	}
+
+	// Send the response to the waiting channel
+	ch <- response
+	close(ch)
+
+	return nil
 }
 
 func (c *ClientTransport) SendMessage(request *mdd.Containers) (*mdd.Containers, error) {
@@ -39,55 +105,26 @@ func (c *ClientTransport) SendMessage(request *mdd.Containers) (*mdd.Containers,
 		return nil, err
 	}
 
-	respBody, err := c.send(reqBody)
+	hopId, err := extractHopId(request)
 	if err != nil {
 		return nil, err
 	}
 
-	response, err := c.Codec.Decode(respBody)
+	ch := make(chan *mdd.Containers, 1)
+
+	c.mu.Lock()
+	c.msgCache[hopId] = ch
+	c.mu.Unlock()
+
+	err = Write(c.conn, reqBody)
 	if err != nil {
 		return nil, err
 	}
+
+	// Wait for the response from channel
+	response := <-ch
 
 	return response, nil
-}
-
-func (c *ClientTransport) send(request []byte) ([]byte, error) {
-
-	err := Write(c.conn, request)
-	if err != nil {
-		return nil, err
-	}
-
-	// Hard code 3 second for now. Make it configurable later
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
-	defer cancel()
-
-	type Result struct {
-		response []byte
-		err      error
-	}
-	ch := make(chan Result, 1)
-
-	go func() {
-		response, err := Read(c.conn)
-		ch <- Result{response, err}
-	}()
-
-	select {
-	case <-ctx.Done():
-		if ctx.Err() == context.DeadlineExceeded {
-			return nil, transport.ErrTimeout
-		}
-		return nil, ctx.Err()
-	case res := <-ch:
-		response := res.response
-		err := res.err
-		if err != nil {
-			return nil, err
-		}
-		return response, nil
-	}
 }
 
 // need this in future when we start sending messages asynchronously

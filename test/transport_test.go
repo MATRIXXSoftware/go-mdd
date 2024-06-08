@@ -239,7 +239,7 @@ func TestTransport(t *testing.T) {
 							{Data: []byte("")},
 							{Data: []byte("")},
 							{Data: []byte("")},
-							{Data: []byte("100")},
+							{Data: []byte("100"), Codec: codec},
 						},
 					},
 					{

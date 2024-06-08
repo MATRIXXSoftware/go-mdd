@@ -1,13 +1,13 @@
 package tcp
 
 import (
-	"context"
+	// "context"
 	"encoding/binary"
 	"fmt"
 	"io"
 	"net"
 	"strings"
-	"time"
+	// "time"
 
 	log "github.com/sirupsen/logrus"
 )
@@ -60,47 +60,47 @@ func Read(conn net.Conn) ([]byte, error) {
 	payload := make([]byte, len)
 
 	// Hard code 3 second for now. Make it configurable later
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
-	defer cancel()
+	// ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
+	// defer cancel()
 
-	type Result struct {
-		n   int
-		err error
-	}
-	ch := make(chan Result, 1)
+	// type Result struct {
+	// 	n   int
+	// 	err error
+	// }
+	// ch := make(chan Result, 1)
 
-	go func() {
-		n, err := io.ReadFull(conn, payload)
-		ch <- Result{n, err}
-	}()
-
-	select {
-	case <-ctx.Done():
-		return nil, ctx.Err()
-	case res := <-ch:
-		n := res.n
-		err := res.err
-		if err != nil {
-			if err == io.ErrUnexpectedEOF {
-				if log.IsLevelEnabled(log.TraceLevel) {
-					log.Tracef("%s Partial data read %d bytes from TCP:\n%s",
-						connStr(conn),
-						n,
-						PrettyHexDump(payload[:n]))
-				}
+	// go func() {
+	n, err := io.ReadFull(conn, payload)
+	// 	ch <- Result{n, err}
+	// }()
+	//
+	// select {
+	// case <-ctx.Done():
+	// 	return nil, ctx.Err()
+	// case res := <-ch:
+	// 	n := res.n
+	// 	err := res.err
+	if err != nil {
+		if err == io.ErrUnexpectedEOF {
+			if log.IsLevelEnabled(log.TraceLevel) {
+				log.Tracef("%s Partial data read %d bytes from TCP:\n%s",
+					connStr(conn),
+					n,
+					PrettyHexDump(payload[:n]))
 			}
-			return nil, err
 		}
-		if log.IsLevelEnabled(log.TraceLevel) {
-			hexdump := PrettyHexDump(payload)
-			log.Tracef("%s Read %d bytes from TCP:\n%s",
-				connStr(conn),
-				n,
-				hexdump)
-		}
-
-		return payload, nil
+		return nil, err
 	}
+	if log.IsLevelEnabled(log.TraceLevel) {
+		hexdump := PrettyHexDump(payload)
+		log.Tracef("%s Read %d bytes from TCP:\n%s",
+			connStr(conn),
+			n,
+			hexdump)
+	}
+
+	return payload, nil
+	// }
 }
 
 func connStr(conn net.Conn) string {

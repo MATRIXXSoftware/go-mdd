@@ -4,6 +4,7 @@ import (
 	"context"
 	"io"
 	"net"
+	"sync"
 
 	"github.com/matrixxsoftware/go-mdd/mdd"
 	log "github.com/sirupsen/logrus"
@@ -13,6 +14,7 @@ type ServerTransport struct {
 	ln      net.Listener
 	handler func(*mdd.Containers) (*mdd.Containers, error)
 	Codec   mdd.Codec
+	mu      sync.Mutex
 }
 
 func NewServerTransport(addr string, codec mdd.Codec) (*ServerTransport, error) {
@@ -78,7 +80,12 @@ func (s *ServerTransport) handleConnection(conn net.Conn) {
 				return
 			}
 
+			// Multiple goroutines can write to the same connection
+			// Therefore we need to lock the write operation here
+			s.mu.Lock()
 			err = Write(conn, respBody)
+			s.mu.Unlock()
+
 			if err != nil {
 				log.Errorf("%s %s", connStr(conn), err)
 				return

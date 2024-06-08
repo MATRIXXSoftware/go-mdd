@@ -1,6 +1,9 @@
 package main
 
 import (
+	"fmt"
+	"sync"
+
 	"github.com/matrixxsoftware/go-mdd/cmdc"
 	"github.com/matrixxsoftware/go-mdd/dictionary"
 	"github.com/matrixxsoftware/go-mdd/mdd"
@@ -77,59 +80,75 @@ func main() {
 		Transport: transport,
 	}
 
-	// Send Message
-	request := mdd.Containers{
-		Containers: []mdd.Container{
-			{
-				Header: mdd.Header{
-					Version:       1,
-					TotalField:    14,
-					Depth:         0,
-					Key:           93,
-					SchemaVersion: 5222,
-					ExtVersion:    1,
+	wg := sync.WaitGroup{}
+
+	// loop 10 times
+	for i := 0; i < 10; i++ {
+		wg.Add(1)
+
+		go func(hopId int) {
+			hopByHopId := fmt.Sprintf("%d", hopId)
+
+			// Send Message
+			request := mdd.Containers{
+				Containers: []mdd.Container{
+					{
+						Header: mdd.Header{
+							Version:       1,
+							TotalField:    14,
+							Depth:         0,
+							Key:           93,
+							SchemaVersion: 5222,
+							ExtVersion:    1,
+						},
+						Fields: []mdd.Field{
+							{Data: []byte("1")},
+							{Data: []byte("(3:two)")},
+							{Data: []byte("3.3")},
+							{Data: []byte("")},
+							{Data: []byte("")},
+							{Data: []byte("666")},
+							{Data: []byte("")},
+							{Data: []byte("")},
+							{Data: []byte("")},
+							{Data: []byte("")},
+							{Data: []byte("")},
+							{Data: []byte("")},
+							{Data: []byte("")},
+							{Data: []byte("")},
+							{Data: []byte(hopByHopId), Codec: codec},
+						},
+					},
+					{
+						Header: mdd.Header{
+							Version:       1,
+							TotalField:    2,
+							Depth:         0,
+							Key:           235,
+							SchemaVersion: 5222,
+							ExtVersion:    1,
+						},
+						Fields: []mdd.Field{
+							{Data: []byte("1")},
+							{Data: []byte("2021-01-01T00:00:00Z")},
+						},
+					},
 				},
-				Fields: []mdd.Field{
-					{Data: []byte("1")},
-					{Data: []byte("(3:two)")},
-					{Data: []byte("3.3")},
-					{Data: []byte("")},
-					{Data: []byte("")},
-					{Data: []byte("666")},
-					{Data: []byte("")},
-					{Data: []byte("")},
-					{Data: []byte("")},
-					{Data: []byte("")},
-					{Data: []byte("")},
-					{Data: []byte("")},
-					{Data: []byte("")},
-					{Data: []byte("")},
-					{Data: []byte("100"), Codec: codec},
-				},
-			},
-			{
-				Header: mdd.Header{
-					Version:       1,
-					TotalField:    2,
-					Depth:         0,
-					Key:           235,
-					SchemaVersion: 5222,
-					ExtVersion:    1,
-				},
-				Fields: []mdd.Field{
-					{Data: []byte("1")},
-					{Data: []byte("2021-01-01T00:00:00Z")},
-				},
-			},
-		},
+			}
+
+			// log.Infof("Request %d is %s", hopId, request.Dump())
+
+			response, err := client.SendMessage(&request)
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			log.Infof("Request %d received response:\n%s", hopId, response.Dump())
+			wg.Done()
+
+		}(i)
 	}
 
-	// log.Infof("Request %d is %s", hopId, request.Dump())
-
-	response, err := client.SendMessage(&request)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	log.Infof("Received response:\n%s", response.Dump())
+	wg.Wait()
+	log.Info("All requests are done")
 }
