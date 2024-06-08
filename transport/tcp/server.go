@@ -4,16 +4,20 @@ import (
 	"context"
 	"io"
 	"net"
+	"sync"
 
+	"github.com/matrixxsoftware/go-mdd/mdd"
 	log "github.com/sirupsen/logrus"
 )
 
 type ServerTransport struct {
 	ln      net.Listener
-	handler func([]byte) ([]byte, error)
+	handler func(*mdd.Containers) (*mdd.Containers, error)
+	Codec   mdd.Codec
+	mu      sync.Mutex
 }
 
-func NewServerTransport(addr string) (*ServerTransport, error) {
+func NewServerTransport(addr string, codec mdd.Codec) (*ServerTransport, error) {
 
 	ln, err := net.Listen("tcp", addr)
 	if err != nil {
@@ -21,7 +25,8 @@ func NewServerTransport(addr string) (*ServerTransport, error) {
 	}
 
 	return &ServerTransport{
-		ln: ln,
+		ln:    ln,
+		Codec: codec,
 	}, nil
 }
 
@@ -46,16 +51,15 @@ func (s *ServerTransport) Close() error {
 	return s.ln.Close()
 }
 
-func (s *ServerTransport) Handler(handler func([]byte) ([]byte, error)) {
+func (s *ServerTransport) Handler(handler func(*mdd.Containers) (*mdd.Containers, error)) {
 	s.handler = handler
 }
 
 func (s *ServerTransport) handleConnection(conn net.Conn) {
 	defer conn.Close()
 
-	// Handle message synchronously
 	for {
-		request, err := Read(conn)
+		reqBody, err := Read(conn)
 		if err != nil {
 			if err == io.EOF {
 				log.Infof("%s Connection closed", connStr(conn))
@@ -69,16 +73,41 @@ func (s *ServerTransport) handleConnection(conn net.Conn) {
 			return
 		}
 
-		response, err := s.handler(request)
-		if err != nil {
-			log.Errorf("%s %s", connStr(conn), err)
-			return
-		}
+		go func() {
+			respBody, err := s.processMessage(reqBody)
+			if err != nil {
+				log.Errorf("%s %s", connStr(conn), err)
+				return
+			}
 
-		err = Write(conn, response)
-		if err != nil {
-			log.Errorf("%s %s", connStr(conn), err)
-			return
-		}
+			// Multiple goroutines can write to the same connection
+			// Therefore we need to lock the write operation here
+			s.mu.Lock()
+			err = Write(conn, respBody)
+			s.mu.Unlock()
+
+			if err != nil {
+				log.Errorf("%s %s", connStr(conn), err)
+				return
+			}
+		}()
 	}
+}
+
+func (s *ServerTransport) processMessage(reqBody []byte) ([]byte, error) {
+	req, err := s.Codec.Decode(reqBody)
+	if err != nil {
+		return nil, err
+	}
+
+	response, err := s.handler(req)
+	if err != nil {
+		return nil, err
+	}
+
+	respBody, err := s.Codec.Encode(response)
+	if err != nil {
+		return nil, err
+	}
+	return respBody, nil
 }

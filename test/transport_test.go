@@ -26,10 +26,10 @@ func TestTransport(t *testing.T) {
 
 	dict := dictionary.New()
 	dict.Add(&dictionary.ContainerDefinition{
-		Key:           101,
-		Name:          "Request",
+		Key:           93,
+		Name:          "MtxMsg",
 		SchemaVersion: 5222,
-		ExtVersion:    2,
+		ExtVersion:    1,
 		Fields: []dictionary.FieldDefinition{
 			{Name: "Field1", Type: field.Int32},
 			{Name: "Field2", Type: field.String},
@@ -37,16 +37,36 @@ func TestTransport(t *testing.T) {
 			{Name: "Field4", Type: field.UInt32},
 			{Name: "Field5", Type: field.UInt16},
 			{Name: "Field6", Type: field.UInt64},
+			{Name: "Field7", Type: field.UInt32},
+			{Name: "Field8", Type: field.UInt32},
+			{Name: "Field9", Type: field.UInt32},
+			{Name: "Field10", Type: field.UInt32},
+			{Name: "Field11", Type: field.UInt32},
+			{Name: "Field12", Type: field.UInt32},
+			{Name: "Field13", Type: field.UInt32},
+			{Name: "Field14", Type: field.UInt32},
+			{Name: "Field15", Type: field.UInt32},
 		},
 	})
 	dict.Add(&dictionary.ContainerDefinition{
-		Key:           88,
-		Name:          "Response",
+		Key:           235,
+		Name:          "MtxRequest",
 		SchemaVersion: 5222,
-		ExtVersion:    2,
+		ExtVersion:    1,
 		Fields: []dictionary.FieldDefinition{
-			{Name: "ResultCode", Type: field.UInt32},
-			{Name: "ResultMessage", Type: field.String},
+			{Name: "Version", Type: field.UInt16},
+			{Name: "EventTime", Type: field.DateTime},
+		},
+	})
+	dict.Add(&dictionary.ContainerDefinition{
+		Key:           236,
+		Name:          "MtxResponse",
+		SchemaVersion: 5222,
+		ExtVersion:    1,
+		Fields: []dictionary.FieldDefinition{
+			{Name: "RouteId", Type: field.UInt16},
+			{Name: "Result", Type: field.UInt32},
+			{Name: "ResultText", Type: field.String},
 		},
 	})
 
@@ -60,19 +80,19 @@ func TestTransport(t *testing.T) {
 		{
 			"TCP",
 			func(addr string) (mdd.ServerTransport, error) {
-				return tcp.NewServerTransport(addr)
+				return tcp.NewServerTransport(addr, codec)
 			},
 			func(addr string) (mdd.ClientTransport, error) {
-				return tcp.NewClientTransport(addr)
+				return tcp.NewClientTransport(addr, codec)
 			},
 		},
 		{
 			"HTTP",
 			func(addr string) (mdd.ServerTransport, error) {
-				return http.NewServerTransport(addr)
+				return http.NewServerTransport(addr, codec)
 			},
 			func(addr string) (mdd.ClientTransport, error) {
-				return http.NewClientTransport(addr)
+				return http.NewClientTransport(addr, codec)
 			},
 		},
 	}
@@ -86,14 +106,13 @@ func TestTransport(t *testing.T) {
 			defer serverTransport.Close()
 
 			server := &mdd.Server{
-				Codec:     codec,
 				Transport: serverTransport,
 			}
 
 			server.MessageHandler(func(request *mdd.Containers) (*mdd.Containers, error) {
-				// t.Logf("Server received request:\n%s", request.Dump())
+				t.Logf("Server received request:\n%s", request.Dump())
 
-				container0 := request.GetContainer(101)
+				container0 := request.GetContainer(93)
 				// Field 1
 				v, err := container0.GetField(0).GetValue()
 				assert.Nil(t, err)
@@ -129,13 +148,41 @@ func TestTransport(t *testing.T) {
 						{
 							Header: mdd.Header{
 								Version:       1,
-								TotalField:    3,
+								TotalField:    14,
 								Depth:         0,
-								Key:           88,
+								Key:           93,
 								SchemaVersion: 5222,
-								ExtVersion:    2,
+								ExtVersion:    1,
 							},
 							Fields: []mdd.Field{
+								{Data: []byte("1")},
+								{Data: []byte("(3:two)")},
+								{Data: []byte("3.3")},
+								{Data: []byte("")},
+								{Data: []byte("")},
+								{Data: []byte("666")},
+								{Data: []byte("")},
+								{Data: []byte("")},
+								{Data: []byte("")},
+								{Data: []byte("")},
+								{Data: []byte("")},
+								{Data: []byte("")},
+								{Data: []byte("")},
+								{Data: []byte("")},
+								{Data: []byte("100")},
+							},
+						},
+						{
+							Header: mdd.Header{
+								Version:       1,
+								TotalField:    3,
+								Depth:         0,
+								Key:           236,
+								SchemaVersion: 5222,
+								ExtVersion:    1,
+							},
+							Fields: []mdd.Field{
+								{Data: []byte("1")},
 								{Data: []byte("0")},
 								{Data: []byte("(2:OK)")},
 							},
@@ -162,7 +209,6 @@ func TestTransport(t *testing.T) {
 			defer clientTransport.Close()
 
 			client := &mdd.Client{
-				Codec:     codec,
 				Transport: clientTransport,
 			}
 
@@ -172,11 +218,11 @@ func TestTransport(t *testing.T) {
 					{
 						Header: mdd.Header{
 							Version:       1,
-							TotalField:    5,
+							TotalField:    14,
 							Depth:         0,
-							Key:           101,
+							Key:           93,
 							SchemaVersion: 5222,
-							ExtVersion:    2,
+							ExtVersion:    1,
 						},
 						Fields: []mdd.Field{
 							{Data: []byte("1")},
@@ -185,6 +231,29 @@ func TestTransport(t *testing.T) {
 							{Data: []byte("")},
 							{Data: []byte("")},
 							{Data: []byte("666")},
+							{Data: []byte("")},
+							{Data: []byte("")},
+							{Data: []byte("")},
+							{Data: []byte("")},
+							{Data: []byte("")},
+							{Data: []byte("")},
+							{Data: []byte("")},
+							{Data: []byte("")},
+							{Data: []byte("100"), Codec: codec},
+						},
+					},
+					{
+						Header: mdd.Header{
+							Version:       1,
+							TotalField:    2,
+							Depth:         0,
+							Key:           235,
+							SchemaVersion: 5222,
+							ExtVersion:    1,
+						},
+						Fields: []mdd.Field{
+							{Data: []byte("1")},
+							{Data: []byte("2021-01-01T00:00:00Z")},
 						},
 					},
 				},
@@ -193,25 +262,29 @@ func TestTransport(t *testing.T) {
 			if err != nil {
 				panic(err)
 			}
-			// t.Logf("Client received response:\n%s", response.Dump())
+			t.Logf("Client received response:\n%s", response.Dump())
 
-			container0 := response.GetContainer(88)
+			container0 := response.GetContainer(236)
+
+			// RouteId
+			v, err := container0.GetField(0).GetValue()
+			assert.Nil(t, err)
+			assert.Equal(t, uint16(1), v.(uint16))
 
 			// Result Code
-			v, err := container0.GetField(0).GetValue()
+			v, err = container0.GetField(1).GetValue()
 			assert.Nil(t, err)
 			assert.Equal(t, uint32(0), v.(uint32))
 
 			// Result Message
-			v, err = container0.GetField(1).GetValue()
+			v, err = container0.GetField(2).GetValue()
 			assert.Nil(t, err)
 			assert.Equal(t, "OK", v.(string))
 
 			// Does not exist
-			v, err = container0.GetField(2).GetValue()
+			v, err = container0.GetField(3).GetValue()
 			assert.Nil(t, err)
 			assert.Equal(t, nil, v)
 		})
 	}
-
 }

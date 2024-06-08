@@ -1,6 +1,9 @@
 package main
 
 import (
+	// "math/rand"
+	// "time"
+
 	"github.com/matrixxsoftware/go-mdd/cmdc"
 	"github.com/matrixxsoftware/go-mdd/dictionary"
 	"github.com/matrixxsoftware/go-mdd/mdd"
@@ -45,36 +48,69 @@ func main() {
 		},
 	})
 
+	codec := cmdc.NewCodecWithDict(dict)
+
 	addr := "0.0.0.0:14060"
 	log.Infof("Server listening on %s", addr)
 
-	transport, err := tcp.NewServerTransport(addr)
+	transport, err := tcp.NewServerTransport(addr, codec)
 	if err != nil {
 		panic(err)
 	}
 	defer transport.Close()
 
-	codec := cmdc.NewCodecWithDict(dict)
 	server := &mdd.Server{
-		Codec:     codec,
 		Transport: transport,
 	}
 
 	server.MessageHandler(func(request *mdd.Containers) (*mdd.Containers, error) {
 		log.Infof("Server received request:\n%s", request.Dump())
 
+		hopId := request.GetContainer(93).GetField(14).Data
+
+		// Simulate processing time
+		// time.Sleep(time.Duration(rand.Intn(3)+1) * time.Second)
+
 		return &mdd.Containers{
 			Containers: []mdd.Container{
 				{
 					Header: mdd.Header{
 						Version:       1,
-						TotalField:    3,
+						TotalField:    14,
 						Depth:         0,
-						Key:           88,
+						Key:           93,
 						SchemaVersion: 5222,
-						ExtVersion:    2,
+						ExtVersion:    1,
 					},
 					Fields: []mdd.Field{
+						{Data: []byte("1")},
+						{Data: []byte("(3:two)")},
+						{Data: []byte("3.3")},
+						{Data: []byte("")},
+						{Data: []byte("")},
+						{Data: []byte("666")},
+						{Data: []byte("")},
+						{Data: []byte("")},
+						{Data: []byte("")},
+						{Data: []byte("")},
+						{Data: []byte("")},
+						{Data: []byte("")},
+						{Data: []byte("")},
+						{Data: []byte("")},
+						{Data: hopId},
+					},
+				},
+				{
+					Header: mdd.Header{
+						Version:       1,
+						TotalField:    3,
+						Depth:         0,
+						Key:           236,
+						SchemaVersion: 5222,
+						ExtVersion:    1,
+					},
+					Fields: []mdd.Field{
+						{Data: []byte("1")},
 						{Data: []byte("0")},
 						{Data: []byte("(2:OK)")},
 					},
