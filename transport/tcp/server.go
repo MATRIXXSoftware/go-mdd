@@ -73,8 +73,12 @@ func (s *ServerTransport) handleConnection(conn net.Conn) {
 			return
 		}
 
+		if reqBody == nil {
+			continue
+		}
+
 		go func() {
-			respBody, err := s.processMessage(reqBody)
+			respBody, err := s.processRequest(reqBody)
 			if err != nil {
 				log.Errorf("%s %s", connStr(conn), err)
 				return
@@ -94,7 +98,7 @@ func (s *ServerTransport) handleConnection(conn net.Conn) {
 	}
 }
 
-func (s *ServerTransport) processMessage(reqBody []byte) ([]byte, error) {
+func (s *ServerTransport) processRequest(reqBody []byte) ([]byte, error) {
 	req, err := s.Codec.Decode(reqBody)
 	if err != nil {
 		return nil, err

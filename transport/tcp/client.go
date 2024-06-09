@@ -13,10 +13,19 @@ import (
 )
 
 type ClientTransport struct {
-	conn     net.Conn
-	Codec    mdd.Codec
-	msgCache map[uint32]chan *mdd.Containers
-	mu       sync.Mutex
+	conn       net.Conn
+	Codec      mdd.Codec
+	msgCache   map[uint32]chan *mdd.Containers
+	msgMutex   sync.Mutex
+	writeMutex sync.Mutex
+	closeCh    chan struct{}
+	closeWg    sync.WaitGroup
+}
+
+func (c *ClientTransport) Close() error {
+	close(c.closeCh)
+	c.closeWg.Wait()
+	return c.conn.Close()
 }
 
 func NewClientTransport(addr string, codec mdd.Codec) (*ClientTransport, error) {
@@ -29,33 +38,39 @@ func NewClientTransport(addr string, codec mdd.Codec) (*ClientTransport, error) 
 		conn:     conn,
 		Codec:    codec,
 		msgCache: make(map[uint32]chan *mdd.Containers),
+		closeCh:  make(chan struct{}),
 	}
 
-	// Processing goroutine
+	c.closeWg.Add(1)
 	go func() {
+		defer c.closeWg.Done()
 		for {
-			// Read response from the server
-			respBody, err := Read(c.conn)
-			if err != nil {
-				if err == io.EOF {
-					log.Errorf("Connection closed by server")
-					return
-				} else if err == io.ErrUnexpectedEOF {
-					log.Errorf("Connection closed unexpectedly by server")
+			select {
+			case <-c.closeCh:
+				return
+			default:
+				respBody, err := Read(c.conn)
+				if err != nil {
+					if err == io.EOF {
+						log.Infof("%s Connection closed", connStr(conn))
+					} else if err == io.ErrUnexpectedEOF {
+						log.Errorf("%s Connection closed unexpectedly", connStr(conn))
+					} else {
+						log.Errorf("%s Error reading from connection: %s", connStr(conn), err)
+					}
 					return
 				}
-				// TODO: handle error properly
-				// panic(err)
-				log.Errorf("Error reading from connection: %v", err)
-				return
-			}
 
-			// Handle the response
-			err = c.HandleResponse(respBody)
-			if err != nil {
-				log.Errorf("Error handling response: %v", err)
-				// TODO: handle error properly
-				panic(err)
+				if respBody == nil {
+					continue
+				}
+
+				// Handle the response
+				err = c.processResponse(respBody)
+				if err != nil {
+					log.Errorf("%s %s", connStr(conn), err)
+					return
+				}
 			}
 		}
 	}()
@@ -63,11 +78,7 @@ func NewClientTransport(addr string, codec mdd.Codec) (*ClientTransport, error) 
 	return c, nil
 }
 
-func (c *ClientTransport) Close() error {
-	return c.conn.Close()
-}
-
-func (c *ClientTransport) HandleResponse(respBody []byte) error {
+func (c *ClientTransport) processResponse(respBody []byte) error {
 	// Decode the response
 	response, err := c.Codec.Decode(respBody)
 	if err != nil {
@@ -80,12 +91,12 @@ func (c *ClientTransport) HandleResponse(respBody []byte) error {
 	}
 
 	// Find the corresponding request
-	c.mu.Lock()
+	c.msgMutex.Lock()
 	ch, exists := c.msgCache[hopId]
 	if exists {
 		delete(c.msgCache, hopId)
 	}
-	c.mu.Unlock()
+	c.msgMutex.Unlock()
 
 	if !exists {
 		return errors.New("unexpected response hopId")
@@ -112,11 +123,14 @@ func (c *ClientTransport) SendMessage(request *mdd.Containers) (*mdd.Containers,
 
 	ch := make(chan *mdd.Containers, 1)
 
-	c.mu.Lock()
+	c.msgMutex.Lock()
 	c.msgCache[hopId] = ch
-	c.mu.Unlock()
+	c.msgMutex.Unlock()
 
+	c.writeMutex.Lock()
 	err = Write(c.conn, reqBody)
+	c.writeMutex.Unlock()
+
 	if err != nil {
 		return nil, err
 	}
