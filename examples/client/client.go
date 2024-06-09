@@ -124,7 +124,7 @@ func main() {
 		},
 	}
 
-	// log.Infof("Request %d is %s", hopId, request.Dump())
+	log.Infof("Request is %s", request.Dump())
 
 	response, err := client.SendMessage(&request)
 	if err != nil {

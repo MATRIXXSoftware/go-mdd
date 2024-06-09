@@ -1,13 +1,12 @@
 package tcp
 
 import (
-	// "context"
 	"encoding/binary"
 	"fmt"
 	"io"
 	"net"
 	"strings"
-	// "time"
+	"time"
 
 	log "github.com/sirupsen/logrus"
 )
@@ -44,8 +43,13 @@ func Write(conn net.Conn, encoded []byte) error {
 }
 
 func Read(conn net.Conn) ([]byte, error) {
+	conn.SetReadDeadline(time.Now().Add(1 * time.Second))
+
 	var len uint32
 	if err := binary.Read(conn, binary.BigEndian, &len); err != nil {
+		if netErr, ok := err.(net.Error); ok && netErr.Timeout() {
+			return nil, nil // timeout is expected due to deadline
+		}
 		return nil, err
 	}
 
@@ -59,27 +63,7 @@ func Read(conn net.Conn) ([]byte, error) {
 
 	payload := make([]byte, len)
 
-	// Hard code 3 second for now. Make it configurable later
-	// ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
-	// defer cancel()
-
-	// type Result struct {
-	// 	n   int
-	// 	err error
-	// }
-	// ch := make(chan Result, 1)
-
-	// go func() {
 	n, err := io.ReadFull(conn, payload)
-	// 	ch <- Result{n, err}
-	// }()
-	//
-	// select {
-	// case <-ctx.Done():
-	// 	return nil, ctx.Err()
-	// case res := <-ch:
-	// 	n := res.n
-	// 	err := res.err
 	if err != nil {
 		if err == io.ErrUnexpectedEOF {
 			if log.IsLevelEnabled(log.TraceLevel) {
@@ -100,13 +84,12 @@ func Read(conn net.Conn) ([]byte, error) {
 	}
 
 	return payload, nil
-	// }
 }
 
 func connStr(conn net.Conn) string {
 	remote := conn.RemoteAddr().String()
 	local := conn.LocalAddr().String()
-	return fmt.Sprintf("[%s/%s]", local, remote)
+	return fmt.Sprintf("[%s->%s]", local, remote)
 }
 
 func PrettyHexDump(data []byte) string {
