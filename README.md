@@ -12,7 +12,7 @@ Then, run the following command to fetch the library:
 go get -u github.com/matrixxsoftware/go-mdd@latest
 ```
 
-# Example
+# Codec Example
 
 ## Decode
 ```go
@@ -79,54 +79,6 @@ go get -u github.com/matrixxsoftware/go-mdd@latest
 	assert.Equal(t, []byte(expected), encoded)
 ```
 
-## Server
-```go
-	codec := cmdc.NewCodec()
-
-	transport, err := tcp.NewServerTransport("localhost:8080")
-	if err != nil {
-		panic(err)
-	}
-	defer transport.Close()
-
-	server := &mdd.Server{
-		Codec:     codec,
-		Transport: transport,
-	}
-
-	server.MessageHandler(func(containers *mdd.Containers) *mdd.Containers {
-        ... 
-		repsonse := mdd.Containers{}
-        return response
-	})
-
-	err := transport.Listen()
-	if err != nil {
-		panic(err)
-	}
-
-```
-
-
-## Client
-```go
-	codec := cmdc.NewCodec()
-
-	transport, err := tcp.NewClientTransport("localhost:8080")
-	if err != nil {
-		panic(err)
-	}
-	defer transport.Close()
-
-	client := &mdd.Client{
-		Codec:     codec,
-		Transport: transport,
-	}
-
-	request := mdd.Containers{}
-
-	response, err := client.SendMessage(&request)
-	if err != nil {
-		panic(err)
-	}
-```
+# Transport Example
+- [Server Example](examples/server/server.go)
+- [Client Example](examples/client/client.go)

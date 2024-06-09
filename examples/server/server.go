@@ -2,7 +2,7 @@ package main
 
 import (
 	// "math/rand"
-	// "time"
+	"time"
 
 	"github.com/matrixxsoftware/go-mdd/cmdc"
 	"github.com/matrixxsoftware/go-mdd/dictionary"
@@ -45,6 +45,7 @@ func main() {
 
 		// Simulate processing time
 		// time.Sleep(time.Duration(rand.Intn(3)+1) * time.Second)
+		time.Sleep(time.Duration(10) * time.Second)
 
 		return &mdd.Containers{
 			Containers: []mdd.Container{
