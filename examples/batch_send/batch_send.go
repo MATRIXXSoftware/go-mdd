@@ -20,56 +20,12 @@ func main() {
 		TimestampFormat: "2006-01-02 15:04:05.000000",
 	}
 	log.SetFormatter(formatter)
-	log.SetLevel(log.TraceLevel)
+	log.SetLevel(log.DebugLevel)
 
-	dict := dictionary.New()
-	dict.Add(&dictionary.ContainerDefinition{
-		Key:           93,
-		Name:          "MtxMsg",
-		SchemaVersion: 5222,
-		ExtVersion:    1,
-		Fields: []dictionary.FieldDefinition{
-			{Name: "Field1", Type: field.Int32},
-			{Name: "Field2", Type: field.String},
-			{Name: "Field3", Type: field.Decimal},
-			{Name: "Field4", Type: field.UInt32},
-			{Name: "Field5", Type: field.UInt16},
-			{Name: "Field6", Type: field.UInt64},
-			{Name: "Field7", Type: field.UInt32},
-			{Name: "Field8", Type: field.UInt32},
-			{Name: "Field9", Type: field.UInt32},
-			{Name: "Field10", Type: field.UInt32},
-			{Name: "Field11", Type: field.UInt32},
-			{Name: "Field12", Type: field.UInt32},
-			{Name: "Field13", Type: field.UInt32},
-			{Name: "Field14", Type: field.UInt32},
-			{Name: "Field15", Type: field.UInt32},
-		},
-	})
-	dict.Add(&dictionary.ContainerDefinition{
-		Key:           235,
-		Name:          "MtxRequest",
-		SchemaVersion: 5222,
-		ExtVersion:    1,
-		Fields: []dictionary.FieldDefinition{
-			{Name: "Version", Type: field.UInt16},
-			{Name: "EventTime", Type: field.DateTime},
-		},
-	})
-	dict.Add(&dictionary.ContainerDefinition{
-		Key:           236,
-		Name:          "MtxResponse",
-		SchemaVersion: 5222,
-		ExtVersion:    1,
-		Fields: []dictionary.FieldDefinition{
-			{Name: "RouteId", Type: field.UInt16},
-			{Name: "Result", Type: field.UInt32},
-			{Name: "ResultText", Type: field.String},
-		},
-	})
+	dict := loadDictionary()
+	codec := cmdc.NewCodecWithDict(dict)
 
 	addr := "0.0.0.0:14060"
-	codec := cmdc.NewCodecWithDict(dict)
 	transport, err := tcp.NewClientTransport(addr, codec)
 	if err != nil {
 		panic(err)
@@ -142,7 +98,9 @@ func main() {
 				log.Fatal(err)
 			}
 
-			log.Infof("Request %d received response:\n%s", hopId, response.Dump())
+			// log.Infof("Request %d received response:\n%s", hopId, response.Dump())
+			returnHopId, _ := response.GetContainer(93).GetField(14).GetValue()
+			log.Infof("Request %d, Response %d", hopId, returnHopId)
 			wg.Done()
 
 		}(i)
@@ -150,4 +108,54 @@ func main() {
 
 	wg.Wait()
 	log.Info("All requests are done")
+}
+
+func loadDictionary() *dictionary.Dictionary {
+	dict := dictionary.New()
+	dict.Add(&dictionary.ContainerDefinition{
+		Key:           93,
+		Name:          "MtxMsg",
+		SchemaVersion: 5222,
+		ExtVersion:    1,
+		Fields: []dictionary.FieldDefinition{
+			{Name: "Field1", Type: field.Int32},
+			{Name: "Field2", Type: field.String},
+			{Name: "Field3", Type: field.Decimal},
+			{Name: "Field4", Type: field.UInt32},
+			{Name: "Field5", Type: field.UInt16},
+			{Name: "Field6", Type: field.UInt64},
+			{Name: "Field7", Type: field.UInt32},
+			{Name: "Field8", Type: field.UInt32},
+			{Name: "Field9", Type: field.UInt32},
+			{Name: "Field10", Type: field.UInt32},
+			{Name: "Field11", Type: field.UInt32},
+			{Name: "Field12", Type: field.UInt32},
+			{Name: "Field13", Type: field.UInt32},
+			{Name: "Field14", Type: field.UInt32},
+			{Name: "Field15", Type: field.UInt32},
+		},
+	})
+	dict.Add(&dictionary.ContainerDefinition{
+		Key:           235,
+		Name:          "MtxRequest",
+		SchemaVersion: 5222,
+		ExtVersion:    1,
+		Fields: []dictionary.FieldDefinition{
+			{Name: "Version", Type: field.UInt16},
+			{Name: "EventTime", Type: field.DateTime},
+		},
+	})
+	dict.Add(&dictionary.ContainerDefinition{
+		Key:           236,
+		Name:          "MtxResponse",
+		SchemaVersion: 5222,
+		ExtVersion:    1,
+		Fields: []dictionary.FieldDefinition{
+			{Name: "RouteId", Type: field.UInt16},
+			{Name: "Result", Type: field.UInt32},
+			{Name: "ResultText", Type: field.String},
+		},
+	})
+
+	return dict
 }
