@@ -1,7 +1,7 @@
 package main
 
 import (
-	// "math/rand"
+	"math/rand"
 	"time"
 
 	"github.com/matrixxsoftware/go-mdd/cmdc"
@@ -44,8 +44,7 @@ func main() {
 		hopId := request.GetContainer(93).GetField(14).Data
 
 		// Simulate processing time
-		// time.Sleep(time.Duration(rand.Intn(3)+1) * time.Second)
-		time.Sleep(time.Duration(10) * time.Second)
+		time.Sleep(time.Duration(rand.Intn(300)+100) * time.Millisecond)
 
 		return &mdd.Containers{
 			Containers: []mdd.Container{
