@@ -104,9 +104,23 @@ func (s *ServerTransport) processRequest(reqBody []byte) ([]byte, error) {
 		return nil, err
 	}
 
+	missingHopId := false
+	hopId, err := extractHopId(req)
+	if err != nil {
+		log.Debugf("Error extracting hopId: %s", err)
+		missingHopId = true
+	}
+
 	response, err := s.handler(req)
 	if err != nil {
 		return nil, err
+	}
+
+	if !missingHopId {
+		err := injectHopId(response, hopId)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	respBody, err := s.Codec.Encode(response)

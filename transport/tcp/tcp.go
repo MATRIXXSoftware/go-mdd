@@ -2,10 +2,13 @@ package tcp
 
 import (
 	"encoding/binary"
+	"fmt"
 	"io"
 	"net"
 	"time"
 
+	"github.com/matrixxsoftware/go-mdd/mdd"
+	"github.com/matrixxsoftware/go-mdd/mdd/field"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -82,4 +85,50 @@ func Read(conn net.Conn) ([]byte, error) {
 	}
 
 	return payload, nil
+}
+
+func extractHopId(containers *mdd.Containers) (uint32, error) {
+	// Get MtxMsg container (key 93)
+	mtxMsg := containers.GetContainer(93)
+	if mtxMsg == nil {
+		return 0, fmt.Errorf("container MtxMsg is missing")
+	}
+
+	// Assume no changes to the position of hopId field
+	f := mtxMsg.GetField(14)
+
+	if f.Data == nil {
+		return 0, fmt.Errorf("hopId field is missing")
+	}
+
+	// Copy the field data to a new field
+	hopIdField := mdd.Field{
+		Data:  f.Data,
+		Type:  field.UInt32,
+		Codec: f.Codec,
+	}
+
+	// Get the value of the field
+	hopId, err := hopIdField.GetValue()
+	if err != nil {
+		return 0, err
+	}
+
+	return hopId.(uint32), nil
+}
+
+func injectHopId(containers *mdd.Containers, hopId uint32) error {
+	// Get MtxMsg container (key 93)
+	mtxMsg := containers.GetContainer(93)
+	if mtxMsg == nil {
+		return fmt.Errorf("container MtxMsg is missing")
+	}
+
+	// Assume no changes to the position of hopId field
+	mtxMsg.SetField(14, &mdd.Field{
+		Value: hopId,
+		Type:  field.UInt32,
+	})
+
+	return nil
 }

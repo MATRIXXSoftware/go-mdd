@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"sync"
 
 	"github.com/matrixxsoftware/go-mdd/cmdc"
@@ -41,8 +40,7 @@ func main() {
 	for i := 0; i < 100; i++ {
 		wg.Add(1)
 
-		go func(hopId int) {
-			hopByHopId := fmt.Sprintf("%d", hopId)
+		go func(i int) {
 
 			// Send Message
 			request := mdd.Containers{
@@ -63,15 +61,6 @@ func main() {
 							{Data: []byte("")},
 							{Data: []byte("")},
 							{Data: []byte("666")},
-							{Data: []byte("")},
-							{Data: []byte("")},
-							{Data: []byte("")},
-							{Data: []byte("")},
-							{Data: []byte("")},
-							{Data: []byte("")},
-							{Data: []byte("")},
-							{Data: []byte("")},
-							{Data: []byte(hopByHopId), Codec: codec},
 						},
 					},
 					{
@@ -98,9 +87,7 @@ func main() {
 				log.Fatal(err)
 			}
 
-			// log.Infof("Request %d received response:\n%s", hopId, response.Dump())
-			returnHopId, _ := response.GetContainer(93).GetField(14).GetValue()
-			log.Infof("Request %d, Response %d", hopId, returnHopId)
+			log.Infof("Request %d received response:\n%s", i, response.Dump())
 			wg.Done()
 
 		}(i)

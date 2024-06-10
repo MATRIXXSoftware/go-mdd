@@ -2,13 +2,12 @@ package tcp
 
 import (
 	"errors"
-	"fmt"
 	"io"
 	"net"
 	"sync"
+	"sync/atomic"
 
 	"github.com/matrixxsoftware/go-mdd/mdd"
-	"github.com/matrixxsoftware/go-mdd/mdd/field"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -20,6 +19,7 @@ type ClientTransport struct {
 	writeMutex sync.Mutex
 	closeCh    chan struct{}
 	closeWg    sync.WaitGroup
+	seqId      uint32
 }
 
 func (c *ClientTransport) Close() error {
@@ -39,6 +39,7 @@ func NewClientTransport(addr string, codec mdd.Codec) (*ClientTransport, error) 
 		Codec:    codec,
 		msgCache: make(map[uint32]chan *mdd.Containers),
 		closeCh:  make(chan struct{}),
+		seqId:    0,
 	}
 
 	c.closeWg.Add(1)
@@ -111,12 +112,14 @@ func (c *ClientTransport) processResponse(respBody []byte) error {
 
 func (c *ClientTransport) SendMessage(request *mdd.Containers) (*mdd.Containers, error) {
 
-	reqBody, err := c.Codec.Encode(request)
+	hopId := atomic.AddUint32(&c.seqId, 1)
+
+	err := injectHopId(request, hopId)
 	if err != nil {
 		return nil, err
 	}
 
-	hopId, err := extractHopId(request)
+	reqBody, err := c.Codec.Encode(request)
 	if err != nil {
 		return nil, err
 	}
@@ -139,35 +142,4 @@ func (c *ClientTransport) SendMessage(request *mdd.Containers) (*mdd.Containers,
 	response := <-ch
 
 	return response, nil
-}
-
-// need this in future when we start sending messages asynchronously
-func extractHopId(containers *mdd.Containers) (uint32, error) {
-	// Get MtxMsg container (key 93)
-	mtxMsg := containers.GetContainer(93)
-	if mtxMsg == nil {
-		return 0, fmt.Errorf("container MtxMsg is missing")
-	}
-
-	// Assume no changes to the position of hopId field
-	f := mtxMsg.GetField(14)
-
-	if f.Data == nil {
-		return 0, fmt.Errorf("hopId field is missing")
-	}
-
-	// Copy the field data to a new field
-	hopIdField := mdd.Field{
-		Data:  f.Data,
-		Type:  field.UInt32,
-		Codec: f.Codec,
-	}
-
-	// Get the value of the field
-	hopId, err := hopIdField.GetValue()
-	if err != nil {
-		return 0, err
-	}
-
-	return hopId.(uint32), nil
 }

@@ -41,8 +41,6 @@ func main() {
 	server.MessageHandler(func(request *mdd.Containers) (*mdd.Containers, error) {
 		log.Infof("Server received request:\n%s", request.Dump())
 
-		hopId := request.GetContainer(93).GetField(14).Data
-
 		// Simulate processing time
 		time.Sleep(time.Duration(rand.Intn(300)+100) * time.Millisecond)
 
@@ -64,15 +62,6 @@ func main() {
 						{Data: []byte("")},
 						{Data: []byte("")},
 						{Data: []byte("666")},
-						{Data: []byte("")},
-						{Data: []byte("")},
-						{Data: []byte("")},
-						{Data: []byte("")},
-						{Data: []byte("")},
-						{Data: []byte("")},
-						{Data: []byte("")},
-						{Data: []byte("")},
-						{Data: hopId},
 					},
 				},
 				{
