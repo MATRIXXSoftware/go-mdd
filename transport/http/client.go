@@ -45,7 +45,7 @@ func (c *ClientTransport) SendMessage(ctx context.Context, request *mdd.Containe
 		return nil, err
 	}
 
-	respBody, err := c.send(reqBody)
+	respBody, err := c.send(ctx, reqBody)
 	if err != nil {
 		return nil, err
 	}
@@ -58,9 +58,9 @@ func (c *ClientTransport) SendMessage(ctx context.Context, request *mdd.Containe
 	return response, nil
 }
 
-func (c *ClientTransport) send(reqBody []byte) ([]byte, error) {
+func (c *ClientTransport) send(ctx context.Context, reqBody []byte) ([]byte, error) {
 
-	req, err := http.NewRequest("POST", "http://"+c.address, bytes.NewReader(reqBody))
+	req, err := http.NewRequestWithContext(ctx, "POST", "http://"+c.address, bytes.NewReader(reqBody))
 
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
