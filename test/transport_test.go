@@ -1,6 +1,7 @@
 package test
 
 import (
+	"context"
 	"math/big"
 	"testing"
 	"time"
@@ -240,7 +241,7 @@ func TestTransport(t *testing.T) {
 					},
 				},
 			}
-			response, err := client.SendMessage(&request)
+			response, err := client.SendMessage(context.Background(), &request)
 			if err != nil {
 				panic(err)
 			}

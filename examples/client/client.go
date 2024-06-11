@@ -1,6 +1,9 @@
 package main
 
 import (
+	"context"
+	"time"
+
 	"github.com/matrixxsoftware/go-mdd/cmdc"
 	"github.com/matrixxsoftware/go-mdd/dictionary"
 	"github.com/matrixxsoftware/go-mdd/mdd"
@@ -52,15 +55,6 @@ func main() {
 					{Data: []byte("")},
 					{Data: []byte("")},
 					{Data: []byte("666")},
-					{Data: []byte("")},
-					{Data: []byte("")},
-					{Data: []byte("")},
-					{Data: []byte("")},
-					{Data: []byte("")},
-					{Data: []byte("")},
-					{Data: []byte("")},
-					{Data: []byte("")},
-					{Data: []byte("100"), Codec: codec},
 				},
 			},
 			{
@@ -82,7 +76,10 @@ func main() {
 
 	log.Infof("Request is %s", request.Dump())
 
-	response, err := client.SendMessage(&request)
+	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
+	defer cancel()
+
+	response, err := client.SendMessage(ctx, &request)
 	if err != nil {
 		log.Fatal(err)
 	}

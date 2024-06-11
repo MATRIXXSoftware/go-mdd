@@ -2,6 +2,7 @@ package http
 
 import (
 	"bytes"
+	"context"
 	"crypto/tls"
 	"io"
 	"net"
@@ -38,8 +39,7 @@ func (c *ClientTransport) Close() error {
 	return nil
 }
 
-func (c *ClientTransport) SendMessage(request *mdd.Containers) (*mdd.Containers, error) {
-
+func (c *ClientTransport) SendMessage(ctx context.Context, request *mdd.Containers) (*mdd.Containers, error) {
 	reqBody, err := c.Codec.Encode(request)
 	if err != nil {
 		return nil, err

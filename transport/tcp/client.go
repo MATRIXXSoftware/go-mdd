@@ -1,6 +1,7 @@
 package tcp
 
 import (
+	"context"
 	"errors"
 	"io"
 	"net"
@@ -110,7 +111,7 @@ func (c *ClientTransport) processResponse(respBody []byte) error {
 	return nil
 }
 
-func (c *ClientTransport) SendMessage(request *mdd.Containers) (*mdd.Containers, error) {
+func (c *ClientTransport) SendMessage(ctx context.Context, request *mdd.Containers) (*mdd.Containers, error) {
 
 	hopId := atomic.AddUint32(&c.seqId, 1)
 
@@ -139,7 +140,13 @@ func (c *ClientTransport) SendMessage(request *mdd.Containers) (*mdd.Containers,
 	}
 
 	// Wait for the response from channel
-	response := <-ch
-
-	return response, nil
+	select {
+	case response := <-ch:
+		return response, nil
+	case <-ctx.Done():
+		c.msgMutex.Lock()
+		delete(c.msgCache, hopId)
+		c.msgMutex.Unlock()
+		return nil, errors.New("timeout waiting for response")
+	}
 }

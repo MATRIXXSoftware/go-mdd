@@ -1,9 +1,11 @@
 package mdd
 
+import "context"
+
 // These classes become redundant after the refactoring
 
 type ClientTransport interface {
-	SendMessage(*Containers) (*Containers, error)
+	SendMessage(context.Context, *Containers) (*Containers, error)
 	Close() error
 }
 
@@ -17,8 +19,8 @@ type Client struct {
 	Transport ClientTransport
 }
 
-func (c *Client) SendMessage(request *Containers) (*Containers, error) {
-	return c.Transport.SendMessage(request)
+func (c *Client) SendMessage(ctx context.Context, request *Containers) (*Containers, error) {
+	return c.Transport.SendMessage(ctx, request)
 }
 
 type Server struct {

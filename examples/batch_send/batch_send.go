@@ -1,7 +1,9 @@
 package main
 
 import (
+	"context"
 	"sync"
+	"time"
 
 	"github.com/matrixxsoftware/go-mdd/cmdc"
 	"github.com/matrixxsoftware/go-mdd/dictionary"
@@ -82,7 +84,10 @@ func main() {
 
 			// log.Infof("Request %d is %s", hopId, request.Dump())
 
-			response, err := client.SendMessage(&request)
+			ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
+			defer cancel()
+
+			response, err := client.SendMessage(ctx, &request)
 			if err != nil {
 				log.Fatal(err)
 			}
