@@ -62,29 +62,3 @@ func Load(reader io.Reader) (*Configuration, error) {
 	}
 	return &config, nil
 }
-
-// func Load(reader io.Reader) (*Dictionary, error) {
-// 	config, err := Parse(reader)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-//
-// 	dict := New()
-// 	for _, container := range config.Containers {
-// 		def := &ContainerDefinition{
-// 			Key:  container.Key,
-// 			Name: container.DocDescription,
-// 			// SchemaVersion: container.CreatedSchemaVersion,
-// 			ExtVersion: 1,
-// 		}
-// 		for _, field := range container.Fields {
-// 			def.Fields = append(def.Fields, FieldDefinition{
-// 				Name: field.DocDescription,
-// 				// Type: field.Datatype,
-// 			})
-// 		}
-// 		dict.Add(def)
-// 	}
-//
-// 	return dict, nil
-// }

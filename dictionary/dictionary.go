@@ -71,8 +71,8 @@ func (d *Dictionary) Search(key, schemaVersion, extVersion int) (*ContainerDefin
 	if d.configuration != nil {
 		for _, c := range d.configuration.Containers {
 			if c.Key == key &&
-				schemaVersion >= c.CreatedSchemaVersion &&
-				schemaVersion < c.DeletedSchemaVersion {
+				(c.CreatedSchemaVersion == 0 || schemaVersion >= c.CreatedSchemaVersion) &&
+				(c.DeletedSchemaVersion == 0 || schemaVersion < c.DeletedSchemaVersion) {
 				container = c
 				isFound = true
 			}
@@ -81,19 +81,25 @@ func (d *Dictionary) Search(key, schemaVersion, extVersion int) (*ContainerDefin
 
 	// TODO Construct new ContainerDefinition from Extension Schema
 
-	fields := make([]FieldDefinition, len(container.Fields))
-	for i, f := range container.Fields {
+	fields := []FieldDefinition{}
+	number := 0
+	for _, f := range container.Fields {
 		dataType, err := stringToType(f.Datatype)
 		if err != nil {
 			return nil, err
 		}
 
-		fields[i] = FieldDefinition{
-			Number:      i,
-			Name:        f.ID,
-			Type:        dataType,
-			IsMulti:     f.IsList || f.IsArray,
-			IsContainer: f.StructID != "",
+		if (f.CreatedSchemaVersion == 0 || schemaVersion >= f.CreatedSchemaVersion) &&
+			f.DeletedSchemaVersion == 0 || schemaVersion < f.DeletedSchemaVersion {
+			fieldDefinition := FieldDefinition{
+				Number:      number,
+				Name:        f.ID,
+				Type:        dataType,
+				IsMulti:     f.IsList || f.IsArray,
+				IsContainer: f.StructID != "",
+			}
+			fields = append(fields, fieldDefinition)
+			number++
 		}
 	}
 
