@@ -29,21 +29,24 @@ type compositeKey struct {
 }
 
 type Dictionary struct {
-	definitions   map[compositeKey]ContainerDefinition
-	configuration *Configuration // Can be nil
+	definitions     map[compositeKey]ContainerDefinition
+	matrixxSchema   *Configuration
+	extensionSchema *Configuration
 }
 
 func New() *Dictionary {
 	return &Dictionary{
-		definitions:   make(map[compositeKey]ContainerDefinition),
-		configuration: nil,
+		definitions:     make(map[compositeKey]ContainerDefinition),
+		matrixxSchema:   nil,
+		extensionSchema: nil,
 	}
 }
 
-func NewWithConfig(config *Configuration) *Dictionary {
+func NewWithConfig(matrixxSchema *Configuration, extensionSchema *Configuration) *Dictionary {
 	return &Dictionary{
-		definitions:   make(map[compositeKey]ContainerDefinition),
-		configuration: config,
+		definitions:     make(map[compositeKey]ContainerDefinition),
+		matrixxSchema:   matrixxSchema,
+		extensionSchema: extensionSchema,
 	}
 }
 
@@ -65,21 +68,35 @@ func stringToType(datatype string) (field.Type, error) {
 
 func (d *Dictionary) Search(key, schemaVersion, extVersion int) (*ContainerDefinition, error) {
 	isFound := false
+	isPrivate := false
 	var container Container
 
-	// Construct new ContainerDefinition from Base Schema Configuration
-	if d.configuration != nil {
-		for _, c := range d.configuration.Containers {
+	// Construct new ContainerDefinition from Base Matrixx Schema Configuration
+	if d.matrixxSchema != nil {
+		for _, c := range d.matrixxSchema.Containers {
 			if c.Key == key &&
 				(c.CreatedSchemaVersion == 0 || schemaVersion >= c.CreatedSchemaVersion) &&
 				(c.DeletedSchemaVersion == 0 || schemaVersion < c.DeletedSchemaVersion) {
 				container = c
 				isFound = true
+				break
 			}
 		}
 	}
 
-	// TODO Construct new ContainerDefinition from Extension Schema
+	// Construct new ContainerDefinition from Extension Schema
+	if d.extensionSchema != nil {
+		for _, c := range d.extensionSchema.Containers {
+			if c.Key == key &&
+				(c.CreatedSchemaVersion == 0 || extVersion >= c.CreatedSchemaVersion) &&
+				(c.DeletedSchemaVersion == 0 || extVersion < c.DeletedSchemaVersion) {
+				container = c
+				isFound = true
+				isPrivate = true
+				break
+			}
+		}
+	}
 
 	fields := []FieldDefinition{}
 	number := 0
@@ -89,17 +106,32 @@ func (d *Dictionary) Search(key, schemaVersion, extVersion int) (*ContainerDefin
 			return nil, err
 		}
 
-		if (f.CreatedSchemaVersion == 0 || schemaVersion >= f.CreatedSchemaVersion) &&
-			f.DeletedSchemaVersion == 0 || schemaVersion < f.DeletedSchemaVersion {
-			fieldDefinition := FieldDefinition{
-				Number:      number,
-				Name:        f.ID,
-				Type:        dataType,
-				IsMulti:     f.IsList || f.IsArray,
-				IsContainer: f.StructID != "",
+		if !isPrivate {
+			if (f.CreatedSchemaVersion == 0 || schemaVersion >= f.CreatedSchemaVersion) &&
+				f.DeletedSchemaVersion == 0 || schemaVersion < f.DeletedSchemaVersion {
+				fieldDefinition := FieldDefinition{
+					Number:      number,
+					Name:        f.ID,
+					Type:        dataType,
+					IsMulti:     f.IsList || f.IsArray,
+					IsContainer: f.StructID != "",
+				}
+				fields = append(fields, fieldDefinition)
+				number++
 			}
-			fields = append(fields, fieldDefinition)
-			number++
+		} else {
+			if (f.CreatedSchemaVersion == 0 || extVersion >= f.CreatedSchemaVersion) &&
+				f.DeletedSchemaVersion == 0 || extVersion < f.DeletedSchemaVersion {
+				fieldDefinition := FieldDefinition{
+					Number:      number,
+					Name:        f.ID,
+					Type:        dataType,
+					IsMulti:     f.IsList || f.IsArray,
+					IsContainer: f.StructID != "",
+				}
+				fields = append(fields, fieldDefinition)
+				number++
+			}
 		}
 	}
 
@@ -119,6 +151,9 @@ func (d *Dictionary) Search(key, schemaVersion, extVersion int) (*ContainerDefin
 }
 
 func (d *Dictionary) Lookup(key, schemaVersion, extVersion int) (*ContainerDefinition, bool) {
+
+	// TODO add cache
+
 	ckey := compositeKey{
 		key:           key,
 		schemaVersion: schemaVersion,
