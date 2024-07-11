@@ -3,6 +3,8 @@ package dictionary
 import (
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestLoad(t *testing.T) {
@@ -184,8 +186,31 @@ func TestLoad(t *testing.T) {
     `
 
 	config, err := Load(strings.NewReader(data))
-	if err != nil {
-		t.Error("Error parsing XML:", err)
-	}
-	t.Logf("Parsed configuration: %+v", config)
+	assert.Nil(t, err)
+
+	assert.Equal(t, "Enum5GDeliveryReportRequested", config.Subtypes[0].ID)
+	assert.Equal(t, "unsigned int16", config.Subtypes[0].Datatype)
+	assert.Equal(t, "YES", config.Subtypes[0].Values[0].Value)
+	assert.Equal(t, "NO", config.Subtypes[0].Values[1].Value)
+
+	mtxDiamMsg := config.Containers[2]
+	assert.Equal(t, "MtxDiamMsg", mtxDiamMsg.ID)
+
+	assert.Equal(t, 94, mtxDiamMsg.Key)
+	assert.Equal(t, 4300, mtxDiamMsg.CreatedSchemaVersion)
+	assert.Equal(t, 0, mtxDiamMsg.DeletedSchemaVersion)
+	assert.Equal(t, "4300", mtxDiamMsg.BaseContainer.ID)
+	assert.Equal(t, "MtxChrgMsg", mtxDiamMsg.BaseContainer.Name)
+
+	// First fields
+	assert.Equal(t, "ProxyFlag", mtxDiamMsg.Fields[0].ID)
+	assert.Equal(t, 4300, mtxDiamMsg.Fields[0].CreatedSchemaVersion)
+	assert.Equal(t, 0, mtxDiamMsg.Fields[0].DeletedSchemaVersion)
+	assert.Equal(t, "bool", mtxDiamMsg.Fields[0].Datatype)
+
+	// Second fields
+	assert.Equal(t, "ApplicationId", mtxDiamMsg.Fields[1].ID)
+	assert.Equal(t, 4300, mtxDiamMsg.Fields[1].CreatedSchemaVersion)
+	assert.Equal(t, 0, mtxDiamMsg.Fields[1].DeletedSchemaVersion)
+	assert.Equal(t, "unsigned int32", mtxDiamMsg.Fields[1].Datatype)
 }

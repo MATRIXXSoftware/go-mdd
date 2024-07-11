@@ -25,9 +25,9 @@ type Value struct {
 type Container struct {
 	ID                   string        `xml:"id,attr"`
 	DocDescription       string        `xml:"doc_description"`
-	Key                  string        `xml:"key"`
-	CreatedSchemaVersion string        `xml:"created_schema_version"`
-	DeletedSchemaVersion string        `xml:"deleted_schema_version"`
+	Key                  int           `xml:"key"`
+	CreatedSchemaVersion int           `xml:"created_schema_version"`
+	DeletedSchemaVersion int           `xml:"deleted_schema_version"`
 	BaseContainer        BaseContainer `xml:"base_container,omitempty"`
 	Fields               []Field       `xml:"field"`
 }
@@ -45,11 +45,11 @@ type Field struct {
 	IsList               bool   `xml:"list"`
 	StructID             string `xml:"struct_id"`
 	SubTypeReference     string `xml:"subtype_reference"`
-	CreatedSchemaVersion string `xml:"created_schema_version"`
-	DeletedSchemaVersion string `xml:"deleted_schema_version"`
+	CreatedSchemaVersion int    `xml:"created_schema_version"`
+	DeletedSchemaVersion int    `xml:"deleted_schema_version"`
 }
 
-func Parse(reader io.Reader) (*Configuration, error) {
+func Load(reader io.Reader) (*Configuration, error) {
 	data, err := io.ReadAll(reader)
 	if err != nil {
 		return nil, err
@@ -63,7 +63,28 @@ func Parse(reader io.Reader) (*Configuration, error) {
 	return &config, nil
 }
 
-func Load(reader io.Reader) (*Configuration, error) {
-	// convert to Dictionary
-	return Parse(reader)
-}
+// func Load(reader io.Reader) (*Dictionary, error) {
+// 	config, err := Parse(reader)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+//
+// 	dict := New()
+// 	for _, container := range config.Containers {
+// 		def := &ContainerDefinition{
+// 			Key:  container.Key,
+// 			Name: container.DocDescription,
+// 			// SchemaVersion: container.CreatedSchemaVersion,
+// 			ExtVersion: 1,
+// 		}
+// 		for _, field := range container.Fields {
+// 			def.Fields = append(def.Fields, FieldDefinition{
+// 				Name: field.DocDescription,
+// 				// Type: field.Datatype,
+// 			})
+// 		}
+// 		dict.Add(def)
+// 	}
+//
+// 	return dict, nil
+// }

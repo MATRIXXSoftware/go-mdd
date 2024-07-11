@@ -1,6 +1,10 @@
 package dictionary
 
-import "github.com/matrixxsoftware/go-mdd/mdd/field"
+import (
+	"fmt"
+
+	"github.com/matrixxsoftware/go-mdd/mdd/field"
+)
 
 type ContainerDefinition struct {
 	Name          string
@@ -25,13 +29,87 @@ type compositeKey struct {
 }
 
 type Dictionary struct {
-	definitions map[compositeKey]ContainerDefinition
+	definitions   map[compositeKey]ContainerDefinition
+	configuration *Configuration // Can be nil
 }
 
 func New() *Dictionary {
 	return &Dictionary{
-		definitions: make(map[compositeKey]ContainerDefinition),
+		definitions:   make(map[compositeKey]ContainerDefinition),
+		configuration: nil,
 	}
+}
+
+func NewWithConfig(config *Configuration) *Dictionary {
+	return &Dictionary{
+		definitions:   make(map[compositeKey]ContainerDefinition),
+		configuration: config,
+	}
+}
+
+func stringToType(datatype string) (field.Type, error) {
+	switch datatype {
+	case "string":
+		return field.String, nil
+	case "bool":
+		return field.Bool, nil
+	case "int8":
+		return field.Int8, nil
+	case "int32":
+		return field.Int32, nil
+		// TODO
+	default:
+		return field.Unknown, fmt.Errorf("Unknown datatype: %s", datatype)
+	}
+}
+
+func (d *Dictionary) Search(key, schemaVersion, extVersion int) (*ContainerDefinition, error) {
+	isFound := false
+	var container Container
+
+	// Construct new ContainerDefinition from Base Schema Configuration
+	if d.configuration != nil {
+		for _, c := range d.configuration.Containers {
+			if c.Key == key &&
+				schemaVersion >= c.CreatedSchemaVersion &&
+				schemaVersion < c.DeletedSchemaVersion {
+				container = c
+				isFound = true
+			}
+		}
+	}
+
+	// TODO Construct new ContainerDefinition from Extension Schema
+
+	fields := make([]FieldDefinition, len(container.Fields))
+	for i, f := range container.Fields {
+		dataType, err := stringToType(f.Datatype)
+		if err != nil {
+			return nil, err
+		}
+
+		fields[i] = FieldDefinition{
+			Number:      i,
+			Name:        f.ID,
+			Type:        dataType,
+			IsMulti:     f.IsList || f.IsArray,
+			IsContainer: f.StructID != "",
+		}
+	}
+
+	if !isFound {
+		return nil, fmt.Errorf("Container not found: key=%d, schemaVersion=%d, extVersion=%d",
+			key, schemaVersion, extVersion)
+	}
+
+	def := &ContainerDefinition{
+		Name:          container.ID,
+		Key:           container.Key,
+		SchemaVersion: schemaVersion,
+		ExtVersion:    extVersion,
+		Fields:        fields,
+	}
+	return def, nil
 }
 
 func (d *Dictionary) Lookup(key, schemaVersion, extVersion int) (*ContainerDefinition, bool) {
