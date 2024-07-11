@@ -8,7 +8,7 @@ import (
 )
 
 func TestLookup(t *testing.T) {
-	config := &Configuration{
+	matrixxSchema := &Configuration{
 		Containers: []Container{
 			{
 				ID:                   "Container1",
@@ -40,7 +40,7 @@ func TestLookup(t *testing.T) {
 		},
 	}
 
-	dict := NewWithConfig(config)
+	dict := NewWithConfig(matrixxSchema, nil)
 
 	// Not Found, SchemaVersion not in range
 	def, err := dict.Search(10001, 5280, 1)
@@ -99,7 +99,7 @@ func TestLookup2(t *testing.T) {
 		},
 	}
 
-	dict := NewWithConfig(config)
+	dict := NewWithConfig(config, nil)
 
 	// Not Found, SchemaVersion not in range
 	def, err := dict.Search(10002, 5250, 1)
