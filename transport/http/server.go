@@ -17,7 +17,6 @@ type ServerTransport struct {
 }
 
 func NewServerTransport(addr string, codec mdd.Codec) (*ServerTransport, error) {
-
 	return &ServerTransport{
 		address: addr,
 		Codec:   codec,
