@@ -49,7 +49,7 @@ type Field struct {
 	DeletedSchemaVersion int    `xml:"deleted_schema_version"`
 }
 
-func Load(reader io.Reader) (*Configuration, error) {
+func Parse(reader io.Reader) (*Configuration, error) {
 	data, err := io.ReadAll(reader)
 	if err != nil {
 		return nil, err

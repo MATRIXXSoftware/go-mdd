@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestLoad(t *testing.T) {
+func TestParse(t *testing.T) {
 	data := `
     <configuration>
         <subtype id='Enum5GDeliveryReportRequested'>
@@ -185,7 +185,7 @@ func TestLoad(t *testing.T) {
     </configuration>
     `
 
-	config, err := Load(strings.NewReader(data))
+	config, err := Parse(strings.NewReader(data))
 	assert.Nil(t, err)
 
 	assert.Equal(t, "Enum5GDeliveryReportRequested", config.Subtypes[0].ID)
