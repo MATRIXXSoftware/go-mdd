@@ -44,7 +44,7 @@ func New() *Dictionary {
 	}
 }
 
-func NewWithConfig(matrixxSchema *Configuration, extensionSchema *Configuration) *Dictionary {
+func NewWithSchema(matrixxSchema *Configuration, extensionSchema *Configuration) *Dictionary {
 	return &Dictionary{
 		definitions:     make(map[compositeKey]ContainerDefinition),
 		matrixxSchema:   matrixxSchema,

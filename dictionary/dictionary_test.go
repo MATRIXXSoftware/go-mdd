@@ -40,7 +40,7 @@ func TestLookup(t *testing.T) {
 		},
 	}
 
-	dict := NewWithConfig(matrixxSchema, nil)
+	dict := NewWithSchema(matrixxSchema, nil)
 
 	// Not Found, SchemaVersion not in range
 	def, found := dict.Lookup(10001, 5280, 1)
@@ -97,7 +97,7 @@ func TestLookup2(t *testing.T) {
 		},
 	}
 
-	dict := NewWithConfig(config, nil)
+	dict := NewWithSchema(config, nil)
 
 	// Not Found, SchemaVersion not in range
 	def, found := dict.Lookup(10002, 5250, 1)
