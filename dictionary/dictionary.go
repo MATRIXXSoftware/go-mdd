@@ -66,7 +66,7 @@ func stringToType(datatype string) (field.Type, error) {
 	}
 }
 
-func (d *Dictionary) Search(key, schemaVersion, extVersion int) (*ContainerDefinition, error) {
+func (d *Dictionary) search(key, schemaVersion, extVersion int) (*ContainerDefinition, error) {
 	var container Container
 	var isFound, isPrivate bool
 
@@ -145,14 +145,22 @@ func (d *Dictionary) Search(key, schemaVersion, extVersion int) (*ContainerDefin
 
 func (d *Dictionary) Lookup(key, schemaVersion, extVersion int) (*ContainerDefinition, bool) {
 
-	// TODO add cache
-
 	ckey := compositeKey{
 		key:           key,
 		schemaVersion: schemaVersion,
 		extVersion:    extVersion,
 	}
-	return d.get(ckey)
+	result, found := d.get(ckey)
+
+	if !found {
+		def, err := d.search(key, schemaVersion, extVersion)
+		if err == nil {
+			d.Add(def)
+			return def, true
+		}
+	}
+
+	return result, found
 }
 
 // Add RWLock in future

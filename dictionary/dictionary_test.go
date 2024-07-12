@@ -43,18 +43,16 @@ func TestLookup(t *testing.T) {
 	dict := NewWithConfig(matrixxSchema, nil)
 
 	// Not Found, SchemaVersion not in range
-	def, err := dict.Search(10001, 5280, 1)
-	assert.NotNil(t, err)
-	assert.Equal(t, "Container not found: key=10001, schemaVersion=5280, extVersion=1", err.Error())
+	def, found := dict.Lookup(10001, 5280, 1)
+	assert.False(t, found)
 
 	// Not Found, Key not err
-	def, err = dict.Search(10002, 5262, 1)
-	assert.NotNil(t, err)
-	assert.Equal(t, "Container not found: key=10002, schemaVersion=5262, extVersion=1", err.Error())
+	def, found = dict.Lookup(10002, 5262, 1)
+	assert.False(t, found)
 
 	// Found
-	def, err = dict.Search(10001, 5262, 1)
-	assert.Nil(t, err)
+	def, found = dict.Lookup(10001, 5262, 1)
+	assert.True(t, found)
 	assert.Equal(t, 10001, def.Key)
 	assert.Equal(t, 5262, def.SchemaVersion)
 	assert.Equal(t, 1, def.ExtVersion)
@@ -102,13 +100,12 @@ func TestLookup2(t *testing.T) {
 	dict := NewWithConfig(config, nil)
 
 	// Not Found, SchemaVersion not in range
-	def, err := dict.Search(10002, 5250, 1)
-	assert.NotNil(t, err)
-	assert.Equal(t, "Container not found: key=10002, schemaVersion=5250, extVersion=1", err.Error())
+	def, found := dict.Lookup(10002, 5250, 1)
+	assert.False(t, found)
 
 	// Found
-	def, err = dict.Search(10002, 5262, 1)
-	assert.Nil(t, err)
+	def, found = dict.Lookup(10002, 5262, 1)
+	assert.True(t, found)
 	assert.Equal(t, 10002, def.Key)
 	assert.Equal(t, 5262, def.SchemaVersion)
 	assert.Equal(t, 1, def.ExtVersion)
