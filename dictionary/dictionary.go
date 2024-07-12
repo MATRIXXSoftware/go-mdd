@@ -67,77 +67,70 @@ func stringToType(datatype string) (field.Type, error) {
 }
 
 func (d *Dictionary) Search(key, schemaVersion, extVersion int) (*ContainerDefinition, error) {
-	isFound := false
-	isPrivate := false
 	var container Container
+	var isFound, isPrivate bool
 
-	// Construct new ContainerDefinition from Base Matrixx Schema Configuration
+	filterContainer := func(containers []Container, version int) bool {
+		for _, c := range containers {
+			if c.Key == key &&
+				(c.CreatedSchemaVersion == 0 || version >= c.CreatedSchemaVersion) &&
+				(c.DeletedSchemaVersion == 0 || version < c.DeletedSchemaVersion) {
+				container = c
+				isFound = true
+				return true
+			}
+		}
+		return false
+	}
+
 	if d.matrixxSchema != nil {
-		for _, c := range d.matrixxSchema.Containers {
-			if c.Key == key &&
-				(c.CreatedSchemaVersion == 0 || schemaVersion >= c.CreatedSchemaVersion) &&
-				(c.DeletedSchemaVersion == 0 || schemaVersion < c.DeletedSchemaVersion) {
-				container = c
-				isFound = true
-				break
-			}
-		}
+		isFound = filterContainer(d.matrixxSchema.Containers, schemaVersion)
 	}
 
-	// Construct new ContainerDefinition from Extension Schema
 	if d.extensionSchema != nil {
-		for _, c := range d.extensionSchema.Containers {
-			if c.Key == key &&
-				(c.CreatedSchemaVersion == 0 || extVersion >= c.CreatedSchemaVersion) &&
-				(c.DeletedSchemaVersion == 0 || extVersion < c.DeletedSchemaVersion) {
-				container = c
-				isFound = true
-				isPrivate = true
-				break
-			}
-		}
-	}
-
-	fields := []FieldDefinition{}
-	number := 0
-	for _, f := range container.Fields {
-		dataType, err := stringToType(f.Datatype)
-		if err != nil {
-			return nil, err
-		}
-
-		if !isPrivate {
-			if (f.CreatedSchemaVersion == 0 || schemaVersion >= f.CreatedSchemaVersion) &&
-				f.DeletedSchemaVersion == 0 || schemaVersion < f.DeletedSchemaVersion {
-				fieldDefinition := FieldDefinition{
-					Number:      number,
-					Name:        f.ID,
-					Type:        dataType,
-					IsMulti:     f.IsList || f.IsArray,
-					IsContainer: f.StructID != "",
-				}
-				fields = append(fields, fieldDefinition)
-				number++
-			}
-		} else {
-			if (f.CreatedSchemaVersion == 0 || extVersion >= f.CreatedSchemaVersion) &&
-				f.DeletedSchemaVersion == 0 || extVersion < f.DeletedSchemaVersion {
-				fieldDefinition := FieldDefinition{
-					Number:      number,
-					Name:        f.ID,
-					Type:        dataType,
-					IsMulti:     f.IsList || f.IsArray,
-					IsContainer: f.StructID != "",
-				}
-				fields = append(fields, fieldDefinition)
-				number++
-			}
-		}
+		isFound = filterContainer(d.extensionSchema.Containers, extVersion)
+		isPrivate = isFound
 	}
 
 	if !isFound {
 		return nil, fmt.Errorf("Container not found: key=%d, schemaVersion=%d, extVersion=%d",
 			key, schemaVersion, extVersion)
+	}
+
+	filterField := func(fields []Field, version int) ([]FieldDefinition, error) {
+		var result []FieldDefinition
+		number := 0
+
+		for _, f := range fields {
+			dataType, err := stringToType(f.Datatype)
+			if err != nil {
+				return nil, err
+			}
+			if (f.CreatedSchemaVersion == 0 || version >= f.CreatedSchemaVersion) &&
+				f.DeletedSchemaVersion == 0 || version < f.DeletedSchemaVersion {
+				result = append(result, FieldDefinition{
+					Number:      number,
+					Name:        f.ID,
+					Type:        dataType,
+					IsMulti:     f.IsList || f.IsArray,
+					IsContainer: f.StructID != "",
+				})
+				number++
+			}
+		}
+		return result, nil
+	}
+
+	var fields []FieldDefinition
+	var err error
+	if isPrivate {
+		fields, err = filterField(container.Fields, extVersion)
+	} else {
+		fields, err = filterField(container.Fields, schemaVersion)
+	}
+
+	if err != nil {
+		return nil, err
 	}
 
 	def := &ContainerDefinition{
