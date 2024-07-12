@@ -2,6 +2,7 @@ package dictionary
 
 import (
 	"fmt"
+	"sync"
 
 	"github.com/matrixxsoftware/go-mdd/mdd/field"
 )
@@ -32,6 +33,7 @@ type Dictionary struct {
 	definitions     map[compositeKey]ContainerDefinition
 	matrixxSchema   *Configuration
 	extensionSchema *Configuration
+	mu              sync.RWMutex
 }
 
 func New() *Dictionary {
@@ -153,23 +155,26 @@ func (d *Dictionary) Lookup(key, schemaVersion, extVersion int) (*ContainerDefin
 	result, found := d.get(ckey)
 
 	if !found {
-		def, err := d.search(key, schemaVersion, extVersion)
+		result, err := d.search(key, schemaVersion, extVersion)
 		if err == nil {
-			d.Add(def)
-			return def, true
+			d.Add(result)
+			return result, true
 		}
 	}
 
 	return result, found
 }
 
-// Add RWLock in future
 func (d *Dictionary) get(ckey compositeKey) (*ContainerDefinition, bool) {
+	d.mu.RLock()
+	defer d.mu.RUnlock()
 	containerDefinition, ok := d.definitions[ckey]
 	return &containerDefinition, ok
 }
 
 func (d *Dictionary) Add(def *ContainerDefinition) {
+	d.mu.Lock()
+	defer d.mu.Unlock()
 	ckey := compositeKey{
 		key:           def.Key,
 		schemaVersion: def.SchemaVersion,
