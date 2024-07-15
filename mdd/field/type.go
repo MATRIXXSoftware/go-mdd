@@ -28,7 +28,7 @@ const (
 	Date
 	Time
 	DateTime
-	// Blob
+	Blob
 	// BufferID
 	// FieldKey
 	// PhoneNo

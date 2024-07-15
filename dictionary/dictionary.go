@@ -54,14 +54,42 @@ func NewWithSchema(matrixxSchema *Configuration, extensionSchema *Configuration)
 
 func stringToType(datatype string) (field.Type, error) {
 	switch datatype {
+	case "struct":
+		return field.Struct, nil
 	case "string":
 		return field.String, nil
 	case "bool":
 		return field.Bool, nil
 	case "int8":
 		return field.Int8, nil
+	case "int16":
+		return field.Int16, nil
 	case "int32":
 		return field.Int32, nil
+	case "int64":
+		return field.Int64, nil
+	case "int128":
+		return field.Int128, nil
+	case "unsigned int8":
+		return field.UInt8, nil
+	case "unsigned int16":
+		return field.UInt16, nil
+	case "unsigned int32":
+		return field.UInt32, nil
+	case "unsigned int64":
+		return field.UInt64, nil
+	case "unsigned int128":
+		return field.UInt128, nil
+	case "decimal":
+		return field.Decimal, nil
+	case "date":
+		return field.Date, nil
+	case "time":
+		return field.Time, nil
+	case "datetime":
+		return field.DateTime, nil
+	case "blob":
+		return field.Blob, nil
 		// TODO
 	default:
 		return field.Unknown, fmt.Errorf("Unknown datatype: %s", datatype)
