@@ -5,6 +5,7 @@ import (
 	"sync"
 
 	"github.com/matrixxsoftware/go-mdd/mdd/field"
+	log "github.com/sirupsen/logrus"
 )
 
 type ContainerDefinition struct {
@@ -60,15 +61,15 @@ func stringToType(datatype string) (field.Type, error) {
 		return field.String, nil
 	case "bool":
 		return field.Bool, nil
-	case "int8":
+	case "signed int8":
 		return field.Int8, nil
-	case "int16":
+	case "signed int16":
 		return field.Int16, nil
-	case "int32":
+	case "signed int32":
 		return field.Int32, nil
-	case "int64":
+	case "signed int64":
 		return field.Int64, nil
-	case "int128":
+	case "signed int128":
 		return field.Int128, nil
 	case "unsigned int8":
 		return field.UInt8, nil
@@ -88,9 +89,17 @@ func stringToType(datatype string) (field.Type, error) {
 		return field.Time, nil
 	case "datetime":
 		return field.DateTime, nil
-	case "blob":
-		return field.Blob, nil
-		// TODO
+	// TODO
+	// case "blob":
+	// 	return field.Blob, nil
+	// case "buffer id":
+	// 	return field.BufferID, nil
+	// case "field key":
+	// 	return field.FieldKey, nil
+	// case "phone number":
+	// 	return field.PhoneNo, nil
+	// case "object id":
+	// 	return field.ObjectID, nil
 	default:
 		return field.Unknown, fmt.Errorf("Unknown datatype: %s", datatype)
 	}
@@ -188,6 +197,7 @@ func (d *Dictionary) Lookup(key, schemaVersion, extVersion int) (*ContainerDefin
 			d.Add(result)
 			return result, true
 		}
+		log.Errorf("Fail to lookup %v, %v", ckey, err)
 	}
 
 	return result, found

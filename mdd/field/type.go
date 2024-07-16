@@ -29,9 +29,9 @@ const (
 	Time
 	DateTime
 	Blob
-	// BufferID
-	// FieldKey
-	// PhoneNo
+	BufferID
+	FieldKey
+	PhoneNo
 	// ObjectID
 )
 
