@@ -3,6 +3,8 @@ package dictionary
 import (
 	"encoding/xml"
 	"io"
+
+	"golang.org/x/net/html/charset"
 )
 
 type Configuration struct {
@@ -50,15 +52,12 @@ type Field struct {
 }
 
 func Parse(reader io.Reader) (*Configuration, error) {
-	data, err := io.ReadAll(reader)
-	if err != nil {
-		return nil, err
-	}
+	decoder := xml.NewDecoder(reader)
+	decoder.CharsetReader = charset.NewReaderLabel
 
 	var config Configuration
-	err = xml.Unmarshal(data, &config)
-	if err != nil {
-		return nil, err
+	if err := decoder.Decode(&config); err != nil {
+		panic(err)
 	}
 	return &config, nil
 }
