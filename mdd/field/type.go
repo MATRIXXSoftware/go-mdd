@@ -32,7 +32,7 @@ const (
 	BufferID
 	FieldKey
 	PhoneNo
-	// ObjectID
+	ObjectID
 )
 
 func (t Type) String() string {

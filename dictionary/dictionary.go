@@ -90,16 +90,16 @@ func stringToType(datatype string) (field.Type, error) {
 	case "datetime":
 		return field.DateTime, nil
 	// TODO
-	// case "blob":
-	// 	return field.Blob, nil
-	// case "buffer id":
-	// 	return field.BufferID, nil
-	// case "field key":
-	// 	return field.FieldKey, nil
-	// case "phone number":
-	// 	return field.PhoneNo, nil
-	// case "object id":
-	// 	return field.ObjectID, nil
+	case "blob":
+		return field.Blob, nil
+	case "buffer id":
+		return field.BufferID, nil
+	case "field key":
+		return field.FieldKey, nil
+	case "phone number":
+		return field.PhoneNo, nil
+	case "object id":
+		return field.ObjectID, nil
 	default:
 		return field.Unknown, fmt.Errorf("Unknown datatype: %s", datatype)
 	}
@@ -126,7 +126,7 @@ func (d *Dictionary) search(key, schemaVersion, extVersion int) (*ContainerDefin
 		isFound = filterContainer(d.matrixxSchema.Containers, schemaVersion)
 	}
 
-	if d.extensionSchema != nil {
+	if !isFound && d.extensionSchema != nil {
 		isFound = filterContainer(d.extensionSchema.Containers, extVersion)
 		isPrivate = isFound
 	}
