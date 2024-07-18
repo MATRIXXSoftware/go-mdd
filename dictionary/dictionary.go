@@ -89,7 +89,6 @@ func stringToType(datatype string) (field.Type, error) {
 		return field.Time, nil
 	case "datetime":
 		return field.DateTime, nil
-	// TODO
 	case "blob":
 		return field.Blob, nil
 	case "buffer id":

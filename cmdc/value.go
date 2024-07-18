@@ -2,9 +2,11 @@ package cmdc
 
 import (
 	"errors"
+	"fmt"
 	"math/big"
 	"strconv"
 	"time"
+	"unicode"
 
 	"github.com/matrixxsoftware/go-mdd/mdd"
 )
@@ -353,4 +355,48 @@ func decodeTimeValue(b []byte) (*time.Time, error) {
 		return nil, err
 	}
 	return &dt, nil
+}
+
+// TODO add tests for phone number
+func encodePhoneNoValue(v string) ([]byte, error) {
+	return []byte(v), nil
+}
+
+func decodePhoneNoValue(b []byte) (string, error) {
+	value := string(b)
+	if len(value) > 15 {
+		return "", fmt.Errorf("phone number too long. Value limited to 15 digits")
+	}
+	for _, c := range value {
+		switch c {
+		case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '*', '#':
+			// valid character, do nothing
+		default:
+			return "", fmt.Errorf("bad format: '%s' is not a valid phone number", value)
+		}
+	}
+	return value, nil
+}
+
+// TODO add tests for object id
+func encodeObjectIDValue(v string) ([]byte, error) {
+	return []byte(v), nil
+}
+
+func decodeObjectIDValue(b []byte) (string, error) {
+	value := string(b)
+	var colonCount, dashCount int
+	for _, c := range value {
+		if c == ':' {
+			colonCount++
+		} else if c == '-' {
+			dashCount++
+		} else if !unicode.IsDigit(c) {
+			return "", fmt.Errorf("invalid ObjectId format '%s'. Parts must be numeric", value)
+		}
+	}
+	if !(dashCount == 3 && colonCount == 0) && !(dashCount == 0 && colonCount == 3) {
+		return "", fmt.Errorf("invalid ObjectId format '%s'", value)
+	}
+	return string(b), nil
 }

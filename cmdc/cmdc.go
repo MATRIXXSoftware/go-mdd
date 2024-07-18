@@ -63,8 +63,22 @@ func (c *Cmdc) DecodeField(f *mdd.Field) (interface{}, error) {
 			return decodeStructValue(f.Codec, f.Data)
 		case field.Decimal:
 			return decodeDecimalValue(f.Data)
+		case field.Date:
+			return decodeDateValue(f.Data)
+		case field.Time:
+			return decodeTimeValue(f.Data)
 		case field.DateTime:
 			return decodeDateTimeValue(f.Data)
+		case field.Blob:
+			return decodeStringValue(f.Data)
+		case field.BufferID:
+			return decodeStringValue(f.Data)
+		case field.FieldKey:
+			return decodeStringValue(f.Data)
+		case field.PhoneNo:
+			return decodePhoneNoValue(f.Data)
+		case field.ObjectID:
+			return decodeObjectIDValue(f.Data)
 		default:
 			return nil, fmt.Errorf("unsupported field type '%v'", f.Type)
 		}
@@ -100,8 +114,22 @@ func (c *Cmdc) DecodeField(f *mdd.Field) (interface{}, error) {
 			})
 		case field.Decimal:
 			return decodeListValue(f.Data, decodeDecimalValue)
+		case field.Date:
+			return decodeListValue(f.Data, decodeDateValue)
+		case field.Time:
+			return decodeListValue(f.Data, decodeTimeValue)
 		case field.DateTime:
 			return decodeListValue(f.Data, decodeDateTimeValue)
+		case field.Blob:
+			return decodeListValue(f.Data, decodeStringValue)
+		case field.BufferID:
+			return decodeListValue(f.Data, decodeStringValue)
+		case field.FieldKey:
+			return decodeListValue(f.Data, decodeStringValue)
+		case field.PhoneNo:
+			return decodeListValue(f.Data, decodePhoneNoValue)
+		case field.ObjectID:
+			return decodeListValue(f.Data, decodeObjectIDValue)
 		default:
 			return nil, fmt.Errorf("unsupported field type '%v'", f.Type)
 		}
@@ -148,8 +176,22 @@ func (cmdc *Cmdc) EncodeField(f *mdd.Field) ([]byte, error) {
 			return encodeStructValue(f.Codec, f.Value.(*mdd.Containers))
 		case field.Decimal:
 			return encodeDecimalValue(f.Value.(*big.Float))
+		case field.Date:
+			return encodeDateValue(f.Value.(*time.Time))
+		case field.Time:
+			return encodeTimeValue(f.Value.(*time.Time))
 		case field.DateTime:
 			return encodeDateTimeValue(f.Value.(*time.Time))
+		case field.Blob:
+			return encodeStringValue(f.Value.(string))
+		case field.BufferID:
+			return encodeStringValue(f.Value.(string))
+		case field.FieldKey:
+			return encodeStringValue(f.Value.(string))
+		case field.PhoneNo:
+			return encodePhoneNoValue(f.Value.(string))
+		case field.ObjectID:
+			return encodeObjectIDValue(f.Value.(string))
 		default:
 			return nil, fmt.Errorf("unsupported field type '%v'", f.Type)
 		}
@@ -185,10 +227,23 @@ func (cmdc *Cmdc) EncodeField(f *mdd.Field) ([]byte, error) {
 			})
 		case field.Decimal:
 			return encodeListValue(f.Value.([]*big.Float), encodeDecimalValue)
+		case field.Date:
+			return encodeListValue(f.Value.([]*time.Time), encodeDateValue)
+		case field.Time:
+			return encodeListValue(f.Value.([]*time.Time), encodeTimeValue)
 		case field.DateTime:
 			return encodeListValue(f.Value.([]*time.Time), encodeDateTimeValue)
+		case field.Blob:
+			return encodeListValue(f.Value.([]string), encodeStringValue)
+		case field.BufferID:
+			return encodeListValue(f.Value.([]string), encodeStringValue)
+		case field.FieldKey:
+			return encodeListValue(f.Value.([]string), encodeStringValue)
+		case field.PhoneNo:
+			return encodeListValue(f.Value.([]string), encodePhoneNoValue)
+		case field.ObjectID:
+			return encodeListValue(f.Value.([]string), encodeObjectIDValue)
 		default:
-			// TODO: Add support for other types
 			return nil, fmt.Errorf("unsupported field type '%v'", f.Type)
 		}
 	}
