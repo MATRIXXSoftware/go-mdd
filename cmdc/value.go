@@ -357,7 +357,6 @@ func decodeTimeValue(b []byte) (*time.Time, error) {
 	return &dt, nil
 }
 
-// TODO add tests for phone number
 func encodePhoneNoValue(v string) ([]byte, error) {
 	return []byte(v), nil
 }
@@ -378,7 +377,6 @@ func decodePhoneNoValue(b []byte) (string, error) {
 	return value, nil
 }
 
-// TODO add tests for object id
 func encodeObjectIDValue(v string) ([]byte, error) {
 	return []byte(v), nil
 }
