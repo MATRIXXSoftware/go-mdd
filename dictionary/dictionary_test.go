@@ -30,7 +30,7 @@ func TestLookup(t *testing.T) {
 					},
 					{
 						ID:                   "Field3",
-						Datatype:             "int32",
+						Datatype:             "signed int32",
 						CreatedSchemaVersion: 5200,
 						DeletedSchemaVersion: 5270,
 						IsArray:              true,
