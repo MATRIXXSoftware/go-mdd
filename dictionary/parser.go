@@ -57,7 +57,7 @@ func Parse(reader io.Reader) (*Configuration, error) {
 
 	var config Configuration
 	if err := decoder.Decode(&config); err != nil {
-		panic(err)
+		return nil, err
 	}
 	return &config, nil
 }
