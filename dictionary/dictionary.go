@@ -5,7 +5,6 @@ import (
 	"sync"
 
 	"github.com/matrixxsoftware/go-mdd/mdd/field"
-	log "github.com/sirupsen/logrus"
 )
 
 type ContainerDefinition struct {
@@ -181,7 +180,7 @@ func (d *Dictionary) search(key, schemaVersion, extVersion int) (*ContainerDefin
 	return def, nil
 }
 
-func (d *Dictionary) Lookup(key, schemaVersion, extVersion int) (*ContainerDefinition, bool) {
+func (d *Dictionary) Lookup(key, schemaVersion, extVersion int) (*ContainerDefinition, bool, error) {
 
 	ckey := compositeKey{
 		key:           key,
@@ -194,12 +193,12 @@ func (d *Dictionary) Lookup(key, schemaVersion, extVersion int) (*ContainerDefin
 		result, err := d.search(key, schemaVersion, extVersion)
 		if err == nil {
 			d.Add(result)
-			return result, true
+			return result, true, nil
 		}
-		log.Errorf("Fail to lookup %v, %v", ckey, err)
+		return nil, found, err
 	}
 
-	return result, found
+	return result, found, nil
 }
 
 func (d *Dictionary) get(ckey compositeKey) (*ContainerDefinition, bool) {

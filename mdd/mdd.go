@@ -7,6 +7,7 @@ import (
 
 	"github.com/matrixxsoftware/go-mdd/dictionary"
 	"github.com/matrixxsoftware/go-mdd/mdd/field"
+	"google.golang.org/appengine/log"
 )
 
 type Containers struct {
@@ -52,14 +53,19 @@ func (c *Containers) GetContainer(key int) *Container {
 func (c *Containers) LoadDefinition(definitions *dictionary.Dictionary) {
 	for i := range c.Containers {
 		container := &c.Containers[i]
-		definition, ok := definitions.Lookup(
+		definition, found, err := definitions.Lookup(
 			container.Header.Key,
 			container.Header.SchemaVersion,
 			container.Header.ExtVersion,
 		)
-		if ok {
-			container.LoadDefinition(definition)
+		if !found {
+			log.Errorf(nil, "definition not found for key: %d, schemaVersion: %d, extVersion: %d: %v",
+				container.Header.Key,
+				container.Header.SchemaVersion,
+				container.Header.ExtVersion,
+				err)
 		}
+		container.LoadDefinition(definition)
 	}
 
 }
@@ -68,16 +74,17 @@ func (c *Containers) CastVersion(definitions *dictionary.Dictionary, schemaVersi
 	newContainers := &Containers{}
 	for i := range c.Containers {
 		container := &c.Containers[i]
-		targetDefinition, ok := definitions.Lookup(
+		targetDefinition, found, err := definitions.Lookup(
 			container.Header.Key,
 			schemaVersion,
 			extVersion,
 		)
-		if !ok {
-			return nil, fmt.Errorf("definition not found for key: %d, schemaVersion: %d, extVersion: %d",
+		if !found {
+			return nil, fmt.Errorf("definition not found for key: %d, schemaVersion: %d, extVersion: %d: %v",
 				container.Header.Key,
 				schemaVersion,
-				extVersion)
+				extVersion,
+				err)
 		}
 
 		newContainer, err := container.CastVersion(targetDefinition)
