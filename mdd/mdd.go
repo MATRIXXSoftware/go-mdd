@@ -7,7 +7,7 @@ import (
 
 	"github.com/matrixxsoftware/go-mdd/dictionary"
 	"github.com/matrixxsoftware/go-mdd/mdd/field"
-	"google.golang.org/appengine/log"
+	log "github.com/sirupsen/logrus"
 )
 
 type Containers struct {
@@ -59,7 +59,7 @@ func (c *Containers) LoadDefinition(definitions *dictionary.Dictionary) {
 			container.Header.ExtVersion,
 		)
 		if !found {
-			log.Errorf(nil, "definition not found for key: %d, schemaVersion: %d, extVersion: %d: %v",
+			log.Errorf("Error lookup definition key %d schemaVersion %d extVersion %d: %v\n",
 				container.Header.Key,
 				container.Header.SchemaVersion,
 				container.Header.ExtVersion,
@@ -80,7 +80,7 @@ func (c *Containers) CastVersion(definitions *dictionary.Dictionary, schemaVersi
 			extVersion,
 		)
 		if !found {
-			return nil, fmt.Errorf("definition not found for key: %d, schemaVersion: %d, extVersion: %d: %v",
+			return nil, fmt.Errorf("Error lookup definition key %d schemaVersion %d extVersion %d: %v",
 				container.Header.Key,
 				schemaVersion,
 				extVersion,

@@ -54,7 +54,12 @@ func (cmdc *Cmdc) decodeContainer(data []byte) (*mdd.Container, int, error) {
 			container.Header.ExtVersion,
 		)
 		if !found {
-			return &container, idx, err
+			return &container, idx,
+				fmt.Errorf("Error lookup definition key %d schemaVersion %d extVersion %d: %v",
+					container.Header.Key,
+					container.Header.SchemaVersion,
+					container.Header.ExtVersion,
+					err)
 		}
 		container.LoadDefinition(definition)
 	}

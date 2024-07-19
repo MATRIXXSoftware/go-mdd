@@ -141,7 +141,7 @@ func (d *Dictionary) search(key, schemaVersion, extVersion int) (*ContainerDefin
 		for _, f := range fields {
 			dataType, err := stringToType(f.Datatype)
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("Error field %s: %v", f.ID, err)
 			}
 			if (f.CreatedSchemaVersion == 0 || version >= f.CreatedSchemaVersion) &&
 				f.DeletedSchemaVersion == 0 || version < f.DeletedSchemaVersion {
