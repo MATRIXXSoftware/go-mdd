@@ -76,9 +76,9 @@ func (c *Cmdc) DecodeField(f *mdd.Field) (interface{}, error) {
 		case field.FieldKey:
 			return decodeStringValue(f.Data)
 		case field.PhoneNo:
-			return decodePhoneNoValue(f.Data)
+			return field.NewPhoneNo(f.Data)
 		case field.ObjectID:
-			return decodeObjectIDValue(f.Data)
+			return field.NewObjectID(f.Data)
 		default:
 			return nil, fmt.Errorf("unsupported field type '%v'", f.Type)
 		}
@@ -127,9 +127,9 @@ func (c *Cmdc) DecodeField(f *mdd.Field) (interface{}, error) {
 		case field.FieldKey:
 			return decodeListValue(f.Data, decodeStringValue)
 		case field.PhoneNo:
-			return decodeListValue(f.Data, decodePhoneNoValue)
+			return decodeListValue(f.Data, field.NewPhoneNo)
 		case field.ObjectID:
-			return decodeListValue(f.Data, decodeObjectIDValue)
+			return decodeListValue(f.Data, field.NewObjectID)
 		default:
 			return nil, fmt.Errorf("unsupported field type '%v'", f.Type)
 		}
@@ -189,9 +189,9 @@ func (cmdc *Cmdc) EncodeField(f *mdd.Field) ([]byte, error) {
 		case field.FieldKey:
 			return encodeStringValue(f.Value.(string))
 		case field.PhoneNo:
-			return encodePhoneNoValue(f.Value.(string))
+			return f.Value.(field.MtxPhoneNo).Bytes()
 		case field.ObjectID:
-			return encodeObjectIDValue(f.Value.(string))
+			return f.Value.(field.MtxObjectID).Bytes()
 		default:
 			return nil, fmt.Errorf("unsupported field type '%v'", f.Type)
 		}
@@ -240,9 +240,13 @@ func (cmdc *Cmdc) EncodeField(f *mdd.Field) ([]byte, error) {
 		case field.FieldKey:
 			return encodeListValue(f.Value.([]string), encodeStringValue)
 		case field.PhoneNo:
-			return encodeListValue(f.Value.([]string), encodePhoneNoValue)
+			return encodeListValue(f.Value.([]field.MtxPhoneNo), func(v field.MtxPhoneNo) ([]byte, error) {
+				return v.Bytes()
+			})
 		case field.ObjectID:
-			return encodeListValue(f.Value.([]string), encodeObjectIDValue)
+			return encodeListValue(f.Value.([]field.MtxObjectID), func(v field.MtxObjectID) ([]byte, error) {
+				return v.Bytes()
+			})
 		default:
 			return nil, fmt.Errorf("unsupported field type '%v'", f.Type)
 		}
