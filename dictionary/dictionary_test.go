@@ -43,19 +43,16 @@ func TestLookup(t *testing.T) {
 	dict := NewWithSchema(matrixxSchema, nil)
 
 	// Not Found, SchemaVersion not in range
-	def, found, err := dict.Lookup(10001, 5280, 1)
+	def, err := dict.Lookup(10001, 5280, 1)
 	assert.Equal(t, "Container not found: key=10001, schemaVersion=5280, extVersion=1", err.Error())
-	assert.False(t, found)
 
 	// Not Found, Key not err
-	def, found, err = dict.Lookup(10002, 5262, 1)
+	def, err = dict.Lookup(10002, 5262, 1)
 	assert.Equal(t, "Container not found: key=10002, schemaVersion=5262, extVersion=1", err.Error())
-	assert.False(t, found)
 
 	// Found
-	def, found, err = dict.Lookup(10001, 5262, 1)
+	def, err = dict.Lookup(10001, 5262, 1)
 	assert.Nil(t, err)
-	assert.True(t, found)
 	assert.Equal(t, 10001, def.Key)
 	assert.Equal(t, 5262, def.SchemaVersion)
 	assert.Equal(t, 1, def.ExtVersion)
@@ -103,14 +100,12 @@ func TestLookup2(t *testing.T) {
 	dict := NewWithSchema(config, nil)
 
 	// Not Found, SchemaVersion not in range
-	def, found, err := dict.Lookup(10002, 5250, 1)
+	def, err := dict.Lookup(10002, 5250, 1)
 	assert.Equal(t, "Container not found: key=10002, schemaVersion=5250, extVersion=1", err.Error())
-	assert.False(t, found)
 
 	// Found
-	def, found, err = dict.Lookup(10002, 5262, 1)
+	def, err = dict.Lookup(10002, 5262, 1)
 	assert.Nil(t, err)
-	assert.True(t, found)
 	assert.Equal(t, 10002, def.Key)
 	assert.Equal(t, 5262, def.SchemaVersion)
 	assert.Equal(t, 1, def.ExtVersion)
@@ -156,8 +151,7 @@ func TestLookupInvalidType(t *testing.T) {
 	dict := NewWithSchema(config, nil)
 
 	// Not Found, Data type invalid
-	def, found, err := dict.Lookup(10002, 5270, 1)
-	assert.Equal(t, "Unknown datatype: int8", err.Error())
-	assert.False(t, found)
+	def, err := dict.Lookup(10002, 5270, 1)
+	assert.Equal(t, "Error field Field2 Container key=10002, schemaVersion=5270, extVersion=1: Unknown datatype: int8", err.Error())
 	assert.Nil(t, def)
 }

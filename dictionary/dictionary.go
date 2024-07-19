@@ -141,7 +141,8 @@ func (d *Dictionary) search(key, schemaVersion, extVersion int) (*ContainerDefin
 		for _, f := range fields {
 			dataType, err := stringToType(f.Datatype)
 			if err != nil {
-				return nil, fmt.Errorf("Error field %s: %v", f.ID, err)
+				return nil, fmt.Errorf("Error field %s Container key=%d, schemaVersion=%d, extVersion=%d: %v",
+					f.ID, key, schemaVersion, extVersion, err)
 			}
 			if (f.CreatedSchemaVersion == 0 || version >= f.CreatedSchemaVersion) &&
 				f.DeletedSchemaVersion == 0 || version < f.DeletedSchemaVersion {
@@ -180,7 +181,7 @@ func (d *Dictionary) search(key, schemaVersion, extVersion int) (*ContainerDefin
 	return def, nil
 }
 
-func (d *Dictionary) Lookup(key, schemaVersion, extVersion int) (*ContainerDefinition, bool, error) {
+func (d *Dictionary) Lookup(key, schemaVersion, extVersion int) (*ContainerDefinition, error) {
 
 	ckey := compositeKey{
 		key:           key,
@@ -193,12 +194,12 @@ func (d *Dictionary) Lookup(key, schemaVersion, extVersion int) (*ContainerDefin
 		result, err := d.search(key, schemaVersion, extVersion)
 		if err == nil {
 			d.Add(result)
-			return result, true, nil
+			return result, nil
 		}
-		return nil, found, err
+		return nil, err
 	}
 
-	return result, found, nil
+	return result, nil
 }
 
 func (d *Dictionary) get(ckey compositeKey) (*ContainerDefinition, bool) {
