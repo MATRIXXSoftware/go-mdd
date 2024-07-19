@@ -332,6 +332,32 @@ func NewNullField(fieldType field.Type) *Field {
 	}
 }
 
+func NewObjectIDField(value string) *Field {
+	objectIDValue, err := field.NewObjectID([]byte(value))
+	if err != nil {
+		return NewNullField(field.ObjectID)
+	}
+	return &Field{
+		Type:        field.ObjectID,
+		Value:       objectIDValue,
+		IsMulti:     false,
+		IsContainer: false,
+	}
+}
+
+func NewPhoneNoField(value string) *Field {
+	phoneNoValue, err := field.NewPhoneNo([]byte(value))
+	if err != nil {
+		return NewNullField(field.PhoneNo)
+	}
+	return &Field{
+		Type:        field.PhoneNo,
+		Value:       phoneNoValue,
+		IsMulti:     false,
+		IsContainer: false,
+	}
+}
+
 func getFieldType(t reflect.Type) field.Type {
 	switch t.Kind() {
 	case reflect.String:
