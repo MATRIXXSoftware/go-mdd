@@ -200,6 +200,8 @@ func TestDecodeExample1(t *testing.T) {
 }
 
 func TestEncodeExample(t *testing.T) {
+	objectIDValue, _ := field.NewObjectID([]byte("1-5-1-5"))
+	phoneNoValue, _ := field.NewPhoneNo([]byte("*1234567890#"))
 	containers := mdd.Containers{
 		Containers: []mdd.Container{
 			{
@@ -210,8 +212,8 @@ func TestEncodeExample(t *testing.T) {
 					*mdd.NewBasicField(int32(-20)),
 					*mdd.NewBasicField("value"),
 					*mdd.NewBasicListField([]int32{10, 20}),
-					*mdd.NewObjectIDField("1-5-1-5"),
-					*mdd.NewPhoneNoField("*1234567890#"),
+					{Type: field.ObjectID, Value: objectIDValue},
+					{Type: field.PhoneNo, Value: phoneNoValue},
 				},
 			},
 		},
