@@ -49,35 +49,33 @@ func (c *Containers) GetContainer(key int) *Container {
 	return nil
 }
 
-func (c *Containers) LoadDefinition(definitions *dictionary.Dictionary) {
+func (c *Containers) LoadDefinition(definitions *dictionary.Dictionary) error {
 	for i := range c.Containers {
 		container := &c.Containers[i]
-		definition, ok := definitions.Lookup(
+		definition, err := definitions.Lookup(
 			container.Header.Key,
 			container.Header.SchemaVersion,
 			container.Header.ExtVersion,
 		)
-		if ok {
-			container.LoadDefinition(definition)
+		if err != nil {
+			return fmt.Errorf("error lookup: %v", err)
 		}
+		container.LoadDefinition(definition)
 	}
-
+	return nil
 }
 
 func (c *Containers) CastVersion(definitions *dictionary.Dictionary, schemaVersion int, extVersion int) (*Containers, error) {
 	newContainers := &Containers{}
 	for i := range c.Containers {
 		container := &c.Containers[i]
-		targetDefinition, ok := definitions.Lookup(
+		targetDefinition, err := definitions.Lookup(
 			container.Header.Key,
 			schemaVersion,
 			extVersion,
 		)
-		if !ok {
-			return nil, fmt.Errorf("definition not found for key: %d, schemaVersion: %d, extVersion: %d",
-				container.Header.Key,
-				schemaVersion,
-				extVersion)
+		if err != nil {
+			return nil, err
 		}
 
 		newContainer, err := container.CastVersion(targetDefinition)

@@ -54,15 +54,50 @@ func NewWithSchema(matrixxSchema *Configuration, extensionSchema *Configuration)
 
 func stringToType(datatype string) (field.Type, error) {
 	switch datatype {
+	case "struct":
+		return field.Struct, nil
 	case "string":
 		return field.String, nil
 	case "bool":
 		return field.Bool, nil
-	case "int8":
+	case "signed int8":
 		return field.Int8, nil
-	case "int32":
+	case "signed int16":
+		return field.Int16, nil
+	case "signed int32":
 		return field.Int32, nil
-		// TODO
+	case "signed int64":
+		return field.Int64, nil
+	case "signed int128":
+		return field.Int128, nil
+	case "unsigned int8":
+		return field.UInt8, nil
+	case "unsigned int16":
+		return field.UInt16, nil
+	case "unsigned int32":
+		return field.UInt32, nil
+	case "unsigned int64":
+		return field.UInt64, nil
+	case "unsigned int128":
+		return field.UInt128, nil
+	case "decimal":
+		return field.Decimal, nil
+	case "date":
+		return field.Date, nil
+	case "time":
+		return field.Time, nil
+	case "datetime":
+		return field.DateTime, nil
+	case "blob":
+		return field.Blob, nil
+	case "buffer id":
+		return field.BufferID, nil
+	case "field key":
+		return field.FieldKey, nil
+	case "phone number":
+		return field.PhoneNo, nil
+	case "object id":
+		return field.ObjectID, nil
 	default:
 		return field.Unknown, fmt.Errorf("Unknown datatype: %s", datatype)
 	}
@@ -89,7 +124,7 @@ func (d *Dictionary) search(key, schemaVersion, extVersion int) (*ContainerDefin
 		isFound = filterContainer(d.matrixxSchema.Containers, schemaVersion)
 	}
 
-	if d.extensionSchema != nil {
+	if !isFound && d.extensionSchema != nil {
 		isFound = filterContainer(d.extensionSchema.Containers, extVersion)
 		isPrivate = isFound
 	}
@@ -106,7 +141,8 @@ func (d *Dictionary) search(key, schemaVersion, extVersion int) (*ContainerDefin
 		for _, f := range fields {
 			dataType, err := stringToType(f.Datatype)
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("Error field %s Container key=%d, schemaVersion=%d, extVersion=%d: %v",
+					f.ID, key, schemaVersion, extVersion, err)
 			}
 			if (f.CreatedSchemaVersion == 0 || version >= f.CreatedSchemaVersion) &&
 				f.DeletedSchemaVersion == 0 || version < f.DeletedSchemaVersion {
@@ -145,7 +181,7 @@ func (d *Dictionary) search(key, schemaVersion, extVersion int) (*ContainerDefin
 	return def, nil
 }
 
-func (d *Dictionary) Lookup(key, schemaVersion, extVersion int) (*ContainerDefinition, bool) {
+func (d *Dictionary) Lookup(key, schemaVersion, extVersion int) (*ContainerDefinition, error) {
 
 	ckey := compositeKey{
 		key:           key,
@@ -158,11 +194,12 @@ func (d *Dictionary) Lookup(key, schemaVersion, extVersion int) (*ContainerDefin
 		result, err := d.search(key, schemaVersion, extVersion)
 		if err == nil {
 			d.Add(result)
-			return result, true
+			return result, nil
 		}
+		return nil, err
 	}
 
-	return result, found
+	return result, nil
 }
 
 func (d *Dictionary) get(ckey compositeKey) (*ContainerDefinition, bool) {

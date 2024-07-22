@@ -28,11 +28,11 @@ const (
 	Date
 	Time
 	DateTime
-	// Blob
-	// BufferID
-	// FieldKey
-	// PhoneNo
-	// ObjectID
+	Blob
+	BufferID
+	FieldKey
+	PhoneNo
+	ObjectID
 )
 
 func (t Type) String() string {
@@ -67,6 +67,22 @@ func (t Type) String() string {
 		return "UInt128"
 	case Decimal:
 		return "Decimal"
+	case Date:
+		return "Date"
+	case Time:
+		return "Time"
+	case DateTime:
+		return "DateTime"
+	case Blob:
+		return "Blob"
+	case BufferID:
+		return "BufferID"
+	case FieldKey:
+		return "FieldKey"
+	case PhoneNo:
+		return "PhoneNo"
+	case ObjectID:
+		return "ObjectID"
 	default:
 		return "Undefined"
 	}

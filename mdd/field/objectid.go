@@ -5,9 +5,10 @@ import (
 	"unicode"
 )
 
-type ObjectID string
+type MtxObjectID string
 
-func NewObjectID(value string) (ObjectID, error) {
+func NewObjectID(b []byte) (MtxObjectID, error) {
+	value := string(b)
 	var colonCount, dashCount int
 	for _, c := range value {
 		if c == ':' {
@@ -21,5 +22,9 @@ func NewObjectID(value string) (ObjectID, error) {
 	if !(dashCount == 3 && colonCount == 0) && !(dashCount == 0 && colonCount == 3) {
 		return "", fmt.Errorf("invalid ObjectId format '%s'", value)
 	}
-	return ObjectID(value), nil
+	return MtxObjectID(value), nil
+}
+
+func (o MtxObjectID) Bytes() ([]byte, error) {
+	return []byte(o), nil
 }

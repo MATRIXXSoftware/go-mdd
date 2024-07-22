@@ -154,7 +154,7 @@ func TestDecodeSampleData3(t *testing.T) {
 }
 
 func TestDecodeExample1(t *testing.T) {
-	data := "<1,18,0,-6,5222,2>[1,,-20,(5:value),{10,20}]"
+	data := "<1,18,0,-6,5222,2>[1,,-20,(5:value),{10,20},1-5-1-5,*1234567890#]"
 	decoded, err := codec.Decode([]byte(data))
 	assert.Nil(t, err)
 
@@ -165,6 +165,8 @@ func TestDecodeExample1(t *testing.T) {
 			{Type: field.Int32},
 			{Type: field.String},
 			{Type: field.Int32, IsMulti: true},
+			{Type: field.ObjectID},
+			{Type: field.PhoneNo},
 		},
 	})
 
@@ -187,9 +189,19 @@ func TestDecodeExample1(t *testing.T) {
 	v, err = decoded.Containers[0].GetField(4).GetValue()
 	assert.Nil(t, err)
 	assert.Equal(t, []int32{10, 20}, v)
+
+	v, err = decoded.Containers[0].GetField(5).GetValue()
+	assert.Nil(t, err)
+	assert.Equal(t, field.MtxObjectID("1-5-1-5"), v)
+
+	v, err = decoded.Containers[0].GetField(6).GetValue()
+	assert.Nil(t, err)
+	assert.Equal(t, field.MtxPhoneNo("*1234567890#"), v)
 }
 
 func TestEncodeExample(t *testing.T) {
+	objectIDValue, _ := field.NewObjectID([]byte("1-5-1-5"))
+	phoneNoValue, _ := field.NewPhoneNo([]byte("*1234567890#"))
 	containers := mdd.Containers{
 		Containers: []mdd.Container{
 			{
@@ -200,12 +212,14 @@ func TestEncodeExample(t *testing.T) {
 					*mdd.NewBasicField(int32(-20)),
 					*mdd.NewBasicField("value"),
 					*mdd.NewBasicListField([]int32{10, 20}),
+					{Type: field.ObjectID, Value: objectIDValue},
+					{Type: field.PhoneNo, Value: phoneNoValue},
 				},
 			},
 		},
 	}
 
-	expected := "<1,18,0,-6,5222,2>[1,,-20,(5:value),{10,20}]"
+	expected := "<1,18,0,-6,5222,2>[1,,-20,(5:value),{10,20},1-5-1-5,*1234567890#]"
 	encoded, err := codec.Encode(&containers)
 
 	assert.Nil(t, err)

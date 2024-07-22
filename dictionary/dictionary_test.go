@@ -30,7 +30,7 @@ func TestLookup(t *testing.T) {
 					},
 					{
 						ID:                   "Field3",
-						Datatype:             "int32",
+						Datatype:             "signed int32",
 						CreatedSchemaVersion: 5200,
 						DeletedSchemaVersion: 5270,
 						IsArray:              true,
@@ -43,16 +43,16 @@ func TestLookup(t *testing.T) {
 	dict := NewWithSchema(matrixxSchema, nil)
 
 	// Not Found, SchemaVersion not in range
-	def, found := dict.Lookup(10001, 5280, 1)
-	assert.False(t, found)
+	def, err := dict.Lookup(10001, 5280, 1)
+	assert.Equal(t, "Container not found: key=10001, schemaVersion=5280, extVersion=1", err.Error())
 
 	// Not Found, Key not err
-	def, found = dict.Lookup(10002, 5262, 1)
-	assert.False(t, found)
+	def, err = dict.Lookup(10002, 5262, 1)
+	assert.Equal(t, "Container not found: key=10002, schemaVersion=5262, extVersion=1", err.Error())
 
 	// Found
-	def, found = dict.Lookup(10001, 5262, 1)
-	assert.True(t, found)
+	def, err = dict.Lookup(10001, 5262, 1)
+	assert.Nil(t, err)
 	assert.Equal(t, 10001, def.Key)
 	assert.Equal(t, 5262, def.SchemaVersion)
 	assert.Equal(t, 1, def.ExtVersion)
@@ -100,12 +100,12 @@ func TestLookup2(t *testing.T) {
 	dict := NewWithSchema(config, nil)
 
 	// Not Found, SchemaVersion not in range
-	def, found := dict.Lookup(10002, 5250, 1)
-	assert.False(t, found)
+	def, err := dict.Lookup(10002, 5250, 1)
+	assert.Equal(t, "Container not found: key=10002, schemaVersion=5250, extVersion=1", err.Error())
 
 	// Found
-	def, found = dict.Lookup(10002, 5262, 1)
-	assert.True(t, found)
+	def, err = dict.Lookup(10002, 5262, 1)
+	assert.Nil(t, err)
 	assert.Equal(t, 10002, def.Key)
 	assert.Equal(t, 5262, def.SchemaVersion)
 	assert.Equal(t, 1, def.ExtVersion)
@@ -125,4 +125,33 @@ func TestLookup2(t *testing.T) {
 	assert.Equal(t, field.Bool, def.Fields[1].Type)
 	assert.False(t, def.Fields[1].IsMulti)
 	assert.False(t, def.Fields[1].IsContainer)
+}
+
+func TestLookupInvalidType(t *testing.T) {
+	config := &Configuration{
+		Containers: []Container{
+			{
+				ID:                   "Container2",
+				Key:                  10002,
+				CreatedSchemaVersion: 5260,
+				Fields: []Field{
+					{
+						ID:       "Field1",
+						Datatype: "string",
+					},
+					{
+						ID:       "Field2",
+						Datatype: "int8",
+					},
+				},
+			},
+		},
+	}
+
+	dict := NewWithSchema(config, nil)
+
+	// Not Found, Data type invalid
+	def, err := dict.Lookup(10002, 5270, 1)
+	assert.Equal(t, "Error field Field2 Container key=10002, schemaVersion=5270, extVersion=1: Unknown datatype: int8", err.Error())
+	assert.Nil(t, def)
 }
