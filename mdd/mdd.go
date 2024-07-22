@@ -7,7 +7,6 @@ import (
 
 	"github.com/matrixxsoftware/go-mdd/dictionary"
 	"github.com/matrixxsoftware/go-mdd/mdd/field"
-	log "github.com/sirupsen/logrus"
 )
 
 type Containers struct {
@@ -50,7 +49,7 @@ func (c *Containers) GetContainer(key int) *Container {
 	return nil
 }
 
-func (c *Containers) LoadDefinition(definitions *dictionary.Dictionary) {
+func (c *Containers) LoadDefinition(definitions *dictionary.Dictionary) error {
 	for i := range c.Containers {
 		container := &c.Containers[i]
 		definition, err := definitions.Lookup(
@@ -59,11 +58,11 @@ func (c *Containers) LoadDefinition(definitions *dictionary.Dictionary) {
 			container.Header.ExtVersion,
 		)
 		if err != nil {
-			log.Errorf("Error lookup: %v", err)
+			return fmt.Errorf("error lookup: %v", err)
 		}
 		container.LoadDefinition(definition)
 	}
-
+	return nil
 }
 
 func (c *Containers) CastVersion(definitions *dictionary.Dictionary, schemaVersion int, extVersion int) (*Containers, error) {
