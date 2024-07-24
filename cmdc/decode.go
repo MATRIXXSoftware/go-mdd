@@ -176,7 +176,12 @@ func (cmdc *Cmdc) decodeBody(data []byte) ([]mdd.Field, int, error) {
 		Codec:       cmdc,
 		Value:       nil,
 	}
-	fields = append(fields, field)
+
+	// Avoid adding empty field to first element
+	// Example: <0,0,0,5222,1>[]
+	if len(fields) > 0 || len(fieldData) > 0 {
+		fields = append(fields, field)
+	}
 
 	return fields, idx, nil
 }
