@@ -389,3 +389,12 @@ func TestInvalidBody7(t *testing.T) {
 	_, err := codec.Decode([]byte(mdc))
 	assert.Equal(t, errors.New("invalid cMDC body, mismatch string length"), err)
 }
+
+func TestEmptyBody(t *testing.T) {
+	mdc := "<1,18,0,-6,5222,2>[]"
+	containers, err := codec.Decode([]byte(mdc))
+	assert.Nil(t, err)
+
+	container0 := containers.Containers[0]
+	assert.Equal(t, 0, len(container0.Fields))
+}

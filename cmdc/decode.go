@@ -177,8 +177,7 @@ func (cmdc *Cmdc) decodeBody(data []byte) ([]mdd.Field, int, error) {
 		Value:       nil,
 	}
 
-	// Avoid adding empty field to first element
-	// Example: <0,0,0,5222,1>[]
+	// Ensure empty body (ie. <1,18,0,-6,5222,1>[]) has 0 fields
 	if len(fields) > 0 || len(fieldData) > 0 {
 		fields = append(fields, field)
 	}
