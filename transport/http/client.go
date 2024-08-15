@@ -18,6 +18,26 @@ type ClientTransport struct {
 	Codec      mdd.Codec
 }
 
+func NewTLSClientTransport(addr string, codec mdd.Codec) (*ClientTransport, error) {
+	httpClient := http.Client{
+		Transport: &http2.Transport{
+			AllowHTTP: true,
+			DialTLS: func(network, addr string, cfg *tls.Config) (net.Conn, error) {
+				return net.Dial(network, addr)
+			},
+			TLSClientConfig: &tls.Config{
+				InsecureSkipVerify: true,
+			},
+		},
+	}
+
+	return &ClientTransport{
+		httpClient: httpClient,
+		address:    addr,
+		Codec:      codec,
+	}, nil
+}
+
 func NewClientTransport(addr string, codec mdd.Codec) (*ClientTransport, error) {
 	httpClient := http.Client{
 		Transport: &http2.Transport{

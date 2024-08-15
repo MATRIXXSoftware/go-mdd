@@ -2,6 +2,7 @@ package tcp
 
 import (
 	"context"
+	"crypto/tls"
 	"errors"
 	"io"
 	"net"
@@ -34,7 +35,20 @@ func NewClientTransport(addr string, codec mdd.Codec) (*ClientTransport, error) 
 	if err != nil {
 		return nil, err
 	}
+	return newClientTransport(conn, codec)
+}
 
+func NewTLSClientTransport(addr string, codec mdd.Codec) (*ClientTransport, error) {
+	conn, err := tls.Dial("tcp", addr, &tls.Config{
+		InsecureSkipVerify: true,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return newClientTransport(conn, codec)
+}
+
+func newClientTransport(conn net.Conn, codec mdd.Codec) (*ClientTransport, error) {
 	c := &ClientTransport{
 		conn:     conn,
 		Codec:    codec,

@@ -2,6 +2,7 @@ package tcp
 
 import (
 	"context"
+	"crypto/tls"
 	"io"
 	"net"
 	"sync"
@@ -15,6 +16,27 @@ type ServerTransport struct {
 	handler func(*mdd.Containers) (*mdd.Containers, error)
 	Codec   mdd.Codec
 	mu      sync.Mutex
+}
+
+func NewTLSServerTransport(addr string, codec mdd.Codec, certFile, keyFile string) (*ServerTransport, error) {
+	cert, err := tls.LoadX509KeyPair(certFile, keyFile)
+	if err != nil {
+		return nil, err
+	}
+
+	config := &tls.Config{
+		Certificates: []tls.Certificate{cert},
+	}
+
+	ln, err := tls.Listen("tcp", addr, config)
+	if err != nil {
+		return nil, err
+	}
+
+	return &ServerTransport{
+		ln:    ln,
+		Codec: codec,
+	}, nil
 }
 
 func NewServerTransport(addr string, codec mdd.Codec) (*ServerTransport, error) {

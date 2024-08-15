@@ -14,6 +14,18 @@ type ServerTransport struct {
 	address string
 	handler func(*mdd.Containers) (*mdd.Containers, error)
 	Codec   mdd.Codec
+	// TLS
+	CertFile string
+	KeyFile  string
+}
+
+func NewTLSServerTransport(addr string, codec mdd.Codec, certFile, keyFile string) (*ServerTransport, error) {
+	return &ServerTransport{
+		address:  addr,
+		Codec:    codec,
+		CertFile: certFile,
+		KeyFile:  keyFile,
+	}, nil
 }
 
 func NewServerTransport(addr string, codec mdd.Codec) (*ServerTransport, error) {
@@ -29,7 +41,12 @@ func (s *ServerTransport) Listen() error {
 		Addr:    s.address,
 		Handler: h2c.NewHandler(http.HandlerFunc(s.requestHandler), h2s),
 	}
-	return server.ListenAndServe()
+
+	if s.CertFile != "" && s.KeyFile != "" {
+		return server.ListenAndServeTLS(s.CertFile, s.KeyFile)
+	} else {
+		return server.ListenAndServe()
+	}
 }
 
 func (s *ServerTransport) Close() error {
