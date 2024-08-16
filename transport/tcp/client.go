@@ -3,9 +3,11 @@ package tcp
 import (
 	"context"
 	"crypto/tls"
+	"crypto/x509"
 	"errors"
 	"io"
 	"net"
+	"os"
 	"sync"
 	"sync/atomic"
 
@@ -42,9 +44,20 @@ func NewClientTransport(addr string, codec mdd.Codec, opts ...config.ClientOptio
 	var err error
 
 	if options.Tls {
-		conn, err = tls.Dial("tcp", addr, &tls.Config{
+		certPool := x509.NewCertPool()
+		if options.CertFile != "" {
+			caCert, err := os.ReadFile(options.CertFile)
+			if err != nil {
+				return nil, err
+			}
+			certPool.AppendCertsFromPEM(caCert)
+		}
+
+		config := &tls.Config{
+			RootCAs:            certPool,
 			InsecureSkipVerify: options.InsecureSkipVerify,
-		})
+		}
+		conn, err = tls.Dial("tcp", addr, config)
 	} else {
 		conn, err = net.Dial("tcp", addr)
 	}
