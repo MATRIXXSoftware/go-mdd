@@ -9,6 +9,7 @@ import (
 	"net/http"
 
 	"github.com/matrixxsoftware/go-mdd/mdd"
+	"github.com/matrixxsoftware/go-mdd/transport/config"
 	"golang.org/x/net/http2"
 )
 
@@ -18,34 +19,33 @@ type ClientTransport struct {
 	Codec      mdd.Codec
 }
 
-func NewTLSClientTransport(addr string, codec mdd.Codec) (*ClientTransport, error) {
-	httpClient := http.Client{
-		Transport: &http2.Transport{
-			AllowHTTP: true,
-			DialTLS: func(network, addr string, cfg *tls.Config) (net.Conn, error) {
-				return net.Dial(network, addr)
-			},
-			TLSClientConfig: &tls.Config{
-				InsecureSkipVerify: true,
-			},
-		},
+func NewClientTransport(addr string, codec mdd.Codec, opts ...config.ClientOption) (*ClientTransport, error) {
+
+	options := config.DefaultClientOptions()
+	for _, opt := range opts {
+		opt(&options)
 	}
 
-	return &ClientTransport{
-		httpClient: httpClient,
-		address:    addr,
-		Codec:      codec,
-	}, nil
-}
+	var httpClient http.Client
 
-func NewClientTransport(addr string, codec mdd.Codec) (*ClientTransport, error) {
-	httpClient := http.Client{
-		Transport: &http2.Transport{
-			AllowHTTP: true,
-			DialTLS: func(network, addr string, cfg *tls.Config) (net.Conn, error) {
-				return net.Dial(network, addr)
+	if options.Tls {
+		httpClient = http.Client{
+			Transport: &http2.Transport{
+				AllowHTTP: true,
+				TLSClientConfig: &tls.Config{
+					InsecureSkipVerify: options.InsecureSkipVerify,
+				},
 			},
-		},
+		}
+	} else {
+		httpClient = http.Client{
+			Transport: &http2.Transport{
+				AllowHTTP: true,
+				DialTLS: func(network, addr string, cfg *tls.Config) (net.Conn, error) {
+					return net.Dial(network, addr)
+				},
+			},
+		}
 	}
 
 	return &ClientTransport{

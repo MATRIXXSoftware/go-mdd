@@ -10,34 +10,9 @@ import (
 	"sync/atomic"
 
 	"github.com/matrixxsoftware/go-mdd/mdd"
+	"github.com/matrixxsoftware/go-mdd/transport/config"
 	log "github.com/sirupsen/logrus"
 )
-
-type clientOptions struct {
-	Tls                bool
-	InsecureSkipVerify bool
-	CertFile           string
-}
-
-type ClientOption func(*clientOptions)
-
-func WithTls() func(*clientOptions) {
-	return func(o *clientOptions) {
-		o.Tls = true
-	}
-}
-
-func WithInsecureSkipVerify() func(*clientOptions) {
-	return func(o *clientOptions) {
-		o.InsecureSkipVerify = true
-	}
-}
-
-func WithCertFile(certFile string) func(*clientOptions) {
-	return func(o *clientOptions) {
-		o.CertFile = certFile
-	}
-}
 
 type ClientTransport struct {
 	conn       net.Conn
@@ -56,23 +31,19 @@ func (c *ClientTransport) Close() error {
 	return c.conn.Close()
 }
 
-func NewClientTransport(addr string, codec mdd.Codec, opts ...ClientOption) (*ClientTransport, error) {
+func NewClientTransport(addr string, codec mdd.Codec, opts ...config.ClientOption) (*ClientTransport, error) {
 
-	clientOptions := clientOptions{
-		Tls:                false,
-		InsecureSkipVerify: false,
-		CertFile:           "",
-	}
+	options := config.DefaultClientOptions()
 	for _, opt := range opts {
-		opt(&clientOptions)
+		opt(&options)
 	}
 
 	var conn net.Conn
 	var err error
 
-	if clientOptions.Tls {
+	if options.Tls {
 		conn, err = tls.Dial("tcp", addr, &tls.Config{
-			InsecureSkipVerify: clientOptions.InsecureSkipVerify,
+			InsecureSkipVerify: options.InsecureSkipVerify,
 		})
 	} else {
 		conn, err = net.Dial("tcp", addr)
