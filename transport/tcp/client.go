@@ -13,6 +13,32 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+type clientOptions struct {
+	Tls                bool
+	InsecureSkipVerify bool
+	CertFile           string
+}
+
+type ClientOption func(*clientOptions)
+
+func WithTls() func(*clientOptions) {
+	return func(o *clientOptions) {
+		o.Tls = true
+	}
+}
+
+func WithInsecureSkipVerify() func(*clientOptions) {
+	return func(o *clientOptions) {
+		o.InsecureSkipVerify = true
+	}
+}
+
+func WithCertFile(certFile string) func(*clientOptions) {
+	return func(o *clientOptions) {
+		o.CertFile = certFile
+	}
+}
+
 type ClientTransport struct {
 	conn       net.Conn
 	Codec      mdd.Codec
@@ -30,21 +56,32 @@ func (c *ClientTransport) Close() error {
 	return c.conn.Close()
 }
 
-func NewClientTransport(addr string, codec mdd.Codec) (*ClientTransport, error) {
-	conn, err := net.Dial("tcp", addr)
-	if err != nil {
-		return nil, err
-	}
-	return newClientTransport(conn, codec)
-}
+func NewClientTransport(addr string, codec mdd.Codec, opts ...ClientOption) (*ClientTransport, error) {
 
-func NewTLSClientTransport(addr string, codec mdd.Codec) (*ClientTransport, error) {
-	conn, err := tls.Dial("tcp", addr, &tls.Config{
-		InsecureSkipVerify: true,
-	})
+	clientOptions := clientOptions{
+		Tls:                false,
+		InsecureSkipVerify: false,
+		CertFile:           "",
+	}
+	for _, opt := range opts {
+		opt(&clientOptions)
+	}
+
+	var conn net.Conn
+	var err error
+
+	if clientOptions.Tls {
+		conn, err = tls.Dial("tcp", addr, &tls.Config{
+			InsecureSkipVerify: clientOptions.InsecureSkipVerify,
+		})
+	} else {
+		conn, err = net.Dial("tcp", addr)
+	}
+
 	if err != nil {
 		return nil, err
 	}
+
 	return newClientTransport(conn, codec)
 }
 
