@@ -12,7 +12,7 @@ import (
 	"sync/atomic"
 
 	"github.com/matrixxsoftware/go-mdd/mdd"
-	"github.com/matrixxsoftware/go-mdd/transport/config"
+	"github.com/matrixxsoftware/go-mdd/transport"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -33,9 +33,9 @@ func (c *ClientTransport) Close() error {
 	return c.conn.Close()
 }
 
-func NewClientTransport(addr string, codec mdd.Codec, opts ...config.ClientOption) (*ClientTransport, error) {
+func NewClientTransport(addr string, codec mdd.Codec, opts ...transport.ClientOption) (*ClientTransport, error) {
 
-	options := config.DefaultClientOptions()
+	options := transport.DefaultClientOptions()
 	for _, opt := range opts {
 		opt(&options)
 	}
@@ -43,10 +43,11 @@ func NewClientTransport(addr string, codec mdd.Codec, opts ...config.ClientOptio
 	var conn net.Conn
 	var err error
 
-	if options.Tls {
+	tlsOptions := options.Tls
+	if tlsOptions.Enable {
 		certPool := x509.NewCertPool()
-		if options.CertFile != "" {
-			caCert, err := os.ReadFile(options.CertFile)
+		if tlsOptions.CertFile != "" {
+			caCert, err := os.ReadFile(tlsOptions.CertFile)
 			if err != nil {
 				return nil, err
 			}
@@ -55,7 +56,7 @@ func NewClientTransport(addr string, codec mdd.Codec, opts ...config.ClientOptio
 
 		config := &tls.Config{
 			RootCAs:            certPool,
-			InsecureSkipVerify: options.InsecureSkipVerify,
+			InsecureSkipVerify: tlsOptions.InsecureSkipVerify,
 		}
 		conn, err = tls.Dial("tcp", addr, config)
 	} else {

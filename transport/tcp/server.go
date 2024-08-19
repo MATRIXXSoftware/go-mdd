@@ -9,6 +9,7 @@ import (
 	"sync"
 
 	"github.com/matrixxsoftware/go-mdd/mdd"
+	"github.com/matrixxsoftware/go-mdd/transport"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -19,47 +20,46 @@ type ServerTransport struct {
 	mu      sync.Mutex
 }
 
-func NewTLSServerTransport(addr string, codec mdd.Codec, certFile, keyFile string) (*ServerTransport, error) {
+func NewServerTransport(addr string, codec mdd.Codec, opts ...transport.ServerOption) (*ServerTransport, error) {
+
+	options := transport.DefaultServerOptions()
+	for _, opt := range opts {
+		opt(&options)
+	}
+
+	var ln net.Listener
 	var err error
-	var cert tls.Certificate
-	var certPEM, keyPEM []byte
 
-	if certFile != "" && keyFile != "" {
-		certPEM, err = os.ReadFile(certFile)
+	tlsOptions := options.Tls
+	if tlsOptions.Enable {
+		var cert tls.Certificate
+		var certPEM, keyPEM []byte
+		if tlsOptions.SelfSignedCert {
+			certPEM, keyPEM, err = generateSelfSignedCert()
+		} else {
+			certPEM, err = os.ReadFile(tlsOptions.CertFile)
+			if err != nil {
+				return nil, err
+			}
+			keyPEM, err = os.ReadFile(tlsOptions.KeyFile)
+			if err != nil {
+				return nil, err
+			}
+		}
+
+		cert, err = tls.X509KeyPair(certPEM, keyPEM)
 		if err != nil {
 			return nil, err
 		}
-		keyPEM, err = os.ReadFile(keyFile)
-		if err != nil {
-			return nil, err
+
+		config := &tls.Config{
+			Certificates: []tls.Certificate{cert},
 		}
+		ln, err = tls.Listen("tcp", addr, config)
 	} else {
-		certPEM, keyPEM, err = generateSelfSignedCert()
+		ln, err = net.Listen("tcp", addr)
 	}
 
-	cert, err = tls.X509KeyPair(certPEM, keyPEM)
-	if err != nil {
-		return nil, err
-	}
-
-	config := &tls.Config{
-		Certificates: []tls.Certificate{cert},
-	}
-
-	ln, err := tls.Listen("tcp", addr, config)
-	if err != nil {
-		return nil, err
-	}
-
-	return &ServerTransport{
-		ln:    ln,
-		Codec: codec,
-	}, nil
-}
-
-func NewServerTransport(addr string, codec mdd.Codec) (*ServerTransport, error) {
-
-	ln, err := net.Listen("tcp", addr)
 	if err != nil {
 		return nil, err
 	}

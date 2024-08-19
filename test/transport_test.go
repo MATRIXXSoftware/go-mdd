@@ -11,9 +11,9 @@ import (
 	"github.com/matrixxsoftware/go-mdd/cmdc"
 	"github.com/matrixxsoftware/go-mdd/dictionary"
 	"github.com/matrixxsoftware/go-mdd/mdd"
+	"github.com/matrixxsoftware/go-mdd/transport"
 
 	"github.com/matrixxsoftware/go-mdd/mdd/field"
-	"github.com/matrixxsoftware/go-mdd/transport/config"
 	"github.com/matrixxsoftware/go-mdd/transport/http"
 	"github.com/matrixxsoftware/go-mdd/transport/tcp"
 
@@ -91,13 +91,23 @@ func TestTransport(t *testing.T) {
 		{
 			"TCP+TLS",
 			func(addr string) (mdd.ServerTransport, error) {
-				return tcp.NewTLSServerTransport(addr, codec, "", "")
+				return tcp.NewServerTransport(addr, codec,
+					// TODO change to server.WithTLS
+					transport.WithServerTls(transport.ServerTLS{
+						Enable:         true,
+						SelfSignedCert: true,
+					}),
+				)
 
 			},
 			func(addr string) (mdd.ClientTransport, error) {
 				return tcp.NewClientTransport(addr, codec,
-					config.WithTls(),
-					config.WithInsecureSkipVerify())
+					// TODO change to client.WithTLS
+					transport.WithClientTls(transport.ClientTLS{
+						Enable:             true,
+						InsecureSkipVerify: true,
+					}),
+				)
 			},
 		},
 		{

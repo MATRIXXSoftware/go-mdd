@@ -11,7 +11,7 @@ import (
 	"os"
 
 	"github.com/matrixxsoftware/go-mdd/mdd"
-	"github.com/matrixxsoftware/go-mdd/transport/config"
+	"github.com/matrixxsoftware/go-mdd/transport"
 	"golang.org/x/net/http2"
 )
 
@@ -21,18 +21,19 @@ type ClientTransport struct {
 	Codec      mdd.Codec
 }
 
-func NewClientTransport(addr string, codec mdd.Codec, opts ...config.ClientOption) (*ClientTransport, error) {
+func NewClientTransport(addr string, codec mdd.Codec, opts ...transport.ClientOption) (*ClientTransport, error) {
 
-	options := config.DefaultClientOptions()
+	options := transport.DefaultClientOptions()
 	for _, opt := range opts {
 		opt(&options)
 	}
 
 	var transport http.RoundTripper
-	if options.Tls {
+	tlsOptions := options.Tls
+	if tlsOptions.Enable {
 		certPool := x509.NewCertPool()
-		if options.CertFile != "" {
-			caCert, err := os.ReadFile(options.CertFile)
+		if tlsOptions.CertFile != "" {
+			caCert, err := os.ReadFile(tlsOptions.CertFile)
 			if err != nil {
 				return nil, err
 			}
@@ -42,7 +43,7 @@ func NewClientTransport(addr string, codec mdd.Codec, opts ...config.ClientOptio
 			AllowHTTP: true,
 			TLSClientConfig: &tls.Config{
 				RootCAs:            certPool,
-				InsecureSkipVerify: options.InsecureSkipVerify,
+				InsecureSkipVerify: tlsOptions.InsecureSkipVerify,
 			},
 		}
 	} else {
