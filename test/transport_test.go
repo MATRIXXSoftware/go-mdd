@@ -13,6 +13,7 @@ import (
 	"github.com/matrixxsoftware/go-mdd/mdd"
 
 	"github.com/matrixxsoftware/go-mdd/mdd/field"
+	"github.com/matrixxsoftware/go-mdd/transport/config"
 	"github.com/matrixxsoftware/go-mdd/transport/http"
 	"github.com/matrixxsoftware/go-mdd/transport/tcp"
 
@@ -88,6 +89,18 @@ func TestTransport(t *testing.T) {
 			},
 		},
 		{
+			"TCP+TLS",
+			func(addr string) (mdd.ServerTransport, error) {
+				return tcp.NewTLSServerTransport(addr, codec, "", "")
+
+			},
+			func(addr string) (mdd.ClientTransport, error) {
+				return tcp.NewClientTransport(addr, codec,
+					config.WithTls(),
+					config.WithInsecureSkipVerify())
+			},
+		},
+		{
 			"HTTP",
 			func(addr string) (mdd.ServerTransport, error) {
 				return http.NewServerTransport(addr, codec)
@@ -96,6 +109,15 @@ func TestTransport(t *testing.T) {
 				return http.NewClientTransport(addr, codec)
 			},
 		},
+		// {
+		// 	"HTTP + TLS",
+		// 	func(addr string) (mdd.ServerTransport, error) {
+		// 		return http.NewServerTransport(addr, codec)
+		// 	},
+		// 	func(addr string) (mdd.ClientTransport, error) {
+		// 		return http.NewClientTransport(addr, codec)
+		// 	},
+		// },
 	}
 
 	for _, tt := range transports {

@@ -5,6 +5,7 @@ import (
 	"crypto/tls"
 	"io"
 	"net"
+	"os"
 	"sync"
 
 	"github.com/matrixxsoftware/go-mdd/mdd"
@@ -19,7 +20,24 @@ type ServerTransport struct {
 }
 
 func NewTLSServerTransport(addr string, codec mdd.Codec, certFile, keyFile string) (*ServerTransport, error) {
-	cert, err := tls.LoadX509KeyPair(certFile, keyFile)
+	var err error
+	var cert tls.Certificate
+	var certPEM, keyPEM []byte
+
+	if certFile != "" && keyFile != "" {
+		certPEM, err = os.ReadFile(certFile)
+		if err != nil {
+			return nil, err
+		}
+		keyPEM, err = os.ReadFile(keyFile)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		certPEM, keyPEM, err = generateSelfSignedCert()
+	}
+
+	cert, err = tls.X509KeyPair(certPEM, keyPEM)
 	if err != nil {
 		return nil, err
 	}
