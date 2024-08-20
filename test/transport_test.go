@@ -77,21 +77,21 @@ func TestTransport(t *testing.T) {
 
 	transports := []struct {
 		name               string
-		newServerTransport func(string) (mdd.ServerTransport, error)
-		newClientTransport func(string) (mdd.ClientTransport, error)
+		newServerTransport func(string) (server.Transport, error)
+		newClientTransport func(string) (client.Transport, error)
 	}{
 		{
 			"TCP",
-			func(addr string) (mdd.ServerTransport, error) {
+			func(addr string) (server.Transport, error) {
 				return tcp.NewServerTransport(addr, codec)
 			},
-			func(addr string) (mdd.ClientTransport, error) {
+			func(addr string) (client.Transport, error) {
 				return tcp.NewClientTransport(addr, codec)
 			},
 		},
 		{
 			"TCP+TLS",
-			func(addr string) (mdd.ServerTransport, error) {
+			func(addr string) (server.Transport, error) {
 				return tcp.NewServerTransport(addr, codec,
 					server.WithTls(server.TLS{
 						Enable:         true,
@@ -100,7 +100,7 @@ func TestTransport(t *testing.T) {
 				)
 
 			},
-			func(addr string) (mdd.ClientTransport, error) {
+			func(addr string) (client.Transport, error) {
 				return tcp.NewClientTransport(addr, codec,
 					client.WithTls(client.TLS{
 						Enable:             true,
@@ -111,19 +111,19 @@ func TestTransport(t *testing.T) {
 		},
 		{
 			"HTTP",
-			func(addr string) (mdd.ServerTransport, error) {
+			func(addr string) (server.Transport, error) {
 				return http.NewServerTransport(addr, codec)
 			},
-			func(addr string) (mdd.ClientTransport, error) {
+			func(addr string) (client.Transport, error) {
 				return http.NewClientTransport(addr, codec)
 			},
 		},
 		// {
 		// 	"HTTP + TLS",
-		// 	func(addr string) (mdd.ServerTransport, error) {
+		// 	func(addr string) (server.Transport, error) {
 		// 		return http.NewServerTransport(addr, codec)
 		// 	},
-		// 	func(addr string) (mdd.ClientTransport, error) {
+		// 	func(addr string) (client.Transport, error) {
 		// 		return http.NewClientTransport(addr, codec)
 		// 	},
 		// },
@@ -137,7 +137,7 @@ func TestTransport(t *testing.T) {
 			}
 			defer serverTransport.Close()
 
-			server := &mdd.Server{
+			server := &server.Server{
 				Transport: serverTransport,
 			}
 
@@ -231,7 +231,7 @@ func TestTransport(t *testing.T) {
 			}
 			defer clientTransport.Close()
 
-			client := &mdd.Client{
+			client := &client.Client{
 				Transport: clientTransport,
 			}
 

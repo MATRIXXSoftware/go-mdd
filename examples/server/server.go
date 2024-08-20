@@ -8,6 +8,7 @@ import (
 	"github.com/matrixxsoftware/go-mdd/dictionary"
 	"github.com/matrixxsoftware/go-mdd/mdd"
 	"github.com/matrixxsoftware/go-mdd/mdd/field"
+	"github.com/matrixxsoftware/go-mdd/transport/server"
 	"github.com/matrixxsoftware/go-mdd/transport/tcp"
 
 	log "github.com/sirupsen/logrus"
@@ -34,7 +35,7 @@ func main() {
 	}
 	defer transport.Close()
 
-	server := &mdd.Server{
+	server := &server.Server{
 		Transport: transport,
 	}
 
