@@ -7,7 +7,7 @@ import (
 )
 
 type TLS struct {
-	Enable             bool
+	Enabled            bool
 	InsecureSkipVerify bool
 	CertFile           string
 }
@@ -21,7 +21,7 @@ type Option func(*Options)
 func DefaultOptions() Options {
 	return Options{
 		Tls: TLS{
-			Enable:             false,
+			Enabled:            false,
 			InsecureSkipVerify: false,
 			CertFile:           "",
 		},

@@ -31,7 +31,7 @@ func NewServerTransport(addr string, codec mdd.Codec, opts ...server.Option) (*S
 	var err error
 
 	tlsOptions := options.Tls
-	if tlsOptions.Enable {
+	if tlsOptions.Enabled {
 		var cert tls.Certificate
 		var certPEM, keyPEM []byte
 		if tlsOptions.SelfSignedCert {

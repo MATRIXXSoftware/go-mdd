@@ -44,7 +44,7 @@ func NewClientTransport(addr string, codec mdd.Codec, opts ...client.Option) (*C
 	var err error
 
 	tlsOptions := options.Tls
-	if tlsOptions.Enable {
+	if tlsOptions.Enabled {
 		certPool := x509.NewCertPool()
 		if tlsOptions.CertFile != "" {
 			caCert, err := os.ReadFile(tlsOptions.CertFile)

@@ -3,7 +3,7 @@ package server
 import "github.com/matrixxsoftware/go-mdd/mdd"
 
 type TLS struct {
-	Enable         bool
+	Enabled        bool
 	SelfSignedCert bool
 	CertFile       string
 	KeyFile        string
@@ -18,7 +18,7 @@ type Option func(*Options)
 func DefaultOptions() Options {
 	return Options{
 		Tls: TLS{
-			Enable:         false,
+			Enabled:        false,
 			SelfSignedCert: false,
 			CertFile:       "",
 			KeyFile:        "",

@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/matrixxsoftware/go-mdd/mdd"
+	"github.com/matrixxsoftware/go-mdd/transport/server"
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/h2c"
 )
@@ -14,24 +15,19 @@ type ServerTransport struct {
 	address string
 	handler func(*mdd.Containers) (*mdd.Containers, error)
 	Codec   mdd.Codec
-	// TLS
-	CertFile string
-	KeyFile  string
+	Tls     server.TLS
 }
 
-func NewTLSServerTransport(addr string, codec mdd.Codec, certFile, keyFile string) (*ServerTransport, error) {
-	return &ServerTransport{
-		address:  addr,
-		Codec:    codec,
-		CertFile: certFile,
-		KeyFile:  keyFile,
-	}, nil
-}
+func NewServerTransport(addr string, codec mdd.Codec, opts ...server.Option) (*ServerTransport, error) {
+	options := server.DefaultOptions()
+	for _, opt := range opts {
+		opt(&options)
+	}
 
-func NewServerTransport(addr string, codec mdd.Codec) (*ServerTransport, error) {
 	return &ServerTransport{
 		address: addr,
 		Codec:   codec,
+		Tls:     options.Tls,
 	}, nil
 }
 
@@ -42,8 +38,8 @@ func (s *ServerTransport) Listen() error {
 		Handler: h2c.NewHandler(http.HandlerFunc(s.requestHandler), h2s),
 	}
 
-	if s.CertFile != "" && s.KeyFile != "" {
-		return server.ListenAndServeTLS(s.CertFile, s.KeyFile)
+	if s.Tls.Enabled {
+		return server.ListenAndServeTLS(s.Tls.CertFile, s.Tls.KeyFile)
 	} else {
 		return server.ListenAndServe()
 	}

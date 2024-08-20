@@ -94,7 +94,7 @@ func TestTransport(t *testing.T) {
 			func(addr string) (server.Transport, error) {
 				return tcp.NewServerTransport(addr, codec,
 					server.WithTls(server.TLS{
-						Enable:         true,
+						Enabled:        true,
 						SelfSignedCert: true,
 					}),
 				)
@@ -103,7 +103,7 @@ func TestTransport(t *testing.T) {
 			func(addr string) (client.Transport, error) {
 				return tcp.NewClientTransport(addr, codec,
 					client.WithTls(client.TLS{
-						Enable:             true,
+						Enabled:            true,
 						InsecureSkipVerify: true,
 					}),
 				)
