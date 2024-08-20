@@ -2,13 +2,17 @@ package tcp
 
 import (
 	"context"
+	"crypto/tls"
+	"crypto/x509"
 	"errors"
 	"io"
 	"net"
+	"os"
 	"sync"
 	"sync/atomic"
 
 	"github.com/matrixxsoftware/go-mdd/mdd"
+	"github.com/matrixxsoftware/go-mdd/transport/client"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -29,12 +33,44 @@ func (c *ClientTransport) Close() error {
 	return c.conn.Close()
 }
 
-func NewClientTransport(addr string, codec mdd.Codec) (*ClientTransport, error) {
-	conn, err := net.Dial("tcp", addr)
+func NewClientTransport(addr string, codec mdd.Codec, opts ...client.Option) (*ClientTransport, error) {
+
+	options := client.DefaultOptions()
+	for _, opt := range opts {
+		opt(&options)
+	}
+
+	var conn net.Conn
+	var err error
+
+	tlsOptions := options.Tls
+	if tlsOptions.Enabled {
+		certPool := x509.NewCertPool()
+		if tlsOptions.CertFile != "" {
+			caCert, err := os.ReadFile(tlsOptions.CertFile)
+			if err != nil {
+				return nil, err
+			}
+			certPool.AppendCertsFromPEM(caCert)
+		}
+
+		config := &tls.Config{
+			RootCAs:            certPool,
+			InsecureSkipVerify: tlsOptions.InsecureSkipVerify,
+		}
+		conn, err = tls.Dial("tcp", addr, config)
+	} else {
+		conn, err = net.Dial("tcp", addr)
+	}
+
 	if err != nil {
 		return nil, err
 	}
 
+	return newClientTransport(conn, codec)
+}
+
+func newClientTransport(conn net.Conn, codec mdd.Codec) (*ClientTransport, error) {
 	c := &ClientTransport{
 		conn:     conn,
 		Codec:    codec,

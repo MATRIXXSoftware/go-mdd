@@ -4,11 +4,14 @@ import (
 	"bytes"
 	"context"
 	"crypto/tls"
+	"crypto/x509"
 	"io"
 	"net"
 	"net/http"
+	"os"
 
 	"github.com/matrixxsoftware/go-mdd/mdd"
+	"github.com/matrixxsoftware/go-mdd/transport/client"
 	"golang.org/x/net/http2"
 )
 
@@ -18,14 +21,42 @@ type ClientTransport struct {
 	Codec      mdd.Codec
 }
 
-func NewClientTransport(addr string, codec mdd.Codec) (*ClientTransport, error) {
-	httpClient := http.Client{
-		Transport: &http2.Transport{
+func NewClientTransport(addr string, codec mdd.Codec, opts ...client.Option) (*ClientTransport, error) {
+
+	options := client.DefaultOptions()
+	for _, opt := range opts {
+		opt(&options)
+	}
+
+	var transport http.RoundTripper
+	tlsOptions := options.Tls
+	if tlsOptions.Enabled {
+		certPool := x509.NewCertPool()
+		if tlsOptions.CertFile != "" {
+			caCert, err := os.ReadFile(tlsOptions.CertFile)
+			if err != nil {
+				return nil, err
+			}
+			certPool.AppendCertsFromPEM(caCert)
+		}
+		transport = &http2.Transport{
+			AllowHTTP: true,
+			TLSClientConfig: &tls.Config{
+				RootCAs:            certPool,
+				InsecureSkipVerify: tlsOptions.InsecureSkipVerify,
+			},
+		}
+	} else {
+		transport = &http2.Transport{
 			AllowHTTP: true,
 			DialTLS: func(network, addr string, cfg *tls.Config) (net.Conn, error) {
 				return net.Dial(network, addr)
 			},
-		},
+		}
+	}
+
+	httpClient := http.Client{
+		Transport: transport,
 	}
 
 	return &ClientTransport{

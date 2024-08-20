@@ -2,11 +2,14 @@ package tcp
 
 import (
 	"context"
+	"crypto/tls"
 	"io"
 	"net"
 	"sync"
 
 	"github.com/matrixxsoftware/go-mdd/mdd"
+	"github.com/matrixxsoftware/go-mdd/transport/protocol/util"
+	"github.com/matrixxsoftware/go-mdd/transport/server"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -17,9 +20,29 @@ type ServerTransport struct {
 	mu      sync.Mutex
 }
 
-func NewServerTransport(addr string, codec mdd.Codec) (*ServerTransport, error) {
+func NewServerTransport(addr string, codec mdd.Codec, opts ...server.Option) (*ServerTransport, error) {
 
-	ln, err := net.Listen("tcp", addr)
+	options := server.DefaultOptions()
+	for _, opt := range opts {
+		opt(&options)
+	}
+
+	var ln net.Listener
+	var err error
+
+	if options.Tls.Enabled {
+		cert, err := getCert(options)
+		if err != nil {
+			return nil, err
+		}
+		config := &tls.Config{
+			Certificates: []tls.Certificate{cert},
+		}
+		ln, err = tls.Listen("tcp", addr, config)
+	} else {
+		ln, err = net.Listen("tcp", addr)
+	}
+
 	if err != nil {
 		return nil, err
 	}
@@ -28,6 +51,22 @@ func NewServerTransport(addr string, codec mdd.Codec) (*ServerTransport, error) 
 		ln:    ln,
 		Codec: codec,
 	}, nil
+}
+
+func getCert(options server.Options) (tls.Certificate, error) {
+	var err error
+	var cert tls.Certificate
+	var certPEM, keyPEM []byte
+	if options.Tls.SelfSignedCert {
+		certPEM, keyPEM, err = util.GenerateSelfSignedCert()
+	} else {
+		certPEM, keyPEM, err = util.ReadCertAndKeyFiles(options.Tls.CertFile, options.Tls.KeyFile)
+	}
+
+	if err != nil {
+		return cert, err
+	}
+	return tls.X509KeyPair(certPEM, keyPEM)
 }
 
 func (s *ServerTransport) Listen() error {

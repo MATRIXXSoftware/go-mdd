@@ -13,8 +13,10 @@ import (
 	"github.com/matrixxsoftware/go-mdd/mdd"
 
 	"github.com/matrixxsoftware/go-mdd/mdd/field"
-	"github.com/matrixxsoftware/go-mdd/transport/http"
-	"github.com/matrixxsoftware/go-mdd/transport/tcp"
+	"github.com/matrixxsoftware/go-mdd/transport/client"
+	"github.com/matrixxsoftware/go-mdd/transport/protocol/http"
+	"github.com/matrixxsoftware/go-mdd/transport/protocol/tcp"
+	"github.com/matrixxsoftware/go-mdd/transport/server"
 
 	log "github.com/sirupsen/logrus"
 )
@@ -75,38 +77,82 @@ func TestTransport(t *testing.T) {
 
 	transports := []struct {
 		name               string
-		newServerTransport func(string) (mdd.ServerTransport, error)
-		newClientTransport func(string) (mdd.ClientTransport, error)
+		addr               string
+		newServerTransport func(string) (server.Transport, error)
+		newClientTransport func(string) (client.Transport, error)
 	}{
 		{
 			"TCP",
-			func(addr string) (mdd.ServerTransport, error) {
+			"localhost:8080",
+			func(addr string) (server.Transport, error) {
 				return tcp.NewServerTransport(addr, codec)
 			},
-			func(addr string) (mdd.ClientTransport, error) {
+			func(addr string) (client.Transport, error) {
 				return tcp.NewClientTransport(addr, codec)
 			},
 		},
 		{
+			"TCP+TLS",
+			"localhost:8081",
+			func(addr string) (server.Transport, error) {
+				return tcp.NewServerTransport(addr, codec,
+					server.WithTls(server.TLS{
+						Enabled:        true,
+						SelfSignedCert: true,
+					}),
+				)
+
+			},
+			func(addr string) (client.Transport, error) {
+				return tcp.NewClientTransport(addr, codec,
+					client.WithTls(client.TLS{
+						Enabled:            true,
+						InsecureSkipVerify: true,
+					}),
+				)
+			},
+		},
+		{
 			"HTTP",
-			func(addr string) (mdd.ServerTransport, error) {
+			"localhost:8082",
+			func(addr string) (server.Transport, error) {
 				return http.NewServerTransport(addr, codec)
 			},
-			func(addr string) (mdd.ClientTransport, error) {
+			func(addr string) (client.Transport, error) {
 				return http.NewClientTransport(addr, codec)
+			},
+		},
+		{
+			"HTTP+TLS",
+			"localhost:8083",
+			func(addr string) (server.Transport, error) {
+				return http.NewServerTransport(addr, codec,
+					server.WithTls(server.TLS{
+						Enabled:        true,
+						SelfSignedCert: true,
+					}),
+				)
+			},
+			func(addr string) (client.Transport, error) {
+				return http.NewClientTransport(addr, codec,
+					client.WithTls(client.TLS{
+						Enabled:            true,
+						InsecureSkipVerify: true,
+					}),
+				)
 			},
 		},
 	}
 
 	for _, tt := range transports {
 		t.Run(tt.name, func(t *testing.T) {
-			serverTransport, err := tt.newServerTransport("localhost:8080")
+			serverTransport, err := tt.newServerTransport(tt.addr)
 			if err != nil {
 				t.Fatalf("failed to create server transport: %v", err)
 			}
 			defer serverTransport.Close()
 
-			server := &mdd.Server{
+			server := &server.Server{
 				Transport: serverTransport,
 			}
 
@@ -194,13 +240,13 @@ func TestTransport(t *testing.T) {
 			time.Sleep(100 * time.Millisecond)
 
 			// Create Client
-			clientTransport, err := tt.newClientTransport("localhost:8080")
+			clientTransport, err := tt.newClientTransport(tt.addr)
 			if err != nil {
 				panic(err)
 			}
 			defer clientTransport.Close()
 
-			client := &mdd.Client{
+			client := &client.Client{
 				Transport: clientTransport,
 			}
 
