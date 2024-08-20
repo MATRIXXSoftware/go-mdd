@@ -77,11 +77,13 @@ func TestTransport(t *testing.T) {
 
 	transports := []struct {
 		name               string
+		addr               string
 		newServerTransport func(string) (server.Transport, error)
 		newClientTransport func(string) (client.Transport, error)
 	}{
 		{
 			"TCP",
+			"localhost:8080",
 			func(addr string) (server.Transport, error) {
 				return tcp.NewServerTransport(addr, codec)
 			},
@@ -91,6 +93,7 @@ func TestTransport(t *testing.T) {
 		},
 		{
 			"TCP+TLS",
+			"localhost:8081",
 			func(addr string) (server.Transport, error) {
 				return tcp.NewServerTransport(addr, codec,
 					server.WithTls(server.TLS{
@@ -111,6 +114,7 @@ func TestTransport(t *testing.T) {
 		},
 		{
 			"HTTP",
+			"localhost:8082",
 			func(addr string) (server.Transport, error) {
 				return http.NewServerTransport(addr, codec)
 			},
@@ -118,20 +122,31 @@ func TestTransport(t *testing.T) {
 				return http.NewClientTransport(addr, codec)
 			},
 		},
-		// {
-		// 	"HTTP + TLS",
-		// 	func(addr string) (server.Transport, error) {
-		// 		return http.NewServerTransport(addr, codec)
-		// 	},
-		// 	func(addr string) (client.Transport, error) {
-		// 		return http.NewClientTransport(addr, codec)
-		// 	},
-		// },
+		{
+			"HTTP+TLS",
+			"localhost:8083",
+			func(addr string) (server.Transport, error) {
+				return http.NewServerTransport(addr, codec,
+					server.WithTls(server.TLS{
+						Enabled:        true,
+						SelfSignedCert: true,
+					}),
+				)
+			},
+			func(addr string) (client.Transport, error) {
+				return http.NewClientTransport(addr, codec,
+					client.WithTls(client.TLS{
+						Enabled:            true,
+						InsecureSkipVerify: true,
+					}),
+				)
+			},
+		},
 	}
 
 	for _, tt := range transports {
 		t.Run(tt.name, func(t *testing.T) {
-			serverTransport, err := tt.newServerTransport("localhost:8080")
+			serverTransport, err := tt.newServerTransport(tt.addr)
 			if err != nil {
 				t.Fatalf("failed to create server transport: %v", err)
 			}
@@ -225,7 +240,7 @@ func TestTransport(t *testing.T) {
 			time.Sleep(100 * time.Millisecond)
 
 			// Create Client
-			clientTransport, err := tt.newClientTransport("localhost:8080")
+			clientTransport, err := tt.newClientTransport(tt.addr)
 			if err != nil {
 				panic(err)
 			}

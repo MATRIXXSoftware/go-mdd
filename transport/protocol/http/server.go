@@ -1,11 +1,13 @@
 package http
 
 import (
+	"crypto/tls"
 	"fmt"
 	"io"
 	"net/http"
 
 	"github.com/matrixxsoftware/go-mdd/mdd"
+	"github.com/matrixxsoftware/go-mdd/transport/protocol/util"
 	"github.com/matrixxsoftware/go-mdd/transport/server"
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/h2c"
@@ -15,7 +17,7 @@ type ServerTransport struct {
 	address string
 	handler func(*mdd.Containers) (*mdd.Containers, error)
 	Codec   mdd.Codec
-	Tls     server.TLS
+	tls     server.TLS
 }
 
 func NewServerTransport(addr string, codec mdd.Codec, opts ...server.Option) (*ServerTransport, error) {
@@ -27,7 +29,7 @@ func NewServerTransport(addr string, codec mdd.Codec, opts ...server.Option) (*S
 	return &ServerTransport{
 		address: addr,
 		Codec:   codec,
-		Tls:     options.Tls,
+		tls:     options.Tls,
 	}, nil
 }
 
@@ -38,11 +40,34 @@ func (s *ServerTransport) Listen() error {
 		Handler: h2c.NewHandler(http.HandlerFunc(s.requestHandler), h2s),
 	}
 
-	if s.Tls.Enabled {
-		return server.ListenAndServeTLS(s.Tls.CertFile, s.Tls.KeyFile)
+	if s.tls.Enabled {
+		cert, err := s.getCert()
+		if err != nil {
+			return err
+		}
+		tlsConfig := &tls.Config{
+			Certificates: []tls.Certificate{cert},
+		}
+		server.TLSConfig = tlsConfig
+		return server.ListenAndServeTLS("", "")
 	} else {
 		return server.ListenAndServe()
 	}
+}
+
+func (s *ServerTransport) getCert() (tls.Certificate, error) {
+	var err error
+	var cert tls.Certificate
+	var certPEM, keyPEM []byte
+	if s.tls.SelfSignedCert {
+		certPEM, keyPEM, err = util.GenerateSelfSignedCert()
+	} else {
+		certPEM, keyPEM, err = util.ReadCertAndKeyFiles(s.tls.CertFile, s.tls.KeyFile)
+	}
+	if err != nil {
+		return cert, err
+	}
+	return tls.X509KeyPair(certPEM, keyPEM)
 }
 
 func (s *ServerTransport) Close() error {

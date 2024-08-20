@@ -1,4 +1,4 @@
-package tcp
+package util
 
 import (
 	"crypto/ecdsa"
@@ -7,10 +7,11 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"math/big"
+	"os"
 	"time"
 )
 
-func generateSelfSignedCert() (certPEM []byte, keyPEM []byte, err error) {
+func GenerateSelfSignedCert() (certPEM []byte, keyPEM []byte, err error) {
 	// Generate a private key
 	privateKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
 	if err != nil {
@@ -43,6 +44,19 @@ func generateSelfSignedCert() (certPEM []byte, keyPEM []byte, err error) {
 		return nil, nil, err
 	}
 	keyPEM = pem.EncodeToMemory(&pem.Block{Type: "EC PRIVATE KEY", Bytes: keyBytes})
+
+	return certPEM, keyPEM, nil
+}
+
+func ReadCertAndKeyFiles(certFile string, keyFile string) (certPEM []byte, keyPEM []byte, err error) {
+	certPEM, err = os.ReadFile(certFile)
+	if err != nil {
+		return nil, nil, err
+	}
+	keyPEM, err = os.ReadFile(keyFile)
+	if err != nil {
+		return nil, nil, err
+	}
 
 	return certPEM, keyPEM, nil
 }
