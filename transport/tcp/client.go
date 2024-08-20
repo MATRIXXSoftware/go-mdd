@@ -12,7 +12,7 @@ import (
 	"sync/atomic"
 
 	"github.com/matrixxsoftware/go-mdd/mdd"
-	"github.com/matrixxsoftware/go-mdd/transport"
+	"github.com/matrixxsoftware/go-mdd/transport/client"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -33,9 +33,9 @@ func (c *ClientTransport) Close() error {
 	return c.conn.Close()
 }
 
-func NewClientTransport(addr string, codec mdd.Codec, opts ...transport.ClientOption) (*ClientTransport, error) {
+func NewClientTransport(addr string, codec mdd.Codec, opts ...client.Option) (*ClientTransport, error) {
 
-	options := transport.DefaultClientOptions()
+	options := client.DefaultOptions()
 	for _, opt := range opts {
 		opt(&options)
 	}

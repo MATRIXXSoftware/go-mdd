@@ -9,7 +9,7 @@ import (
 	"sync"
 
 	"github.com/matrixxsoftware/go-mdd/mdd"
-	"github.com/matrixxsoftware/go-mdd/transport"
+	"github.com/matrixxsoftware/go-mdd/transport/server"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -20,9 +20,9 @@ type ServerTransport struct {
 	mu      sync.Mutex
 }
 
-func NewServerTransport(addr string, codec mdd.Codec, opts ...transport.ServerOption) (*ServerTransport, error) {
+func NewServerTransport(addr string, codec mdd.Codec, opts ...server.Option) (*ServerTransport, error) {
 
-	options := transport.DefaultServerOptions()
+	options := server.DefaultOptions()
 	for _, opt := range opts {
 		opt(&options)
 	}

@@ -11,7 +11,7 @@ import (
 	"os"
 
 	"github.com/matrixxsoftware/go-mdd/mdd"
-	"github.com/matrixxsoftware/go-mdd/transport"
+	"github.com/matrixxsoftware/go-mdd/transport/client"
 	"golang.org/x/net/http2"
 )
 
@@ -21,9 +21,9 @@ type ClientTransport struct {
 	Codec      mdd.Codec
 }
 
-func NewClientTransport(addr string, codec mdd.Codec, opts ...transport.ClientOption) (*ClientTransport, error) {
+func NewClientTransport(addr string, codec mdd.Codec, opts ...client.Option) (*ClientTransport, error) {
 
-	options := transport.DefaultClientOptions()
+	options := client.DefaultOptions()
 	for _, opt := range opts {
 		opt(&options)
 	}
