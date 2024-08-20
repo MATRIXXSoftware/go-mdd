@@ -176,6 +176,14 @@ func decodeStringValue(b []byte) (string, error) {
 	return string(""), errors.New("invalid string value")
 }
 
+func encodeFieldKeyValue(v string) ([]byte, error) {
+	return []byte(v), nil
+}
+
+func decodeFieldKeyValue(b []byte) (string, error) {
+	return string(b), nil
+}
+
 func encodeInt8Value(v int8) ([]byte, error) {
 	return []byte(strconv.FormatInt(int64(v), 10)), nil
 }

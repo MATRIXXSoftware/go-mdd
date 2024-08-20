@@ -178,6 +178,17 @@ func TestUnicodeStringValue(t *testing.T) {
 	assert.Equal(t, data, encoded)
 }
 
+func TestFieldKeyValue(t *testing.T) {
+	data := []byte("94.3:0.15")
+	value, err := decodeFieldKeyValue(data)
+	assert.Nil(t, err)
+	assert.Equal(t, "94.3:0.15", value)
+
+	encoded, err := encodeFieldKeyValue(value)
+	assert.Nil(t, err)
+	assert.Equal(t, data, encoded)
+}
+
 func TestStringListValue(t *testing.T) {
 	data := []byte("{(6:value1),(7:valu(20),(8:value300)}")
 	list, err := decodeListValue(data, decodeStringValue)
