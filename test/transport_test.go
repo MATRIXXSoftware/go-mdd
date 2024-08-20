@@ -14,9 +14,9 @@ import (
 
 	"github.com/matrixxsoftware/go-mdd/mdd/field"
 	"github.com/matrixxsoftware/go-mdd/transport/client"
-	"github.com/matrixxsoftware/go-mdd/transport/http"
+	"github.com/matrixxsoftware/go-mdd/transport/protocol/http"
+	"github.com/matrixxsoftware/go-mdd/transport/protocol/tcp"
 	"github.com/matrixxsoftware/go-mdd/transport/server"
-	"github.com/matrixxsoftware/go-mdd/transport/tcp"
 
 	log "github.com/sirupsen/logrus"
 )

@@ -9,7 +9,7 @@ import (
 	"github.com/matrixxsoftware/go-mdd/mdd"
 	"github.com/matrixxsoftware/go-mdd/mdd/field"
 	"github.com/matrixxsoftware/go-mdd/transport/client"
-	"github.com/matrixxsoftware/go-mdd/transport/tcp"
+	"github.com/matrixxsoftware/go-mdd/transport/protocol/tcp"
 
 	log "github.com/sirupsen/logrus"
 )
