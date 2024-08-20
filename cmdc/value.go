@@ -2,6 +2,7 @@ package cmdc
 
 import (
 	"errors"
+	"fmt"
 	"math/big"
 	"strconv"
 	"time"
@@ -154,6 +155,19 @@ func encodeStringValue(v string) ([]byte, error) {
 	return data, nil
 }
 
+func fromDigit(ch byte) byte {
+	if ch >= '0' && ch <= '9' {
+		return ch - '0'
+	}
+	if ch >= 'A' && ch <= 'F' {
+		return ch - 'A' + 10
+	}
+	if ch >= 'a' && ch <= 'f' {
+		return ch - 'a' + 10
+	}
+	panic("Invalid OctetString digit '" + string(ch) + "'. Valid digits are '0'-'9', 'A'-'F'")
+}
+
 func decodeStringValue(b []byte) (string, error) {
 	if len(b) == 0 {
 		return string(""), nil
@@ -169,8 +183,26 @@ func decodeStringValue(b []byte) (string, error) {
 			if err != nil {
 				panic("invalid string length")
 			}
-			str := string(b[idx+1 : idx+1+len])
-			return string(str), nil
+			str := ""
+			for i := idx + 1; i < idx+1+len; i++ {
+				c = b[i]
+				if c == '\\' {
+					// Escape Char '\'
+					i++
+					next1 := b[i]
+					if next1 == '\\' {
+						str += "\\"
+					} else {
+						i++
+						next2 := b[i]
+						k := (fromDigit(next1) << 4) | fromDigit(next2)
+						str += string(k)
+					}
+				} else {
+					str += string(c)
+				}
+			}
+			return str, nil
 		}
 	}
 	return string(""), errors.New("invalid string value")
@@ -182,6 +214,40 @@ func encodeFieldKeyValue(v string) ([]byte, error) {
 
 func decodeFieldKeyValue(b []byte) (string, error) {
 	return string(b), nil
+}
+
+func toDigit(b byte) byte {
+	if b < 10 {
+		return '0' + b
+	}
+	return 'A' + (b - 10)
+}
+
+func encodeBlobValue(v string) ([]byte, error) {
+	data := make([]byte, 0, len(v)*3)
+	length := 0
+
+	for _, c := range []byte(v) {
+		if c == '\\' {
+			data = append(data, '\\', '\\')
+			length++
+		} else if c > 0x1F && c < 0x7F {
+			data = append(data, c)
+			length++
+		} else {
+			data = append(data, '\\', toDigit((c&0xF0)>>4), toDigit(c&0x0F))
+			length++
+		}
+	}
+
+	result := make([]byte, 0, len(data)+6)
+	result = append(result, '(')
+	result = append(result, []byte(fmt.Sprintf("%d", length))...)
+	result = append(result, ':')
+	result = append(result, data...)
+	result = append(result, ')')
+
+	return result, nil
 }
 
 func encodeInt8Value(v int8) ([]byte, error) {

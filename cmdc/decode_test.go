@@ -304,6 +304,30 @@ func TestUnicodeStringField(t *testing.T) {
 	assert.Equal(t, "4", container.GetField(3).String())
 }
 
+func TestEscapeStringField(t *testing.T) {
+	mdc := "<1,18,0,-6,5222,2>[1,(6:ab\\\\def),3,4]"
+	containers, err := codec.Decode([]byte(mdc))
+	assert.Nil(t, err)
+
+	container := containers.Containers[0]
+	assert.Equal(t, "1", container.GetField(0).String())
+	assert.Equal(t, "(6:ab\\\\def)", container.GetField(1).String())
+	assert.Equal(t, "3", container.GetField(2).String())
+	assert.Equal(t, "4", container.GetField(3).String())
+}
+
+func TestBlobField(t *testing.T) {
+	mdc := "<1,18,0,-999,5222,2>[1,(17:\\c2\\82\"\\c3\\b8\\10\\08I\"\\c3\\b8\\10\\01\\01\\c3\\85\\05),3,4]"
+	containers, err := codec.Decode([]byte(mdc))
+	assert.Nil(t, err)
+
+	container := containers.Containers[0]
+	assert.Equal(t, "1", container.GetField(0).String())
+	assert.Equal(t, "(17:\\c2\\82\"\\c3\\b8\\10\\08I\"\\c3\\b8\\10\\01\\01\\c3\\85\\05)", container.GetField(1).String())
+	assert.Equal(t, "3", container.GetField(2).String())
+	assert.Equal(t, "4", container.GetField(3).String())
+}
+
 func TestReservedCharacterStringField(t *testing.T) {
 	mdc := "<1,18,0,-6,5222,2>[1,2,(10:v[<ue(obar),4,,6]"
 	containers, err := codec.Decode([]byte(mdc))

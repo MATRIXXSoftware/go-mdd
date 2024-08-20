@@ -84,14 +84,37 @@ func (cmdc *Cmdc) decodeBody(data []byte) ([]mdd.Field, int, error) {
 	angle := 0
 	round := 0
 	curly := 0
+	strLen := 0
 
 	isMulti := false
 	isContainer := false
+	isEscaped := false
 
 	complete := false
 
 	for ; idx < len(data); idx++ {
 		c := data[idx]
+
+		if strLen > 0 {
+			// Escape Char '\'
+			if isEscaped {
+				if c == '\\' {
+					strLen--
+				}
+				isEscaped = false
+				continue
+			}
+			if c == '\\' {
+				isEscaped = true
+				continue
+			}
+			strLen--
+			if strLen == 0 {
+				// reset round mark
+				roundMark = 0
+			}
+			continue
+		}
 
 		if round != 0 {
 			if c == ')' {
@@ -100,14 +123,11 @@ func (cmdc *Cmdc) decodeBody(data []byte) ([]mdd.Field, int, error) {
 				return nil, idx, errors.New("invalid cMDC body, mismatch string length")
 			} else if c == ':' {
 				temp := data[roundMark+1 : idx]
-				len, err := bytesToInt(temp)
+				var err error
+				strLen, err = bytesToInt(temp)
 				if err != nil {
 					return nil, idx, errors.New("invalid cMDC body, invalid string length")
 				}
-				// reset round mark
-				roundMark = 0
-				// skip the string field
-				idx += len
 			} else if c < '0' || c > '9' {
 				return nil, idx, errors.New("invalid character '" + string(c) + "', numeric expected for string length")
 			}
