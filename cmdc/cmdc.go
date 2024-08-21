@@ -183,7 +183,7 @@ func (cmdc *Cmdc) EncodeField(f *mdd.Field) ([]byte, error) {
 		case field.DateTime:
 			return encodeDateTimeValue(f.Value.(*time.Time))
 		case field.Blob:
-			return encodeStringValue(f.Value.(string))
+			return encodeBlobValue(f.Value.(string))
 		case field.BufferID:
 			return encodeStringValue(f.Value.(string))
 		case field.FieldKey:
@@ -234,7 +234,7 @@ func (cmdc *Cmdc) EncodeField(f *mdd.Field) ([]byte, error) {
 		case field.DateTime:
 			return encodeListValue(f.Value.([]*time.Time), encodeDateTimeValue)
 		case field.Blob:
-			return encodeListValue(f.Value.([]string), encodeStringValue)
+			return encodeListValue(f.Value.([]string), encodeBlobValue)
 		case field.BufferID:
 			return encodeListValue(f.Value.([]string), encodeStringValue)
 		case field.FieldKey:
