@@ -183,26 +183,26 @@ func decodeStringValue(b []byte) (string, error) {
 			if err != nil {
 				panic("invalid string length")
 			}
-			str := ""
-			for i := idx + 1; i < idx+1+len; i++ {
-				c = b[i]
+			var result []byte
+			for i := 1; i < len+1; i++ {
+				c = b[idx+i]
 				if c == '\\' {
 					// Escape Char '\'
-					i++
-					next1 := b[i]
+					idx++
+					next1 := b[idx+i]
 					if next1 == '\\' {
-						str += "\\"
+						result = append(result, '\\')
 					} else {
-						i++
-						next2 := b[i]
+						idx++
+						next2 := b[idx+i]
 						k := (fromDigit(next1) << 4) | fromDigit(next2)
-						str += string(k)
+						result = append(result, k)
 					}
 				} else {
-					str += string(c)
+					result = append(result, c)
 				}
 			}
-			return str, nil
+			return string(result), nil
 		}
 	}
 	return string(""), errors.New("invalid string value")
