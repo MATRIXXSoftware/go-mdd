@@ -414,6 +414,30 @@ func TestInvalidBody7(t *testing.T) {
 	assert.Equal(t, errors.New("invalid cMDC body, mismatch string length"), err)
 }
 
+func TestInvalidBody8(t *testing.T) {
+	mdc := "<1,18,0,-999,5222,2>[1,(31:\\c2\\82\"\\c3\\b8\\10\\08I\"\\c3\\b8\\10\\01\\01\\c3\\85\\05),3,4]"
+	_, err := codec.Decode([]byte(mdc))
+	assert.Equal(t, errors.New("invalid cMDC body, no end of body"), err)
+}
+
+func TestInvalidBody9(t *testing.T) {
+	mdc := "<1,18,0,-999,5222,2>[1,(10:\\c2\\82\"\\c3\\b8\\10\\08I\"\\c3\\b8\\10\\01\\01\\c3\\85\\05,3,4]"
+	_, err := codec.Decode([]byte(mdc))
+	assert.Equal(t, errors.New("invalid cMDC body, mismatch string length"), err)
+}
+
+func TestInvalidBody10(t *testing.T) {
+	mdc := "<1,18,0,-999,5222,2>[1,(7:富爸),3,4"
+	_, err := codec.Decode([]byte(mdc))
+	assert.Equal(t, errors.New("invalid cMDC body, mismatch string length"), err)
+}
+
+func TestInvalidBody11(t *testing.T) {
+	mdc := "<1,18,0,-999,5222,2>[1,(2:富爸),3,4"
+	_, err := codec.Decode([]byte(mdc))
+	assert.Equal(t, errors.New("invalid cMDC body, mismatch string length"), err)
+}
+
 func TestEmptyBody(t *testing.T) {
 	mdc := "<1,18,0,-6,5222,2>[]"
 	containers, err := codec.Decode([]byte(mdc))
