@@ -167,6 +167,36 @@ func fromDigit(ch byte) (byte, error) {
 	return ch, errors.New("Invalid OctetString digit '" + string(ch) + "'. Valid digits are '0'-'9', 'A'-'F'")
 }
 
+func decodeString(b []byte) (string, error) {
+	var result []byte
+	for i := 0; i < len(b); i++ {
+		c := b[i]
+		if c == '\\' {
+			// Escape Char '\'
+			i++
+			next1 := b[i]
+			if next1 == '\\' {
+				result = append(result, '\\')
+			} else {
+				i++
+				next2 := b[i]
+				b1, err := fromDigit(next1)
+				if err != nil {
+					return string(""), err
+				}
+				b2, err := fromDigit(next2)
+				if err != nil {
+					return string(""), err
+				}
+				result = append(result, (b1<<4)|b2)
+			}
+		} else {
+			result = append(result, c)
+		}
+	}
+	return string(result), nil
+}
+
 func decodeStringValue(b []byte) (string, error) {
 	if len(b) == 0 {
 		return string(""), nil
@@ -178,37 +208,15 @@ func decodeStringValue(b []byte) (string, error) {
 		c := b[idx]
 		if c == ':' {
 			temp := b[1:idx]
-			len, err := bytesToInt(temp)
+			_, err := bytesToInt(temp)
 			if err != nil {
 				return string(""), errors.New("invalid string length")
 			}
-			var result []byte
-			for i := 1; i < len+1; i++ {
-				c = b[idx+i]
-				if c == '\\' {
-					// Escape Char '\'
-					idx++
-					next1 := b[idx+i]
-					if next1 == '\\' {
-						result = append(result, '\\')
-					} else {
-						idx++
-						next2 := b[idx+i]
-						b1, err := fromDigit(next1)
-						if err != nil {
-							return string(""), err
-						}
-						b2, err := fromDigit(next2)
-						if err != nil {
-							return string(""), err
-						}
-						result = append(result, (b1<<4)|b2)
-					}
-				} else {
-					result = append(result, c)
-				}
+			result, err := decodeString(b[idx+1 : len(b)-1])
+			if err != nil {
+				return string(""), err
 			}
-			return string(result), nil
+			return result, nil
 		}
 	}
 	return string(""), errors.New("invalid string value")

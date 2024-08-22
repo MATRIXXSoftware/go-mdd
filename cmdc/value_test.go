@@ -193,7 +193,7 @@ func TestBlobValue(t *testing.T) {
 	data := []byte("(13:Hello \\C2\\82World)")
 	value, err := decodeStringValue(data)
 	assert.Nil(t, err)
-	assert.Equal(t, "Hello World", value)
+	assert.Equal(t, "Hello \u0082World", value)
 
 	encoded, err := encodeBlobValue(value)
 	assert.Nil(t, err)
