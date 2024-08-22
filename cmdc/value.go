@@ -86,7 +86,7 @@ func decodeList(b []byte) ([][]byte, error) {
 				temp := b[roundMark+1 : idx]
 				len, err := bytesToInt(temp)
 				if err != nil {
-					panic("invalid string length")
+					return nil, errors.New("invalid string length")
 				}
 				// reset round mark
 				roundMark = 0
@@ -155,17 +155,17 @@ func encodeStringValue(v string) ([]byte, error) {
 	return data, nil
 }
 
-func fromDigit(ch byte) byte {
+func fromDigit(ch byte) (byte, error) {
 	if ch >= '0' && ch <= '9' {
-		return ch - '0'
+		return ch - '0', nil
 	}
 	if ch >= 'A' && ch <= 'F' {
-		return ch - 'A' + 10
+		return ch - 'A' + 10, nil
 	}
 	if ch >= 'a' && ch <= 'f' {
-		return ch - 'a' + 10
+		return ch - 'a' + 10, nil
 	}
-	panic("Invalid OctetString digit '" + string(ch) + "'. Valid digits are '0'-'9', 'A'-'F'")
+	return ch, errors.New("Invalid OctetString digit '" + string(ch) + "'. Valid digits are '0'-'9', 'A'-'F'")
 }
 
 func decodeStringValue(b []byte) (string, error) {
@@ -181,7 +181,7 @@ func decodeStringValue(b []byte) (string, error) {
 			temp := b[1:idx]
 			len, err := bytesToInt(temp)
 			if err != nil {
-				panic("invalid string length")
+				return string(""), errors.New("invalid string length")
 			}
 			var result []byte
 			for i := 1; i < len+1; i++ {
@@ -195,8 +195,15 @@ func decodeStringValue(b []byte) (string, error) {
 					} else {
 						idx++
 						next2 := b[idx+i]
-						k := (fromDigit(next1) << 4) | fromDigit(next2)
-						result = append(result, k)
+						b1, err := fromDigit(next1)
+						if err != nil {
+							return string(""), err
+						}
+						b2, err := fromDigit(next2)
+						if err != nil {
+							return string(""), err
+						}
+						result = append(result, (b1<<4)|b2)
 					}
 				} else {
 					result = append(result, c)
