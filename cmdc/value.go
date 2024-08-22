@@ -156,13 +156,12 @@ func encodeStringValue(v string) ([]byte, error) {
 }
 
 func fromDigit(ch byte) (byte, error) {
-	if ch >= '0' && ch <= '9' {
+	switch {
+	case ch >= '0' && ch <= '9':
 		return ch - '0', nil
-	}
-	if ch >= 'A' && ch <= 'F' {
+	case ch >= 'A' && ch <= 'F':
 		return ch - 'A' + 10, nil
-	}
-	if ch >= 'a' && ch <= 'f' {
+	case ch >= 'a' && ch <= 'f':
 		return ch - 'a' + 10, nil
 	}
 	return ch, errors.New("Invalid OctetString digit '" + string(ch) + "'. Valid digits are '0'-'9', 'A'-'F'")
