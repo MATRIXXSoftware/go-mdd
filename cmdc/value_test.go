@@ -167,16 +167,16 @@ func TestStringValue(t *testing.T) {
 	assert.Equal(t, data, encoded)
 }
 
-// func TestEscapedStringValue(t *testing.T) {
-// 	data := []byte("(6:fooba\\\\)")
-// 	value, err := decodeStringValue(data)
-// 	assert.Nil(t, err)
-// 	assert.Equal(t, "fooba\\", value)
-//
-// 	encoded, err := encodeStringValue(value)
-// 	assert.Nil(t, err)
-// 	assert.Equal(t, data, encoded)
-// }
+func TestEscapedStringValue(t *testing.T) {
+	data := []byte("(6:fooba\\\\)")
+	value, err := decodeStringValue(data)
+	assert.Nil(t, err)
+	assert.Equal(t, "fooba\\", value)
+
+	encoded, err := encodeStringValue(value)
+	assert.Nil(t, err)
+	assert.Equal(t, data, encoded)
+}
 
 func TestUnicodeStringValue(t *testing.T) {
 	data := []byte("(6:富爸)")
@@ -352,4 +352,11 @@ func TestDecodeStringWithEscapeChar4(t *testing.T) {
 	value, err := decodeStringValue(data)
 	assert.Nil(t, err)
 	assert.Equal(t, "foo\\CZ", value)
+}
+
+func TestDecodeStringWithEscapeChar5(t *testing.T) {
+	data := []byte("(3:foo\\n)")
+	value, err := decodeStringValue(data)
+	assert.Nil(t, err)
+	assert.Equal(t, "foo\x0a", value)
 }

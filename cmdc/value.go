@@ -189,13 +189,31 @@ func decodeStringWithEscapeChar(b []byte) (string, error) {
 	var result []byte
 	for i := 0; i < len(b); i++ {
 		c := b[i]
-		if c == '\\' && len(b)-i >= 3 {
-			octet := b[i : i+3]
-			b, err := octetStringToByte(octet)
-			// Replace the char with the octet converted byte value if no error
-			if err == nil {
-				c = b
-				i += 2
+		if c == '\\' {
+			if len(b)-i >= 3 {
+				// escape char \xhh
+				octet := b[i : i+3]
+				b, err := octetStringToByte(octet)
+				// Replace the char with the octet converted byte value if no error
+				if err == nil {
+					c = b
+					i += 2
+				}
+			} else if len(b)-i >= 2 {
+				// other escape characters
+				switch b[i+1] {
+				case 'n':
+					c = '\n'
+				case 'r':
+					c = '\r'
+				case 't':
+					c = '\t'
+				case '\\':
+					c = '\\'
+				default:
+					i--
+				}
+				i += 1
 			}
 		}
 		result = append(result, c)
