@@ -150,7 +150,13 @@ func encodeStringValue(v string) ([]byte, error) {
 	data = append(data, '(')
 	data = append(data, []byte(strconv.Itoa(len(v)))...)
 	data = append(data, ':')
-	data = append(data, []byte(v)...)
+	for _, c := range []byte(v) {
+		if c == '\\' {
+			data = append(data, '\\', '\\')
+		} else {
+			data = append(data, c)
+		}
+	}
 	data = append(data, ')')
 	return data, nil
 }

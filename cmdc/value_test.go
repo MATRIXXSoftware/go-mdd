@@ -167,6 +167,17 @@ func TestStringValue(t *testing.T) {
 	assert.Equal(t, data, encoded)
 }
 
+func TestEscapedStringValue(t *testing.T) {
+	data := []byte("(6:fooba\\\\)")
+	value, err := decodeStringValue(data)
+	assert.Nil(t, err)
+	assert.Equal(t, "fooba\\", value)
+
+	encoded, err := encodeStringValue(value)
+	assert.Nil(t, err)
+	assert.Equal(t, data, encoded)
+}
+
 func TestUnicodeStringValue(t *testing.T) {
 	data := []byte("(6:富爸)")
 	value, err := decodeStringValue(data)
