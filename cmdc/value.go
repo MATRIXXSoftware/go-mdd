@@ -210,6 +210,8 @@ func decodeStringWithEscapeChar(b []byte) (string, error) {
 					c = '\t'
 				case '\\':
 					c = '\\'
+				case '0':
+					c = '\x00'
 				default:
 					i--
 				}
@@ -235,13 +237,16 @@ func decodeStringValue(b []byte) (string, error) {
 		c := b[idx]
 		if c == ':' {
 			temp := b[1:idx]
-			_, err := bytesToInt(temp)
+			vlen, err := bytesToInt(temp)
 			if err != nil {
 				return "", errors.New("invalid string length")
 			}
 			result, err := decodeStringWithEscapeChar(b[idx+1 : len(b)-1])
 			if err != nil {
 				return "", err
+			}
+			if len(result) != vlen {
+				return "", errors.New("mismatch string length")
 			}
 			return result, nil
 		}

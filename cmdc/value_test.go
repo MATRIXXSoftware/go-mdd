@@ -327,36 +327,43 @@ func TestTimeValue(t *testing.T) {
 }
 
 func TestDecodeStringWithEscapeChar1(t *testing.T) {
-	data := []byte("(3:foo\\)")
+	data := []byte("(4:foo\\)")
 	value, err := decodeStringValue(data)
 	assert.Nil(t, err)
 	assert.Equal(t, "foo\\", value)
 }
 
 func TestDecodeStringWithEscapeChar2(t *testing.T) {
-	data := []byte("(3:foo\\C)")
+	data := []byte("(5:foo\\C)")
 	value, err := decodeStringValue(data)
 	assert.Nil(t, err)
 	assert.Equal(t, "foo\\C", value)
 }
 
 func TestDecodeStringWithEscapeChar3(t *testing.T) {
-	data := []byte("(3:foo\\C2)")
+	data := []byte("(4:foo\\C2)")
 	value, err := decodeStringValue(data)
 	assert.Nil(t, err)
 	assert.Equal(t, "foo\xc2", value)
 }
 
 func TestDecodeStringWithEscapeChar4(t *testing.T) {
-	data := []byte("(3:foo\\CZ)")
+	data := []byte("(6:foo\\CZ)")
 	value, err := decodeStringValue(data)
 	assert.Nil(t, err)
 	assert.Equal(t, "foo\\CZ", value)
 }
 
 func TestDecodeStringWithEscapeChar5(t *testing.T) {
-	data := []byte("(3:foo\\n)")
+	data := []byte("(4:foo\\n)")
 	value, err := decodeStringValue(data)
 	assert.Nil(t, err)
 	assert.Equal(t, "foo\x0a", value)
+}
+
+func TestDecodeStringWithEscapeCharInvalidLength(t *testing.T) {
+	data := []byte("(3:foo\\n)")
+	_, err := decodeStringValue(data)
+	assert.NotNil(t, err)
+	assert.Equal(t, err.Error(), "mismatch string length")
 }
