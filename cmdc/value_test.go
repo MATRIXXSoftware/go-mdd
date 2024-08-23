@@ -339,3 +339,10 @@ func TestInvalidEscapeStringValue2(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, "foo\xc2", value)
 }
+
+func TestInvalidEscapeStringValue3(t *testing.T) {
+	data := []byte("(3:foo\\C)")
+	value, err := decodeStringValue(data)
+	assert.Nil(t, err)
+	assert.Equal(t, "foo\f", value)
+}
