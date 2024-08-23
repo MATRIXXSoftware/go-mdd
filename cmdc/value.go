@@ -169,29 +169,35 @@ func fromDigit(ch byte) (byte, error) {
 
 func decodeString(b []byte) (string, error) {
 	var result []byte
+	escaped := false
 	for i := 0; i < len(b); i++ {
 		c := b[i]
-		if c == '\\' {
-			// Escape Char '\'
-			i++
-			next1 := b[i]
-			if next1 == '\\' {
+		if escaped {
+			if c == '\\' {
 				result = append(result, '\\')
 			} else {
-				i++
-				next2 := b[i]
-				b1, err := fromDigit(next1)
+				b1, err := fromDigit(c)
 				if err != nil {
 					return "", err
 				}
-				b2, err := fromDigit(next2)
+				if i+1 >= len(b) {
+					return "", errors.New("incomplete hex escape sequence")
+				}
+				i++
+				c = b[i]
+				b2, err := fromDigit(c)
 				if err != nil {
 					return "", err
 				}
 				result = append(result, (b1<<4)|b2)
 			}
+			escaped = false
 		} else {
-			result = append(result, c)
+			if c == '\\' {
+				escaped = true
+			} else {
+				result = append(result, c)
+			}
 		}
 	}
 	return string(result), nil
@@ -202,6 +208,9 @@ func decodeStringValue(b []byte) (string, error) {
 		return "", nil
 	}
 	if b[0] != '(' {
+		return "", errors.New("invalid string value")
+	}
+	if b[len(b)-1] != ')' {
 		return "", errors.New("invalid string value")
 	}
 	for idx := 1; idx < len(b); idx++ {
