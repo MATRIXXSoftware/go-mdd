@@ -74,7 +74,7 @@ func (c *Cmdc) DecodeField(f *mdd.Field) (interface{}, error) {
 		case field.BufferID:
 			return decodeStringValue(f.Data)
 		case field.FieldKey:
-			return decodeStringValue(f.Data)
+			return decodeFieldKeyValue(f.Data)
 		case field.PhoneNo:
 			return field.NewPhoneNo(f.Data)
 		case field.ObjectID:
@@ -125,7 +125,7 @@ func (c *Cmdc) DecodeField(f *mdd.Field) (interface{}, error) {
 		case field.BufferID:
 			return decodeListValue(f.Data, decodeStringValue)
 		case field.FieldKey:
-			return decodeListValue(f.Data, decodeStringValue)
+			return decodeListValue(f.Data, decodeFieldKeyValue)
 		case field.PhoneNo:
 			return decodeListValue(f.Data, field.NewPhoneNo)
 		case field.ObjectID:
@@ -183,11 +183,11 @@ func (cmdc *Cmdc) EncodeField(f *mdd.Field) ([]byte, error) {
 		case field.DateTime:
 			return encodeDateTimeValue(f.Value.(*time.Time))
 		case field.Blob:
-			return encodeStringValue(f.Value.(string))
+			return encodeBlobValue(f.Value.(string))
 		case field.BufferID:
 			return encodeStringValue(f.Value.(string))
 		case field.FieldKey:
-			return encodeStringValue(f.Value.(string))
+			return encodeFieldKeyValue(f.Value.(string))
 		case field.PhoneNo:
 			return f.Value.(field.MtxPhoneNo).Bytes()
 		case field.ObjectID:
@@ -234,11 +234,11 @@ func (cmdc *Cmdc) EncodeField(f *mdd.Field) ([]byte, error) {
 		case field.DateTime:
 			return encodeListValue(f.Value.([]*time.Time), encodeDateTimeValue)
 		case field.Blob:
-			return encodeListValue(f.Value.([]string), encodeStringValue)
+			return encodeListValue(f.Value.([]string), encodeBlobValue)
 		case field.BufferID:
 			return encodeListValue(f.Value.([]string), encodeStringValue)
 		case field.FieldKey:
-			return encodeListValue(f.Value.([]string), encodeStringValue)
+			return encodeListValue(f.Value.([]string), encodeFieldKeyValue)
 		case field.PhoneNo:
 			return encodeListValue(f.Value.([]field.MtxPhoneNo), func(v field.MtxPhoneNo) ([]byte, error) {
 				return v.Bytes()

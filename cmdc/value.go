@@ -2,6 +2,7 @@ package cmdc
 
 import (
 	"errors"
+	"fmt"
 	"math/big"
 	"strconv"
 	"time"
@@ -85,7 +86,7 @@ func decodeList(b []byte) ([][]byte, error) {
 				temp := b[roundMark+1 : idx]
 				len, err := bytesToInt(temp)
 				if err != nil {
-					panic("invalid string length")
+					return nil, errors.New("invalid string length")
 				}
 				// reset round mark
 				roundMark = 0
@@ -149,31 +150,134 @@ func encodeStringValue(v string) ([]byte, error) {
 	data = append(data, '(')
 	data = append(data, []byte(strconv.Itoa(len(v)))...)
 	data = append(data, ':')
-	data = append(data, []byte(v)...)
+	for _, c := range []byte(v) {
+		if c == '\\' {
+			data = append(data, '\\', '\\')
+		} else {
+			data = append(data, c)
+		}
+	}
 	data = append(data, ')')
 	return data, nil
 }
 
+func fromDigit(ch byte) (byte, error) {
+	switch {
+	case ch >= '0' && ch <= '9':
+		return ch - '0', nil
+	case ch >= 'A' && ch <= 'F':
+		return ch - 'A' + 10, nil
+	case ch >= 'a' && ch <= 'f':
+		return ch - 'a' + 10, nil
+	}
+	return ch, errors.New("Invalid OctetString digit '" + string(ch) + "'. Valid digits are '0'-'9', 'A'-'F'")
+}
+
+func decodeString(b []byte) (string, error) {
+	var result []byte
+	escaped := false
+	for i := 0; i < len(b); i++ {
+		c := b[i]
+		if escaped {
+			if c == '\\' {
+				result = append(result, '\\')
+			} else {
+				b1, err := fromDigit(c)
+				if err != nil {
+					return "", err
+				}
+				if i+1 >= len(b) {
+					result = append(result, b1)
+				} else {
+					i++
+					c = b[i]
+					b2, err := fromDigit(c)
+					if err != nil {
+						return "", err
+					}
+					result = append(result, (b1<<4)|b2)
+				}
+			}
+			escaped = false
+		} else {
+			if c == '\\' {
+				escaped = true
+			} else {
+				result = append(result, c)
+			}
+		}
+	}
+	return string(result), nil
+}
+
 func decodeStringValue(b []byte) (string, error) {
 	if len(b) == 0 {
-		return string(""), nil
+		return "", nil
 	}
 	if b[0] != '(' {
-		return string(""), errors.New("invalid string value")
+		return "", errors.New("invalid string value")
+	}
+	if b[len(b)-1] != ')' {
+		return "", errors.New("invalid string value")
 	}
 	for idx := 1; idx < len(b); idx++ {
 		c := b[idx]
 		if c == ':' {
 			temp := b[1:idx]
-			len, err := bytesToInt(temp)
+			_, err := bytesToInt(temp)
 			if err != nil {
-				panic("invalid string length")
+				return "", errors.New("invalid string length")
 			}
-			str := string(b[idx+1 : idx+1+len])
-			return string(str), nil
+			result, err := decodeString(b[idx+1 : len(b)-1])
+			if err != nil {
+				return "", err
+			}
+			return result, nil
 		}
 	}
-	return string(""), errors.New("invalid string value")
+	return "", errors.New("invalid string value")
+}
+
+func encodeFieldKeyValue(v string) ([]byte, error) {
+	return []byte(v), nil
+}
+
+func decodeFieldKeyValue(b []byte) (string, error) {
+	return string(b), nil
+}
+
+func toDigit(b byte) byte {
+	if b < 10 {
+		return '0' + b
+	}
+	return 'A' + (b - 10)
+}
+
+func encodeBlobValue(v string) ([]byte, error) {
+	data := make([]byte, 0, len(v)*3)
+	length := 0
+
+	for _, c := range []byte(v) {
+		if c == '\\' {
+			data = append(data, '\\', '\\')
+			length++
+		} else if c > 0x1F && c < 0x7F {
+			data = append(data, c)
+			length++
+		} else {
+			data = append(data, '\\', toDigit((c&0xF0)>>4), toDigit(c&0x0F))
+			length++
+		}
+	}
+
+	result := make([]byte, 0, len(data)+6)
+	result = append(result, '(')
+	result = append(result, []byte(fmt.Sprintf("%d", length))...)
+	result = append(result, ':')
+	result = append(result, data...)
+	result = append(result, ')')
+
+	return result, nil
 }
 
 func encodeInt8Value(v int8) ([]byte, error) {

@@ -167,6 +167,17 @@ func TestStringValue(t *testing.T) {
 	assert.Equal(t, data, encoded)
 }
 
+func TestEscapedStringValue(t *testing.T) {
+	data := []byte("(6:fooba\\\\)")
+	value, err := decodeStringValue(data)
+	assert.Nil(t, err)
+	assert.Equal(t, "fooba\\", value)
+
+	encoded, err := encodeStringValue(value)
+	assert.Nil(t, err)
+	assert.Equal(t, data, encoded)
+}
+
 func TestUnicodeStringValue(t *testing.T) {
 	data := []byte("(6:富爸)")
 	value, err := decodeStringValue(data)
@@ -174,6 +185,28 @@ func TestUnicodeStringValue(t *testing.T) {
 	assert.Equal(t, "富爸", value)
 
 	encoded, err := encodeStringValue(value)
+	assert.Nil(t, err)
+	assert.Equal(t, data, encoded)
+}
+
+func TestFieldKeyValue(t *testing.T) {
+	data := []byte("94.3:0.15")
+	value, err := decodeFieldKeyValue(data)
+	assert.Nil(t, err)
+	assert.Equal(t, "94.3:0.15", value)
+
+	encoded, err := encodeFieldKeyValue(value)
+	assert.Nil(t, err)
+	assert.Equal(t, data, encoded)
+}
+
+func TestBlobValue(t *testing.T) {
+	data := []byte("(13:Hello \\C2\\82World)")
+	value, err := decodeStringValue(data)
+	assert.Nil(t, err)
+	assert.Equal(t, "Hello \u0082World", value)
+
+	encoded, err := encodeBlobValue(value)
 	assert.Nil(t, err)
 	assert.Equal(t, data, encoded)
 }
@@ -291,4 +324,25 @@ func TestTimeValue(t *testing.T) {
 	encoded, err := encodeTimeValue(value)
 	assert.Nil(t, err)
 	assert.Equal(t, data, encoded)
+}
+
+func TestInvalidEscapeStringValue1(t *testing.T) {
+	data := []byte("(3:foo\\)")
+	value, err := decodeStringValue(data)
+	assert.Nil(t, err)
+	assert.Equal(t, "foo", value)
+}
+
+func TestInvalidEscapeStringValue2(t *testing.T) {
+	data := []byte("(3:foo\\C2)")
+	value, err := decodeStringValue(data)
+	assert.Nil(t, err)
+	assert.Equal(t, "foo\xc2", value)
+}
+
+func TestInvalidEscapeStringValue3(t *testing.T) {
+	data := []byte("(3:foo\\C)")
+	value, err := decodeStringValue(data)
+	assert.Nil(t, err)
+	assert.Equal(t, "foo\f", value)
 }
