@@ -182,11 +182,11 @@ func decodeString(b []byte) (string, error) {
 				next2 := b[i]
 				b1, err := fromDigit(next1)
 				if err != nil {
-					return string(""), err
+					return "", err
 				}
 				b2, err := fromDigit(next2)
 				if err != nil {
-					return string(""), err
+					return "", err
 				}
 				result = append(result, (b1<<4)|b2)
 			}
@@ -199,10 +199,10 @@ func decodeString(b []byte) (string, error) {
 
 func decodeStringValue(b []byte) (string, error) {
 	if len(b) == 0 {
-		return string(""), nil
+		return "", nil
 	}
 	if b[0] != '(' {
-		return string(""), errors.New("invalid string value")
+		return "", errors.New("invalid string value")
 	}
 	for idx := 1; idx < len(b); idx++ {
 		c := b[idx]
@@ -210,16 +210,16 @@ func decodeStringValue(b []byte) (string, error) {
 			temp := b[1:idx]
 			_, err := bytesToInt(temp)
 			if err != nil {
-				return string(""), errors.New("invalid string length")
+				return "", errors.New("invalid string length")
 			}
 			result, err := decodeString(b[idx+1 : len(b)-1])
 			if err != nil {
-				return string(""), err
+				return "", err
 			}
 			return result, nil
 		}
 	}
-	return string(""), errors.New("invalid string value")
+	return "", errors.New("invalid string value")
 }
 
 func encodeFieldKeyValue(v string) ([]byte, error) {
