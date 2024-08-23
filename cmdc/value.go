@@ -181,15 +181,16 @@ func decodeString(b []byte) (string, error) {
 					return "", err
 				}
 				if i+1 >= len(b) {
-					return "", errors.New("incomplete hex escape sequence")
+					result = append(result, b1)
+				} else {
+					i++
+					c = b[i]
+					b2, err := fromDigit(c)
+					if err != nil {
+						return "", err
+					}
+					result = append(result, (b1<<4)|b2)
 				}
-				i++
-				c = b[i]
-				b2, err := fromDigit(c)
-				if err != nil {
-					return "", err
-				}
-				result = append(result, (b1<<4)|b2)
 			}
 			escaped = false
 		} else {

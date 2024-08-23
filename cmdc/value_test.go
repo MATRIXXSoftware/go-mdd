@@ -314,3 +314,17 @@ func TestTimeValue(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, data, encoded)
 }
+
+func TestInvalidEscapeStringValue1(t *testing.T) {
+	data := []byte("(3:foo\\)")
+	value, err := decodeStringValue(data)
+	assert.Nil(t, err)
+	assert.Equal(t, "foo", value)
+}
+
+func TestInvalidEscapeStringValue2(t *testing.T) {
+	data := []byte("(3:foo\\C2)")
+	value, err := decodeStringValue(data)
+	assert.Nil(t, err)
+	assert.Equal(t, "foo\xc2", value)
+}
