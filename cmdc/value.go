@@ -173,39 +173,32 @@ func fromDigit(ch byte) (byte, error) {
 	return ch, errors.New("Invalid OctetString digit '" + string(ch) + "'. Valid digits are '0'-'9', 'A'-'F'")
 }
 
-func decodeString(b []byte) (string, error) {
+func octetStringToByte(octet []byte) (byte, error) {
+	b1, err := fromDigit(octet[1])
+	if err != nil {
+		return 0, err
+	}
+	b2, err := fromDigit(octet[2])
+	if err != nil {
+		return 0, err
+	}
+	return (b1 << 4) | b2, nil
+}
+
+func decodeStringWithEscapeChar(b []byte) (string, error) {
 	var result []byte
-	escaped := false
 	for i := 0; i < len(b); i++ {
 		c := b[i]
-		if escaped {
-			if c == '\\' {
-				result = append(result, '\\')
-			} else {
-				b1, err := fromDigit(c)
-				if err != nil {
-					return "", err
-				}
-				if i+1 >= len(b) {
-					result = append(result, b1)
-				} else {
-					i++
-					c = b[i]
-					b2, err := fromDigit(c)
-					if err != nil {
-						return "", err
-					}
-					result = append(result, (b1<<4)|b2)
-				}
-			}
-			escaped = false
-		} else {
-			if c == '\\' {
-				escaped = true
-			} else {
-				result = append(result, c)
+		if c == '\\' && len(b)-i >= 3 {
+			octet := b[i : i+3]
+			b, err := octetStringToByte(octet)
+			// Replace the char with the octet converted byte value if no error
+			if err == nil {
+				c = b
+				i += 2
 			}
 		}
+		result = append(result, c)
 	}
 	return string(result), nil
 }
@@ -228,7 +221,7 @@ func decodeStringValue(b []byte) (string, error) {
 			if err != nil {
 				return "", errors.New("invalid string length")
 			}
-			result, err := decodeString(b[idx+1 : len(b)-1])
+			result, err := decodeStringWithEscapeChar(b[idx+1 : len(b)-1])
 			if err != nil {
 				return "", err
 			}
