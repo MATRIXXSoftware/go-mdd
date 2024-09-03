@@ -9,7 +9,7 @@ import (
 type TLS struct {
 	Enabled            bool
 	InsecureSkipVerify bool
-	CertFile           string
+	CaFile             string
 }
 
 type Options struct {
@@ -23,7 +23,7 @@ func DefaultOptions() Options {
 		Tls: TLS{
 			Enabled:            false,
 			InsecureSkipVerify: false,
-			CertFile:           "",
+			CaFile:             "",
 		},
 	}
 }
